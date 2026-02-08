@@ -4,7 +4,7 @@
   "Name": "Hoyo Deck",
   "Author": "fcannizzaro",
   "Description": "HoYoverse games utilities for Stream Deck (Genshin Impact, Honkai: Star Rail and Zenless Zone Zero)",
-  "Version": "2.0.0.0",
+  "Version": "1.0.0.0",
   "SDKVersion": 2,
   "Software": {
     "MinimumVersion": "6.6"
