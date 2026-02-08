@@ -1,0 +1,152 @@
+/* Elgato Stream Deck Property Inspector Styles */
+
+:root {
+  --bg-color: #2d2d2d;
+  --text-color: #d8d8d8;
+  --secondary-text: #999;
+  --border-color: #3a3a3a;
+  --input-bg: #3c3c3c;
+  --input-focus: #0078d4;
+  --button-bg: #4a4a4a;
+  --button-hover: #555;
+  --success: #4caf50;
+  --error: #f44336;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 12px;
+  color: var(--text-color);
+  background-color: var(--bg-color);
+  padding: 12px;
+  line-height: 1.4;
+}
+
+.sdpi-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.sdpi-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sdpi-item-label {
+  font-weight: 500;
+  color: var(--secondary-text);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.sdpi-item-value {
+  width: 100%;
+}
+
+input[type="text"],
+input[type="password"],
+textarea,
+select {
+  width: 100%;
+  padding: 8px 10px;
+  background-color: var(--input-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  color: var(--text-color);
+  font-size: 12px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+input[type="text"]:focus,
+input[type="password"]:focus,
+textarea:focus,
+select:focus {
+  border-color: var(--input-focus);
+}
+
+textarea {
+  min-height: 80px;
+  resize: vertical;
+  font-family: monospace;
+  font-size: 11px;
+}
+
+button {
+  padding: 8px 16px;
+  background-color: var(--button-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  color: var(--text-color);
+  font-size: 12px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+button:hover {
+  background-color: var(--button-hover);
+}
+
+button:active {
+  background-color: var(--input-bg);
+}
+
+.sdpi-heading {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.sdpi-info {
+  font-size: 11px;
+  color: var(--secondary-text);
+  margin-top: 4px;
+}
+
+.sdpi-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sdpi-checkbox input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--input-focus);
+}
+
+.status-message {
+  padding: 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  margin-top: 8px;
+}
+
+.status-success {
+  background-color: rgba(76, 175, 80, 0.2);
+  border: 1px solid var(--success);
+  color: var(--success);
+}
+
+.status-error {
+  background-color: rgba(244, 67, 54, 0.2);
+  border: 1px solid var(--error);
+  color: var(--error);
+}
+
+.divider {
+  height: 1px;
+  background-color: var(--border-color);
+  margin: 12px 0;
+}

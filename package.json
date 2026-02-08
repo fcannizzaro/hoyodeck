@@ -1,0 +1,32 @@
+{
+  "name": "com.fcannizzaro.hoyodeck",
+  "version": "1.0.0",
+  "description": "HoYoverse game utilities for Stream Deck",
+  "author": "fcannizzaro",
+  "license": "GPL-3.0",
+  "type": "module",
+  "scripts": {
+    "build": "tsc --noEmit && rollup -c && streamdeck pack --force-update-check  -f ./com.fcannizzaro.hoyodeck.sdPlugin",
+    "dev": "bunx --bun rollup -c -w --watch.onEnd=\"streamdeck restart  com.fcannizzaro.hoyodeck\"",
+    "link": "streamdeck link  com.fcannizzaro.hoyodeck.sdPlugin",
+    "cli": "bun run src/cli.ts"
+  },
+  "dependencies": {
+    "@elgato/streamdeck": "^2.0.0",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@elgato/cli": "^1.7.0",
+    "@rollup/plugin-commonjs": "^29.0.0",
+    "@rollup/plugin-json": "^6.1.0",
+    "@rollup/plugin-node-resolve": "^16.0.3",
+    "@types/node": "^25.1.0",
+    "rollup": "^4.24.0",
+    "rollup-plugin-swc3": "^0.12.1",
+    "tslib": "^2.8.0",
+    "typescript": "^5.6.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

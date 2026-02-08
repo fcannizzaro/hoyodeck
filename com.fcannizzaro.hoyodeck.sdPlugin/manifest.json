@@ -1,0 +1,145 @@
+{
+  "$schema": "https://schemas.elgato.com/streamdeck/plugins/manifest.json",
+  "UUID": "com.fcannizzaro.hoyodeck",
+  "Name": "Hoyo Deck",
+  "Author": "fcannizzaro",
+  "Description": "HoYoverse games utilities for Stream Deck (Genshin Impact, Honkai: Star Rail and Zenless Zone Zero)",
+  "Version": "2.0.0.0",
+  "SDKVersion": 2,
+  "Software": {
+    "MinimumVersion": "6.6"
+  },
+  "OS": [
+    {
+      "Platform": "mac",
+      "MinimumVersion": "13"
+    },
+    {
+      "Platform": "windows",
+      "MinimumVersion": "10"
+    }
+  ],
+  "Nodejs": {
+    "Version": "20",
+    "Debug": "--inspect=127.0.0.1:9990"
+  },
+  "CodePath": "bin/plugin.js",
+  "Category": "Hoyo Deck",
+  "CategoryIcon": "imgs/plugin/category",
+  "Icon": "imgs/plugin/icon",
+  "PropertyInspectorPath": "ui/auth.html",
+  "Actions": [
+    {
+      "UUID": "com.fcannizzaro.hoyodeck.genshin.resin",
+      "Name": "Resin",
+      "Icon": "imgs/actions/gi/resinIcon",
+      "Tooltip": "Display and refresh Original Resin",
+      "Controllers": ["Keypad"],
+      "States": [
+        {
+          "Image": "imgs/actions/gi/resinState",
+          "TitleAlignment": "middle"
+        }
+      ]
+    },
+    {
+      "UUID": "com.fcannizzaro.hoyodeck.genshin.commission",
+      "Name": "Commissions",
+      "Icon": "imgs/actions/gi/commissionIcon",
+      "Tooltip": "Display remaining daily commissions",
+      "Controllers": ["Keypad"],
+      "States": [
+        {
+          "Image": "imgs/actions/gi/commissionState",
+          "TitleAlignment": "middle"
+        }
+      ]
+    },
+    {
+      "UUID": "com.fcannizzaro.hoyodeck.genshin.expedition",
+      "Name": "Expeditions",
+      "Icon": "imgs/actions/gi/expeditionIcon",
+      "Tooltip": "Display completed expeditions",
+      "Controllers": ["Keypad"],
+      "States": [
+        {
+          "Image": "imgs/actions/gi/expeditionState",
+          "TitleAlignment": "middle"
+        }
+      ]
+    },
+    {
+      "UUID": "com.fcannizzaro.hoyodeck.genshin.teapot",
+      "Name": "Teapot",
+      "Icon": "imgs/actions/gi/teapotIcon",
+      "Tooltip": "Display Serenitea Pot realm currency",
+      "Controllers": ["Keypad"],
+      "States": [
+        {
+          "Image": "imgs/actions/gi/teapotState",
+          "TitleAlignment": "middle"
+        }
+      ]
+    },
+    {
+      "UUID": "com.fcannizzaro.hoyodeck.genshin.transformer",
+      "Name": "Transformer",
+      "Icon": "imgs/actions/gi/transformerIcon",
+      "Tooltip": "Display Parametric Transformer cooldown",
+      "PropertyInspectorPath": "ui/actions/transformer.html",
+      "Controllers": ["Keypad"],
+      "States": [
+        {
+          "Image": "imgs/actions/gi/transformerState",
+          "TitleAlignment": "middle"
+        },
+        {
+          "Image": "imgs/actions/gi/transformerReadyState",
+          "TitleAlignment": "middle",
+          "Name": "Ready"
+        }
+      ]
+    },
+    {
+      "UUID": "com.fcannizzaro.hoyodeck.genshin.abyss",
+      "Name": "Spiral Abyss",
+      "Icon": "imgs/actions/gi/abyssIcon",
+      "Tooltip": "Display Spiral Abyss progress and reset timer",
+      "Controllers": ["Keypad"],
+      "States": [
+        {
+          "Image": "imgs/actions/gi/abyssState",
+          "TitleAlignment": "middle"
+        }
+      ]
+    },
+    {
+      "UUID": "com.fcannizzaro.hoyodeck.genshin.daily-reward",
+      "Name": "Daily Reward",
+      "Icon": "imgs/actions/gi/rewardIcon",
+      "Tooltip": "View and claim HoYoLAB daily check-in reward",
+      "PropertyInspectorPath": "ui/actions/daily-reward.html",
+      "Controllers": ["Keypad"],
+      "States": [
+        {
+          "Image": "imgs/actions/gi/rewardState",
+          "TitleAlignment": "middle"
+        }
+      ]
+    },
+    {
+      "UUID": "com.fcannizzaro.hoyodeck.genshin.banner",
+      "Name": "Banner",
+      "Icon": "imgs/actions/gi/bannerIcon",
+      "Tooltip": "Display current wish banner countdown",
+      "PropertyInspectorPath": "ui/actions/banner.html",
+      "Controllers": ["Keypad"],
+      "States": [
+        {
+          "Image": "imgs/actions/gi/bannerState",
+          "TitleAlignment": "middle"
+        }
+      ]
+    }
+  ]
+}
