@@ -8,8 +8,11 @@ const TUBBY_HEIGHT = 161;
 const TUBBY_X_OFFSET = (SIZE - TUBBY_WIDTH) / 2;
 const TUBBY_Y_OFFSET = (SIZE - TUBBY_HEIGHT) / 2 + 10;
 const CENTER = SIZE / 2;
-const BAR_HEIGHT = 36;
+const BAR_HEIGHT = 28;
+const BAR_RX = 8;
+const BAR_PADDING_X = 20;
 const FONT_SIZE = 20;
+const CHAR_WIDTH = FONT_SIZE * 0.65;
 const BAR_Y = SIZE - BAR_HEIGHT;
 const TEXT_Y = BAR_Y + BAR_HEIGHT / 2 + FONT_SIZE / 3;
 
@@ -64,7 +67,10 @@ export const buildTeapotAlertSvg = (
     ? `<rect x="0" y="0" width="${SIZE}" height="${SIZE}" fill="red" style="opacity: 0.3" />`
     : "";
 
-  const textLayer = `<rect x="0" y="${BAR_Y}" width="${SIZE}" height="${BAR_HEIGHT}" rx="6" fill="black" style="opacity: 0.7" />
+  const barW = Math.round(text.length * CHAR_WIDTH + BAR_PADDING_X * 2);
+  const barX = Math.round((SIZE - barW) / 2);
+
+  const textLayer = `<rect x="${barX}" y="${BAR_Y}" width="${barW}" height="${BAR_HEIGHT + BAR_RX}" rx="${BAR_RX}" fill="black" opacity="0.7" />
   <text x="${CENTER}" y="${TEXT_Y}" font-family="sans-serif" font-size="${FONT_SIZE}" font-weight="bold" fill="white" text-anchor="middle">${text}</text>`;
 
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${SIZE}" height="${SIZE}" viewBox="0 0 ${SIZE} ${SIZE}">

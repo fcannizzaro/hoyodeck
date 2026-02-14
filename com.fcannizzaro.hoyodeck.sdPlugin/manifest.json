@@ -32,12 +32,12 @@
     {
       "UUID": "com.fcannizzaro.hoyodeck.genshin.resin",
       "Name": "[GI] Resin",
-      "Icon": "imgs/actions/gi/resinIcon",
+      "Icon": "imgs/actions/gi/resin-icon",
       "Tooltip": "Display and refresh Original Resin",
       "Controllers": ["Keypad"],
       "States": [
         {
-          "Image": "imgs/actions/gi/resinState",
+          "Image": "imgs/actions/gi/resin-state",
           "TitleAlignment": "middle"
         }
       ]
