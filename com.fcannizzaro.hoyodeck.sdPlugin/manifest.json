@@ -27,7 +27,7 @@
   "Category": "Hoyo Deck",
   "CategoryIcon": "imgs/plugin/category",
   "Icon": "imgs/plugin/icon",
-  "PropertyInspectorPath": "ui/auth.html",
+  "PropertyInspectorPath": "ui/index.html",
   "Actions": [
     {
       "UUID": "com.fcannizzaro.hoyodeck.genshin.resin",
@@ -71,12 +71,12 @@
     {
       "UUID": "com.fcannizzaro.hoyodeck.genshin.teapot",
       "Name": "Teapot",
-      "Icon": "imgs/actions/gi/teapotIcon",
+      "Icon": "imgs/actions/gi/teapot-icon",
       "Tooltip": "Display Serenitea Pot realm currency",
       "Controllers": ["Keypad"],
       "States": [
         {
-          "Image": "imgs/actions/gi/teapotState",
+          "Image": "imgs/actions/gi/teapot-state",
           "TitleAlignment": "middle"
         }
       ]
@@ -86,7 +86,6 @@
       "Name": "Transformer",
       "Icon": "imgs/actions/gi/transformerIcon",
       "Tooltip": "Display Parametric Transformer cooldown",
-      "PropertyInspectorPath": "ui/actions/transformer.html",
       "Controllers": ["Keypad"],
       "States": [
         {
@@ -118,7 +117,6 @@
       "Name": "Daily Reward",
       "Icon": "imgs/actions/gi/rewardIcon",
       "Tooltip": "View and claim HoYoLAB daily check-in reward",
-      "PropertyInspectorPath": "ui/actions/daily-reward.html",
       "Controllers": ["Keypad"],
       "States": [
         {
@@ -132,7 +130,6 @@
       "Name": "Banner",
       "Icon": "imgs/actions/gi/bannerIcon",
       "Tooltip": "Display current wish banner countdown",
-      "PropertyInspectorPath": "ui/actions/banner.html",
       "Controllers": ["Keypad"],
       "States": [
         {

@@ -1,17 +1,17 @@
-import { action, type KeyAction } from '@elgato/streamdeck';
-import { BaseAction } from '../base/base-action';
-import type { TransformerSettings } from '../../types/settings';
-import { formatTransformerTime } from '../../utils/time';
+import { action, type KeyAction } from "@elgato/streamdeck";
+import { BaseAction } from "../base/base-action";
+import type { TransformerSettings } from "../../types/settings";
+import { formatTransformerTime } from "../../utils/time";
 
 /**
  * Parametric Transformer Action
  * Displays transformer cooldown or ready state
  */
-@action({ UUID: 'com.fcannizzaro.hoyodeck.genshin.transformer' })
+@action({ UUID: "com.fcannizzaro.hoyodeck.genshin.transformer" })
 export class TransformerAction extends BaseAction<TransformerSettings> {
   protected override async refresh(
     action: KeyAction<TransformerSettings>,
-    settings: TransformerSettings
+    settings: TransformerSettings,
   ): Promise<void> {
     const client = await this.getClient();
     if (!client) {
@@ -20,6 +20,7 @@ export class TransformerAction extends BaseAction<TransformerSettings> {
     }
 
     const uid = await this.getUid(settings);
+    
     if (!uid) {
       await this.showNoUid(action);
       return;
@@ -28,11 +29,13 @@ export class TransformerAction extends BaseAction<TransformerSettings> {
     const dailyNote = await client.getGenshinDailyNote(uid);
 
     if (!dailyNote.transformer.obtained) {
-      await action.setTitle('N/A');
+      await action.setTitle("N/A");
       return;
     }
 
+    const state = dailyNote.transformer.recovery_time.reached ? 1 : 0;
     const display = formatTransformerTime(dailyNote.transformer.recovery_time);
-    await action.setTitle(display);
+    await action.setTitle(state ? "" : display);
+    await action.setState(state);
   }
 }

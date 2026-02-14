@@ -6,7 +6,8 @@
   "license": "GPL-3.0",
   "type": "module",
   "scripts": {
-    "build": "tsc --noEmit && rollup -c && streamdeck pack --force-update-check  -f ./com.fcannizzaro.hoyodeck.sdPlugin",
+    "build": "tsc --noEmit && rollup -c && bun run build:pi && streamdeck pack --force-update-check  -f ./com.fcannizzaro.hoyodeck.sdPlugin",
+    "build:pi": "bun run --cwd property-inspector build",
     "dev": "bunx --bun rollup -c -w --watch.onEnd=\"streamdeck restart  com.fcannizzaro.hoyodeck\"",
     "link": "streamdeck link  com.fcannizzaro.hoyodeck.sdPlugin",
     "cli": "bun run src/cli.ts"

@@ -29,8 +29,9 @@ export class DailyRewardAction extends BaseAction<DailyRewardSettings> {
       client.getGenshinCheckInRewards(),
     ]);
 
-    // Get today's reward (0-indexed by sign day)
-    const todayReward = rewards.awards[info.total_sign_day];
+    // If already claimed, show the latest claimed reward; otherwise show the next to claim
+    const rewardIndex = info.total_sign_day - (info.is_sign ? 1 : 0);
+    const todayReward = rewards.awards[rewardIndex];
 
     if (!todayReward) {
       await action.setTitle('--');

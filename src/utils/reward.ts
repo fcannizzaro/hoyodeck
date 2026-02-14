@@ -27,11 +27,11 @@ export const buildRewardSvg = (
 ): string => {
   const doneLayer = claimed
     ? `<image href="${doneDataUri}" x="0" y="0" width="${SIZE}" height="${SIZE}" preserveAspectRatio="xMidYMid slice" />`
-    : '';
+    : "";
 
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${SIZE}" height="${SIZE}" viewBox="0 0 ${SIZE} ${SIZE}">
   <image href="${baseDataUri}" x="0" y="0" width="${SIZE}" height="${SIZE}" preserveAspectRatio="xMidYMid slice" />
-  <image href="${rewardDataUri}" x="${ICON_OFFSET}" y="${ICON_OFFSET}" width="${ICON_SIZE}" height="${ICON_SIZE}" preserveAspectRatio="xMidYMid meet" />
+  <image href="${rewardDataUri}" x="${ICON_OFFSET}" y="${ICON_OFFSET}" width="${ICON_SIZE}" height="${ICON_SIZE}" preserveAspectRatio="xMidYMid meet" style="opacity: ${claimed ? "0.6" : "1"}" />
   ${doneLayer}
 </svg>`;
 };
