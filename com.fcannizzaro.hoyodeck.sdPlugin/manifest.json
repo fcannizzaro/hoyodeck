@@ -45,12 +45,12 @@
     {
       "UUID": "com.fcannizzaro.hoyodeck.genshin.commission",
       "Name": "Commissions",
-      "Icon": "imgs/actions/gi/commissionIcon",
+      "Icon": "imgs/actions/gi/commissions-icon",
       "Tooltip": "Display remaining daily commissions",
       "Controllers": ["Keypad"],
       "States": [
         {
-          "Image": "imgs/actions/gi/commissionState",
+          "Image": "imgs/actions/gi/commissions-state",
           "TitleAlignment": "middle"
         }
       ]
