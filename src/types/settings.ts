@@ -1,6 +1,6 @@
-import { z } from 'zod';
-import type { JsonObject, JsonValue } from '@elgato/utils';
-import type { GameId } from './games';
+import { z } from "zod";
+import type { JsonObject, JsonValue } from "@elgato/utils";
+import type { GameId } from "./games";
 
 /**
  * V2 Authentication schema
@@ -22,7 +22,7 @@ export type HoyoAuth = z.infer<typeof HoyoAuthSchema>;
 export type AccountId = string;
 
 /** Validation status of an account's cookies */
-export type AuthStatus = 'unknown' | 'valid' | 'invalid';
+export type AuthStatus = "unknown" | "valid" | "invalid";
 
 /** A single HoYoLAB account with per-game UIDs */
 export interface HoyoAccount {
@@ -86,7 +86,7 @@ export type GenshinActionSettings = GameActionSettings;
  * Banner action settings
  */
 export interface BannerSettings extends GenshinActionSettings {
-  type?: 'character' | 'weapon';
+  type?: "character" | "weapon";
 }
 
 /**
@@ -100,7 +100,7 @@ export interface DailyRewardSettings extends GenshinActionSettings {
  * Transformer action settings
  */
 export interface TransformerSettings extends GenshinActionSettings {
-  style?: 'icon' | 'text';
+  style?: "icon" | "text";
 }
 
 /**
@@ -112,5 +112,5 @@ export type StarRailActionSettings = GameActionSettings;
  * Star Rail Banner action settings
  */
 export interface StarRailBannerSettings extends StarRailActionSettings {
-  type?: 'character' | 'lightcone';
+  type?: "character" | "lightcone";
 }

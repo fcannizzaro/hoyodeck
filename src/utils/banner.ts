@@ -2,6 +2,13 @@
  * Banner formatting utilities
  */
 
+import { readLocalImageAsDataUri } from "./image";
+
+const BACKGROUNDS = {
+  genshin: readLocalImageAsDataUri("imgs/actions/gi/5-star.webp"),
+  hsr: readLocalImageAsDataUri("imgs/actions/hsr/5-star.png"),
+};
+
 /**
  * Format countdown from remaining seconds
  * @param seconds Remaining seconds until banner ends
@@ -63,8 +70,10 @@ const FONT_SIZE = 20;
 export const buildBannerSvg = (
   imageDataUri: string,
   countdown: string,
+  game: "genshin" | "hsr",
 ): string => {
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${SIZE}" height="${SIZE}" viewBox="0 0 ${SIZE} ${SIZE}">
+  <image href="${BACKGROUNDS[game]}" x="0" y="0" width="${SIZE}" height="${SIZE}" preserveAspectRatio="xMidYMid slice" />
   <image href="${imageDataUri}" x="0" y="0" width="${SIZE}" height="${SIZE}" preserveAspectRatio="xMidYMid slice" />
   <rect x="${BAR_MARGIN}" y="${SIZE - BAR_MARGIN - BAR_HEIGHT}" width="${SIZE - BAR_MARGIN * 2}" height="${BAR_HEIGHT}" rx="6" fill="black" style="opacity: 0.7" />
   <text x="${SIZE / 2}" y="${SIZE - BAR_MARGIN - BAR_HEIGHT / 2 + FONT_SIZE / 3}" font-family="sans-serif" font-size="${FONT_SIZE}" font-weight="bold" fill="white" text-anchor="middle">${countdown}</text>

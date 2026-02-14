@@ -1,5 +1,5 @@
-import type { GameId } from '../types/games';
-import { GAMES } from '../types/games';
+import type { GameId } from '@/types/games';
+import { GAMES } from '@/types/games';
 
 /**
  * Extract the region from a UID based on the first digit(s)

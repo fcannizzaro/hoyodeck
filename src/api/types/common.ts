@@ -26,10 +26,10 @@ export const API_ERRORS = {
 export class HoyolabApiError extends Error {
   constructor(
     public readonly retcode: number,
-    message: string
+    message: string,
   ) {
     super(message);
-    this.name = 'HoyolabApiError';
+    this.name = "HoyolabApiError";
   }
 }
 

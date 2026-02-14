@@ -1,8 +1,8 @@
-import { parseCookies, validateAuth } from "./api/hoyolab/auth";
-import { HoyolabClient } from "./api/hoyolab/client";
-import { isValidUid } from "./utils/region";
-import type { GameId } from "./types/games";
-import { GAMES } from "./types/games";
+import { validateAuth } from "@/api/hoyolab/auth";
+import { HoyolabClient } from "@/api/hoyolab/client";
+import { isValidUid } from "@/utils/region";
+import type { GameId } from "@/types/games";
+import { GAMES } from "@/types/games";
 
 // ============================================
 // Help & Usage

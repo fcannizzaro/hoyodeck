@@ -114,7 +114,7 @@ export const CacheTTL = {
 export function buildCacheKey(
   game: string,
   endpoint: string,
-  uid?: string
+  uid?: string,
 ): string {
   return uid ? `${game}:${endpoint}:${uid}` : `${game}:${endpoint}`;
 }

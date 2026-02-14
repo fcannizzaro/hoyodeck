@@ -34,7 +34,9 @@
       "Name": "[GI] Resin",
       "Icon": "imgs/actions/gi/resin-icon",
       "Tooltip": "Display and refresh Original Resin",
-      "Controllers": ["Keypad"],
+      "Controllers": [
+        "Keypad"
+      ],
       "States": [
         {
           "Image": "imgs/actions/gi/resin-state",
@@ -47,7 +49,9 @@
       "Name": "[GI] Commissions",
       "Icon": "imgs/actions/gi/commissions-icon",
       "Tooltip": "Display remaining daily commissions",
-      "Controllers": ["Keypad"],
+      "Controllers": [
+        "Keypad"
+      ],
       "States": [
         {
           "Image": "imgs/actions/gi/commissions-state",
@@ -60,7 +64,9 @@
       "Name": "[GI] Expeditions",
       "Icon": "imgs/actions/gi/expeditions-icon",
       "Tooltip": "Display completed expeditions",
-      "Controllers": ["Keypad"],
+      "Controllers": [
+        "Keypad"
+      ],
       "States": [
         {
           "Image": "imgs/actions/gi/expeditions-state",
@@ -73,7 +79,9 @@
       "Name": "[GI] Teapot",
       "Icon": "imgs/actions/gi/teapot-icon",
       "Tooltip": "Display Serenitea Pot realm currency",
-      "Controllers": ["Keypad"],
+      "Controllers": [
+        "Keypad"
+      ],
       "States": [
         {
           "Image": "imgs/actions/gi/teapot-state",
@@ -86,7 +94,9 @@
       "Name": "[GI] Transformer",
       "Icon": "imgs/actions/gi/transformerIcon",
       "Tooltip": "Display Parametric Transformer cooldown",
-      "Controllers": ["Keypad"],
+      "Controllers": [
+        "Keypad"
+      ],
       "States": [
         {
           "Image": "imgs/actions/gi/transformerState",
@@ -104,7 +114,9 @@
       "Name": "[GI] Spiral Abyss",
       "Icon": "imgs/actions/gi/abyssIcon",
       "Tooltip": "Display Spiral Abyss progress and reset timer",
-      "Controllers": ["Keypad"],
+      "Controllers": [
+        "Keypad"
+      ],
       "States": [
         {
           "Image": "imgs/actions/gi/abyssState",
@@ -113,11 +125,28 @@
       ]
     },
     {
-      "UUID": "com.fcannizzaro.hoyodeck.starrail.stamina",
+      "UUID": "com.fcannizzaro.hoyodeck.genshin.banner",
+      "Name": "[GI] Banner",
+      "Icon": "imgs/actions/gi/banner-icon",
+      "Tooltip": "Display current wish banner countdown",
+      "Controllers": [
+        "Keypad"
+      ],
+      "States": [
+        {
+          "Image": "imgs/actions/gi/banner-state",
+          "TitleAlignment": "middle"
+        }
+      ]
+    },
+    {
+      "UUID": "com.fcannizzaro.hoyodeck.starrail.trailblaze-power",
       "Name": "[HSR] Trailblaze Power",
       "Icon": "imgs/actions/hsr/trailblaze-power-icon",
       "Tooltip": "Display and refresh Trailblaze Power",
-      "Controllers": ["Keypad"],
+      "Controllers": [
+        "Keypad"
+      ],
       "States": [
         {
           "Image": "imgs/actions/hsr/trailblaze-power-state",
@@ -130,7 +159,9 @@
       "Name": "[HSR] Banner",
       "Icon": "imgs/actions/hsr/banner-Icon",
       "Tooltip": "Display current warp banner countdown",
-      "Controllers": ["Keypad"],
+      "Controllers": [
+        "Keypad"
+      ],
       "States": [
         {
           "Image": "imgs/actions/hsr/banner-state",
@@ -143,23 +174,12 @@
       "Name": "Daily Reward",
       "Icon": "imgs/actions/gi/rewardIcon",
       "Tooltip": "View and claim HoYoLAB daily check-in reward",
-      "Controllers": ["Keypad"],
+      "Controllers": [
+        "Keypad"
+      ],
       "States": [
         {
           "Image": "imgs/actions/gi/rewardState",
-          "TitleAlignment": "middle"
-        }
-      ]
-    },
-    {
-      "UUID": "com.fcannizzaro.hoyodeck.genshin.banner",
-      "Name": "Banner",
-      "Icon": "imgs/actions/gi/bannerIcon",
-      "Tooltip": "Display current wish banner countdown",
-      "Controllers": ["Keypad"],
-      "States": [
-        {
-          "Image": "imgs/actions/gi/bannerState",
           "TitleAlignment": "middle"
         }
       ]

@@ -2,21 +2,21 @@ import {
   action,
   type KeyAction,
   type WillDisappearEvent,
-} from '@elgato/streamdeck';
-import { BaseAction } from '../base/base-action';
-import type { StarRailActionSettings } from '../../types/settings';
-import { GAMES } from '../../types/games';
-import { readLocalImageAsDataUri } from '../../utils/image';
-import { buildResinSvg, RESIN_FLOATS } from '../../utils/resin';
+} from "@elgato/streamdeck";
+import { BaseAction } from "../base/base-action";
+import type { StarRailActionSettings } from "../../types/settings";
+import { GAMES } from "../../types/games";
+import { readLocalImageAsDataUri } from "../../utils/image";
+import { buildResinSvg, RESIN_FLOATS } from "../../utils/resin";
 
-const BASE_IMG = 'imgs/actions/hsr/4-star-background copy.webp';
-const STAMINA_IMG = 'imgs/actions/hsr/trailblaze-power.webp';
+const BASE_IMG = "imgs/actions/hsr/trailblaze-power-state@2x.png";
+const STAMINA_IMG = "imgs/actions/hsr/trailblaze-power.webp";
 
 /**
  * Trailblaze Power Action
  * Displays current Trailblaze Power as a floating fill gauge and refreshes on tap
  */
-@action({ UUID: 'com.fcannizzaro.hoyodeck.starrail.stamina' })
+@action({ UUID: "com.fcannizzaro.hoyodeck.starrail.trailblaze-power" })
 export class StaminaAction extends BaseAction<StarRailActionSettings> {
   private readonly MAX_STAMINA = GAMES.starrail.staminaMax;
 
@@ -80,7 +80,7 @@ export class StaminaAction extends BaseAction<StarRailActionSettings> {
       return;
     }
 
-    const uid = this.getGameUid(ctx.account, 'starrail');
+    const uid = this.getGameUid(ctx.account, "starrail");
     if (!uid) {
       await this.showNoUid(action);
       return;
@@ -88,7 +88,7 @@ export class StaminaAction extends BaseAction<StarRailActionSettings> {
 
     const dailyNote = await ctx.client.getStarRailDailyNote(uid);
 
-    await action.setTitle('');
+    await action.setTitle("");
     this.startAnimation(action, dailyNote.current_stamina);
   }
 

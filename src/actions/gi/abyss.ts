@@ -1,17 +1,17 @@
-import { action, type KeyAction } from '@elgato/streamdeck';
-import { BaseAction } from '../base/base-action';
-import type { GenshinActionSettings } from '../../types/settings';
-import { formatDaysRemaining } from '../../utils/time';
+import { action, type KeyAction } from "@elgato/streamdeck";
+import { BaseAction } from "../base/base-action";
+import type { GenshinActionSettings } from "@/types/settings";
+import { formatDaysRemaining } from "@/utils/time";
 
 /**
  * Spiral Abyss Action
  * Displays days remaining and star count
  */
-@action({ UUID: 'com.fcannizzaro.hoyodeck.genshin.abyss' })
+@action({ UUID: "com.fcannizzaro.hoyodeck.genshin.abyss" })
 export class AbyssAction extends BaseAction<GenshinActionSettings> {
   protected override async refresh(
     action: KeyAction<GenshinActionSettings>,
-    settings: GenshinActionSettings
+    settings: GenshinActionSettings,
   ): Promise<void> {
     const ctx = await this.getAccountContext(settings);
     if (!ctx) {
@@ -19,7 +19,7 @@ export class AbyssAction extends BaseAction<GenshinActionSettings> {
       return;
     }
 
-    const uid = this.getGameUid(ctx.account, 'genshin');
+    const uid = this.getGameUid(ctx.account, "genshin");
     if (!uid) {
       await this.showNoUid(action);
       return;

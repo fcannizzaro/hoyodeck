@@ -1,9 +1,9 @@
-import streamDeck from '@elgato/streamdeck';
-import type { JsonObject } from '@elgato/utils';
-import { HoyolabClient } from '../api/hoyolab/client';
-import { isValidAuth } from '../api/hoyolab/auth';
-import type { GlobalSettings, HoyoAuth } from '../types/settings';
-import { toJsonObject } from '../types/settings';
+import streamDeck from "@elgato/streamdeck";
+import type { JsonObject } from "@elgato/utils";
+import { HoyolabClient } from "@/api/hoyolab/client";
+import { isValidAuth } from "@/api/hoyolab/auth";
+import type { GlobalSettings, HoyoAuth } from "@/types/settings";
+import { toJsonObject } from "@/types/settings";
 
 /**
  * Listens for pendingValidation in global settings and validates auth.
@@ -32,16 +32,16 @@ async function validateAccount(settings: GlobalSettings): Promise<void> {
     return;
   }
 
-  let authStatus: 'valid' | 'invalid' = 'invalid';
+  let authStatus: "valid" | "invalid" = "invalid";
 
   if (isValidAuth(account.auth)) {
     try {
       const client = new HoyolabClient(account.auth as HoyoAuth);
       // Lightweight call that requires valid auth but no UID
       await client.getGenshinCheckInInfo();
-      authStatus = 'valid';
+      authStatus = "valid";
     } catch {
-      authStatus = 'invalid';
+      authStatus = "invalid";
     }
   }
 

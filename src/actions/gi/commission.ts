@@ -4,13 +4,9 @@ import {
   type WillDisappearEvent,
 } from "@elgato/streamdeck";
 import { BaseAction } from "../base/base-action";
-import type { GenshinActionSettings } from "../../types/settings";
-import { readLocalImageAsDataUri } from "../../utils/image";
-import {
-  buildCommissionSvg,
-  type CommissionImages,
-} from "../../utils/commission";
-import { da } from "zod/v4/locales";
+import type { GenshinActionSettings } from "@/types/settings";
+import { readLocalImageAsDataUri } from "@/utils/image";
+import { buildCommissionSvg, type CommissionImages } from "@/utils/commission";
 
 /** Background shared across all states */
 const BACKGROUND = readLocalImageAsDataUri(
@@ -108,7 +104,7 @@ export class CommissionAction extends BaseAction<GenshinActionSettings> {
       return;
     }
 
-    const uid = this.getGameUid(ctx.account, 'genshin');
+    const uid = this.getGameUid(ctx.account, "genshin");
     if (!uid) {
       await this.showNoUid(action);
       return;

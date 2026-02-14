@@ -1,9 +1,9 @@
 import { action, type KeyAction, type KeyDownEvent } from '@elgato/streamdeck';
 import { BaseAction } from '../base/base-action';
-import type { DailyRewardSettings } from '../../types/settings';
-import { HoyolabApiError } from '../../api/types/common';
-import { fetchImageAsDataUri, readLocalImageAsDataUri } from '../../utils/image';
-import { buildRewardSvg } from '../../utils/reward';
+import type { DailyRewardSettings } from '@/types/settings';
+import { HoyolabApiError } from '@/api/types/common';
+import { fetchImageAsDataUri, readLocalImageAsDataUri } from '@/utils/image';
+import { buildRewardSvg } from '@/utils/reward';
 
 const DAILY_IMG = 'imgs/actions/gi/daily.png';
 const DONE_IMG = 'imgs/actions/gi/done.png';

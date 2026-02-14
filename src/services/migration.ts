@@ -1,11 +1,7 @@
-import streamDeck from '@elgato/streamdeck';
-import { isValidAuth } from '../api/hoyolab/auth';
-import type {
-  GlobalSettings,
-  HoyoAccount,
-  HoyoAuth,
-} from '../types/settings';
-import { toJsonObject } from '../types/settings';
+import streamDeck from "@elgato/streamdeck";
+import { isValidAuth } from "@/api/hoyolab/auth";
+import type { GlobalSettings, HoyoAccount, HoyoAuth } from "@/types/settings";
+import { toJsonObject } from "@/types/settings";
 
 /**
  * Migrate V1 single-account global settings to V2 multi-account.
@@ -28,9 +24,9 @@ export async function migrateGlobalSettings(): Promise<void> {
     const id = crypto.randomUUID();
     const account: HoyoAccount = {
       id,
-      name: 'Main',
+      name: "Main",
       auth: settings.auth as HoyoAuth,
-      authStatus: 'unknown',
+      authStatus: "unknown",
       uids: {},
     };
 

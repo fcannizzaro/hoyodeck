@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
-import { cache, CacheTTL } from '../services/cache';
+import { cache, CacheTTL } from '@/services/cache';
 
 /** Directory containing the compiled plugin binary */
 const PLUGIN_DIR = resolve(dirname(__filename), '..');

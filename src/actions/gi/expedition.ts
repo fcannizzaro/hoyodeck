@@ -4,15 +4,9 @@ import {
   type WillDisappearEvent,
 } from "@elgato/streamdeck";
 import { BaseAction } from "../base/base-action";
-import type { GenshinActionSettings } from "../../types/settings";
-import {
-  fetchImageAsDataUri,
-  readLocalImageAsDataUri,
-} from "../../utils/image";
-import {
-  buildExpeditionSvg,
-  type ExpeditionCircle,
-} from "../../utils/expedition";
+import type { GenshinActionSettings } from "@/types/settings";
+import { fetchImageAsDataUri, readLocalImageAsDataUri } from "@/utils/image";
+import { buildExpeditionSvg, type ExpeditionCircle } from "@/utils/expedition";
 
 /** Background image loaded once at module init */
 const BACKGROUND = readLocalImageAsDataUri(
@@ -69,7 +63,11 @@ export class ExpeditionAction extends BaseAction<GenshinActionSettings> {
         };
       });
 
-      const svg = buildExpeditionSvg(BACKGROUND, circles, this.totalExpeditions);
+      const svg = buildExpeditionSvg(
+        BACKGROUND,
+        circles,
+        this.totalExpeditions,
+      );
       const base64 = `data:image/svg+xml;base64,${btoa(svg)}`;
       await action.setImage(base64);
     };
@@ -94,7 +92,7 @@ export class ExpeditionAction extends BaseAction<GenshinActionSettings> {
       return;
     }
 
-    const uid = this.getGameUid(ctx.account, 'genshin');
+    const uid = this.getGameUid(ctx.account, "genshin");
     if (!uid) {
       await this.showNoUid(action);
       return;

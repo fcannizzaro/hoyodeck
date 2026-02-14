@@ -27,7 +27,7 @@ export interface GenshinDailyNote {
  */
 export interface GenshinExpedition {
   avatar_side_icon: string;
-  status: 'Ongoing' | 'Finished';
+  status: "Ongoing" | "Finished";
   remained_time: string;
 }
 

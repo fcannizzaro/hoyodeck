@@ -22,7 +22,7 @@ const DEFAULT_GAME_FILTER: Record<string, GameId> = {
   'com.fcannizzaro.hoyodeck.genshin.expedition': 'genshin',
   'com.fcannizzaro.hoyodeck.genshin.teapot': 'genshin',
   'com.fcannizzaro.hoyodeck.genshin.abyss': 'genshin',
-  'com.fcannizzaro.hoyodeck.starrail.stamina': 'starrail',
+  'com.fcannizzaro.hoyodeck.starrail.trailblaze-power': 'starrail',
   'com.fcannizzaro.hoyodeck.starrail.banner': 'starrail',
 };
 

@@ -1,7 +1,7 @@
 import { action, type KeyAction } from "@elgato/streamdeck";
 import { BaseAction } from "../base/base-action";
-import type { TransformerSettings } from "../../types/settings";
-import { formatTransformerTime } from "../../utils/time";
+import type { TransformerSettings } from "@/types/settings";
+import { formatTransformerTime } from "@/utils/time";
 
 /**
  * Parametric Transformer Action
@@ -19,7 +19,7 @@ export class TransformerAction extends BaseAction<TransformerSettings> {
       return;
     }
 
-    const uid = this.getGameUid(ctx.account, 'genshin');
+    const uid = this.getGameUid(ctx.account, "genshin");
     if (!uid) {
       await this.showNoUid(action);
       return;

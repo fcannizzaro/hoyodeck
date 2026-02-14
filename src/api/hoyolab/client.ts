@@ -14,9 +14,9 @@ import type {
 import type {
   StarRailDailyNote,
   StarRailActCalendar,
-} from '../types/starrail';
-import { getRegionFromUid } from '../../utils/region';
-import { cache, CacheTTL, buildCacheKey } from '../../services/cache';
+} from '../types/hsr';
+import { getRegionFromUid } from '@/utils/region';
+import { cache, CacheTTL, buildCacheKey } from '@/services/cache';
 
 /**
  * HoYoLAB API client with V2 authentication

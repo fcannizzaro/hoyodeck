@@ -1,8 +1,8 @@
 import streamDeck from '@elgato/streamdeck';
 
 // Import services
-import { registerAuthValidator } from './services/auth-validator';
-import { migrateGlobalSettings } from './services/migration';
+import { registerAuthValidator } from '@/services/auth-validator';
+import { migrateGlobalSettings } from '@/services/migration';
 
 // Import all Genshin actions
 import {
@@ -14,13 +14,13 @@ import {
   AbyssAction,
   DailyRewardAction,
   BannerAction,
-} from './actions/genshin';
+} from './actions/gi';
 
 // Import Star Rail actions
 import {
   StaminaAction as StarRailStaminaAction,
   BannerAction as StarRailBannerAction,
-} from './actions/starrail';
+} from './actions/hsr';
 
 // Register auth validation listener
 registerAuthValidator();

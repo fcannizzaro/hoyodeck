@@ -4,29 +4,30 @@ import {
   type WillDisappearEvent,
 } from "@elgato/streamdeck";
 import { BaseAction } from "../base/base-action";
-import type { GenshinActionSettings } from "../../types/settings";
-import { GAMES } from "../../types/games";
-import { readLocalImageAsDataUri } from "../../utils/image";
-import { buildResinSvg, RESIN_FLOATS } from "../../utils/resin";
+import type { GenshinActionSettings } from "@/types/settings";
+import { readLocalImageAsDataUri } from "@/utils/image";
+import { buildTeapotAlertSvg } from "@/utils/teapot";
 
-const BASE_IMG = "imgs/actions/gi/3-star.webp";
-const RESIN_IMG = "imgs/actions/gi/resin.webp";
+/** Tubby icon */
+const TUBBY_NORMAL = readLocalImageAsDataUri("imgs/actions/gi/tubby.png");
+const TUBBY_MAX = readLocalImageAsDataUri("imgs/actions/gi/tubby-max.png");
+const BACKGROUND = readLocalImageAsDataUri("imgs/actions/gi/5-star.webp");
 
 /**
- * Resin Counter Action
- * Displays current Original Resin as a floating fill gauge and refreshes on tap
+ * Serenitea Pot (Teapot) Action
+ * Displays floating tubby with coin percentage or "MAX COIN!" alert
  */
-@action({ UUID: "com.fcannizzaro.hoyodeck.genshin.resin" })
-export class ResinAction extends BaseAction<GenshinActionSettings> {
-  private readonly MAX_RESIN = GAMES.genshin.staminaMax;
-
+@action({ UUID: "com.fcannizzaro.hoyodeck.genshin.teapot" })
+export class TeapotAction extends BaseAction<GenshinActionSettings> {
   /** Interval handle for the floating animation */
   private animationInterval: ReturnType<typeof setInterval> | null = null;
 
   /** Current frame index in the float cycle */
   private frameIndex = 0;
 
-  /** Clear the running animation interval, if any */
+  /**
+   * Clear the running animation interval, if any
+   */
   private clearAnimation(): void {
     if (this.animationInterval !== null) {
       clearInterval(this.animationInterval);
@@ -36,28 +37,28 @@ export class ResinAction extends BaseAction<GenshinActionSettings> {
   }
 
   /**
-   * Start the floating resin animation.
+   * Start the floating tubby animation.
    * @param action Stream Deck key action
-   * @param current Current resin count
+   * @param tubbyPath Relative path to the tubby icon to use
+   * @param text Text to display in the bottom bar
+   * @param isMax Whether coins are at maximum (applies red tint)
    */
   private startAnimation(
     action: KeyAction<GenshinActionSettings>,
-    current: number,
+    text: string,
+    isMax: boolean,
   ): void {
-    const baseDataUri = readLocalImageAsDataUri(BASE_IMG);
-    const resinDataUri = readLocalImageAsDataUri(RESIN_IMG);
-
     const renderFrame = async (): Promise<void> => {
-      const svg = buildResinSvg(
-        baseDataUri,
-        resinDataUri,
+      const svg = buildTeapotAlertSvg(
+        BACKGROUND,
+        isMax ? TUBBY_MAX : TUBBY_NORMAL,
         this.frameIndex,
-        current,
-        this.MAX_RESIN,
+        text,
+        isMax,
       );
       const base64 = `data:image/svg+xml;base64,${btoa(svg)}`;
       await action.setImage(base64);
-      this.frameIndex = (this.frameIndex + 1) % RESIN_FLOATS.length;
+      this.frameIndex = this.frameIndex + 1;
     };
 
     // Show the first frame immediately
@@ -80,16 +81,23 @@ export class ResinAction extends BaseAction<GenshinActionSettings> {
       return;
     }
 
-    const uid = this.getGameUid(ctx.account, 'genshin');
+    const uid = this.getGameUid(ctx.account, "genshin");
     if (!uid) {
       await this.showNoUid(action);
       return;
     }
 
     const dailyNote = await ctx.client.getGenshinDailyNote(uid);
+    const maxReached = dailyNote.max_home_coin === dailyNote.current_home_coin;
+
+    const percentage = Math.round(
+      (dailyNote.current_home_coin / dailyNote.max_home_coin) * 100,
+    );
+
+    const text = maxReached ? "MAX COIN!" : `${percentage}%`;
 
     await action.setTitle("");
-    this.startAnimation(action, dailyNote.current_resin);
+    this.startAnimation(action, text, maxReached);
   }
 
   /**
