@@ -155,6 +155,10 @@ Contributions are welcome! Please:
 - GitHub Issues: [Report bugs or request features](https://github.com/fcannizzaro/hoyodeck/issues)
 - Discord: Coming soon
 
+## Disclaimer
+
+This project is not affiliated with, endorsed by, or associated with COGNOSPHERE PTE. LTD. (HoYoverse), miHoYo, or any of their subsidiaries. All game titles, trademarks, and registered trademarks mentioned in this project are the property of their respective owners.
+
 ## License
 
 Apache 2.0
