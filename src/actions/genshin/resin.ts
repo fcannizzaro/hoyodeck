@@ -1,20 +1,20 @@
-import { action, type KeyAction } from '@elgato/streamdeck';
-import { BaseAction } from '../base/base-action';
-import type { GenshinActionSettings } from '../../types/settings';
-import { formatStamina } from '../../utils/format';
-import { GAMES } from '../../types/games';
+import { action, type KeyAction } from "@elgato/streamdeck";
+import { BaseAction } from "../base/base-action";
+import type { GenshinActionSettings } from "../../types/settings";
+import { formatStamina } from "../../utils/format";
+import { GAMES } from "../../types/games";
 
 /**
  * Resin Counter Action
  * Displays current Original Resin and refreshes on tap
  */
-@action({ UUID: 'com.fcannizzaro.hoyodeck.genshin.resin' })
+@action({ UUID: "com.fcannizzaro.hoyodeck.genshin.resin" })
 export class ResinAction extends BaseAction<GenshinActionSettings> {
   private readonly MAX_RESIN = GAMES.genshin.staminaMax;
 
   protected override async refresh(
     action: KeyAction<GenshinActionSettings>,
-    settings: GenshinActionSettings
+    settings: GenshinActionSettings,
   ): Promise<void> {
     const client = await this.getClient();
     if (!client) {
@@ -29,6 +29,7 @@ export class ResinAction extends BaseAction<GenshinActionSettings> {
     }
 
     const dailyNote = await client.getGenshinDailyNote(uid);
+    console.log(dailyNote);
     const display = formatStamina(dailyNote.current_resin, this.MAX_RESIN);
 
     await action.setTitle(display);

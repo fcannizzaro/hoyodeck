@@ -16,7 +16,10 @@ export interface GenshinDailyNote {
   current_home_coin: number;
   max_home_coin: number;
   home_coin_recovery_time: string;
+  calendar_url: string;
   transformer: GenshinTransformer;
+  daily_task: GenshinDailyTask;
+  archon_quest_progress: GenshinArchonQuestProgress;
 }
 
 /**
@@ -40,6 +43,60 @@ export interface GenshinTransformer {
     Second: number;
     reached: boolean;
   };
+  wiki: string;
+  noticed: boolean;
+  latest_job_id: string;
+}
+
+/**
+ * Task reward status
+ */
+export interface GenshinTaskReward {
+  status: string;
+}
+
+/**
+ * Attendance reward status
+ */
+export interface GenshinAttendanceReward {
+  status: string;
+  progress: number;
+}
+
+/**
+ * Daily task info (commissions)
+ */
+export interface GenshinDailyTask {
+  total_num: number;
+  finished_num: number;
+  is_extra_task_reward_received: boolean;
+  task_rewards: GenshinTaskReward[];
+  attendance_rewards: GenshinAttendanceReward[];
+  attendance_visible: boolean;
+  stored_attendance: string;
+  stored_attendance_refresh_countdown: number;
+}
+
+/**
+ * Archon quest entry
+ */
+export interface GenshinArchonQuest {
+  status: string;
+  chapter_num: string;
+  chapter_title: string;
+  id: number;
+  chapter_type: number;
+}
+
+/**
+ * Archon quest progress
+ */
+export interface GenshinArchonQuestProgress {
+  list: GenshinArchonQuest[];
+  is_open_archon_quest: boolean;
+  is_finish_all_mainline: boolean;
+  is_finish_all_interchapter: boolean;
+  wiki_url: string;
 }
 
 /**

@@ -31,7 +31,7 @@
   "Actions": [
     {
       "UUID": "com.fcannizzaro.hoyodeck.genshin.resin",
-      "Name": "Resin",
+      "Name": "[GI] Resin",
       "Icon": "imgs/actions/gi/resinIcon",
       "Tooltip": "Display and refresh Original Resin",
       "Controllers": ["Keypad"],
@@ -44,7 +44,7 @@
     },
     {
       "UUID": "com.fcannizzaro.hoyodeck.genshin.commission",
-      "Name": "Commissions",
+      "Name": "[GI] Commissions",
       "Icon": "imgs/actions/gi/commissions-icon",
       "Tooltip": "Display remaining daily commissions",
       "Controllers": ["Keypad"],
@@ -57,20 +57,20 @@
     },
     {
       "UUID": "com.fcannizzaro.hoyodeck.genshin.expedition",
-      "Name": "Expeditions",
-      "Icon": "imgs/actions/gi/expeditionIcon",
+      "Name": "[GI] Expeditions",
+      "Icon": "imgs/actions/gi/expeditions-icon",
       "Tooltip": "Display completed expeditions",
       "Controllers": ["Keypad"],
       "States": [
         {
-          "Image": "imgs/actions/gi/expeditionState",
+          "Image": "imgs/actions/gi/expeditions-state",
           "TitleAlignment": "middle"
         }
       ]
     },
     {
       "UUID": "com.fcannizzaro.hoyodeck.genshin.teapot",
-      "Name": "Teapot",
+      "Name": "[GI] Teapot",
       "Icon": "imgs/actions/gi/teapot-icon",
       "Tooltip": "Display Serenitea Pot realm currency",
       "Controllers": ["Keypad"],
@@ -83,7 +83,7 @@
     },
     {
       "UUID": "com.fcannizzaro.hoyodeck.genshin.transformer",
-      "Name": "Transformer",
+      "Name": "[GI] Transformer",
       "Icon": "imgs/actions/gi/transformerIcon",
       "Tooltip": "Display Parametric Transformer cooldown",
       "Controllers": ["Keypad"],
@@ -101,7 +101,7 @@
     },
     {
       "UUID": "com.fcannizzaro.hoyodeck.genshin.abyss",
-      "Name": "Spiral Abyss",
+      "Name": "[GI] Spiral Abyss",
       "Icon": "imgs/actions/gi/abyssIcon",
       "Tooltip": "Display Spiral Abyss progress and reset timer",
       "Controllers": ["Keypad"],

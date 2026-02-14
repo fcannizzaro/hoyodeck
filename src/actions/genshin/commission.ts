@@ -10,26 +10,41 @@ import {
   buildCommissionSvg,
   type CommissionImages,
 } from "../../utils/commission";
+import { da } from "zod/v4/locales";
 
 /** Background shared across all states */
-const BACKGROUND = readLocalImageAsDataUri("imgs/actions/gi/commissions-bg.png");
+const BACKGROUND = readLocalImageAsDataUri(
+  "imgs/actions/gi/commissions-bg.png",
+);
 
 /** Pre-loaded image pairs for each commission state */
 const STATE_IMAGES = {
   unfinished: {
     background: BACKGROUND,
-    open: readLocalImageAsDataUri("imgs/actions/gi/commissions-unfinished-open.png"),
-    closed: readLocalImageAsDataUri("imgs/actions/gi/commissions-unfinished-closed.png"),
+    open: readLocalImageAsDataUri(
+      "imgs/actions/gi/commissions-unfinished-open.png",
+    ),
+    closed: readLocalImageAsDataUri(
+      "imgs/actions/gi/commissions-unfinished-closed.png",
+    ),
   },
   completed: {
     background: BACKGROUND,
-    open: readLocalImageAsDataUri("imgs/actions/gi/commissions-completed-open.png"),
-    closed: readLocalImageAsDataUri("imgs/actions/gi/commissions-completed-closed.png"),
+    open: readLocalImageAsDataUri(
+      "imgs/actions/gi/commissions-completed-open.png",
+    ),
+    closed: readLocalImageAsDataUri(
+      "imgs/actions/gi/commissions-completed-closed.png",
+    ),
   },
   rewarded: {
     background: BACKGROUND,
-    open: readLocalImageAsDataUri("imgs/actions/gi/commissions-rewarded-open.png"),
-    closed: readLocalImageAsDataUri("imgs/actions/gi/commissions-rewarded-closed.png"),
+    open: readLocalImageAsDataUri(
+      "imgs/actions/gi/commissions-rewarded-open.png",
+    ),
+    closed: readLocalImageAsDataUri(
+      "imgs/actions/gi/commissions-rewarded-closed.png",
+    ),
   },
 } as const satisfies Record<string, CommissionImages>;
 
@@ -101,7 +116,12 @@ export class CommissionAction extends BaseAction<GenshinActionSettings> {
 
     const dailyNote = await client.getGenshinDailyNote(uid);
 
-    const allDone = dailyNote.finished_task_num === dailyNote.total_task_num;
+    const completedTask = dailyNote.daily_task.attendance_rewards.filter(
+      (it) => it.status === "AttendanceRewardStatusWaitTaken",
+    ).length;
+
+    const allDone =
+      dailyNote.finished_task_num + completedTask >= dailyNote.total_task_num;
 
     const images = dailyNote.is_extra_task_reward_received
       ? STATE_IMAGES.rewarded
