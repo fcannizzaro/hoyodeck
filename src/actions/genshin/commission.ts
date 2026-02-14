@@ -101,9 +101,9 @@ export class CommissionAction extends BaseAction<GenshinActionSettings> {
 
     const dailyNote = await client.getGenshinDailyNote(uid);
 
-    const allDone = true //      dailyNote.finished_task_num === dailyNote.total_task_num;
+    const allDone = dailyNote.finished_task_num === dailyNote.total_task_num;
 
-    const images = !dailyNote.is_extra_task_reward_received
+    const images = dailyNote.is_extra_task_reward_received
       ? STATE_IMAGES.rewarded
       : allDone
         ? STATE_IMAGES.completed
