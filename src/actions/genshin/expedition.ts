@@ -88,19 +88,19 @@ export class ExpeditionAction extends BaseAction<GenshinActionSettings> {
   ): Promise<void> {
     this.clearAnimation();
 
-    const client = await this.getClient();
-    if (!client) {
-      await this.showNoAuth(action);
+    const ctx = await this.getAccountContext(settings);
+    if (!ctx) {
+      await this.showNoAccount(action);
       return;
     }
 
-    const uid = await this.getUid(settings);
+    const uid = this.getGameUid(ctx.account, 'genshin');
     if (!uid) {
       await this.showNoUid(action);
       return;
     }
 
-    const dailyNote = await client.getGenshinDailyNote(uid);
+    const dailyNote = await ctx.client.getGenshinDailyNote(uid);
 
     // Fetch all avatar images in parallel
     const avatarDataUris = await Promise.all(

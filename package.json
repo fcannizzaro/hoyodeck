@@ -10,7 +10,7 @@
     "build:pi": "bun run --cwd property-inspector build",
     "dev": "bunx --bun rollup -c -w --watch.onEnd=\"streamdeck restart  com.fcannizzaro.hoyodeck\"",
     "link": "streamdeck link  com.fcannizzaro.hoyodeck.sdPlugin",
-    "cli": "bun run src/cli.ts"
+    "cli": "bfr --env -- bun run src/cli.ts"
   },
   "dependencies": {
     "@elgato/streamdeck": "^2.0.0",

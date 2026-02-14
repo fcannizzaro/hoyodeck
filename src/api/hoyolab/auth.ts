@@ -1,33 +1,16 @@
 import { z } from 'zod';
+import { HoyoAuthSchema } from '../../types/settings';
 
-/**
- * V2 Authentication schema for HoYoLAB API
- */
-export const HoyoAuthSchema = z.object({
-  ltoken_v2: z.string().min(1, 'ltoken_v2 is required'),
-  ltuid_v2: z.string().min(1, 'ltuid_v2 is required'),
-  ltmid_v2: z.string().min(1, 'ltmid_v2 is required'),
-  // Optional tokens for code redemption
-  cookie_token_v2: z.string().optional(),
-  account_mid_v2: z.string().optional(),
-  account_id_v2: z.string().optional(),
-});
-
-export type HoyoAuth = z.infer<typeof HoyoAuthSchema>;
-
-/**
- * Global plugin settings
- */
-export interface GlobalSettings {
-  auth?: HoyoAuth;
-  uid?: string;
-}
+export type { HoyoAuth } from '../../types/settings';
+export { HoyoAuthSchema } from '../../types/settings';
 
 /**
  * Parse V2 cookies from a cookie string
  */
-export function parseCookies(cookieString: string): Partial<HoyoAuth> {
-  const cookies: Partial<HoyoAuth> = {};
+export function parseCookies(
+  cookieString: string,
+): Partial<z.infer<typeof HoyoAuthSchema>> {
+  const cookies: Record<string, string> = {};
   const pairs = cookieString.split(';').map((s) => s.trim());
 
   for (const pair of pairs) {
@@ -36,50 +19,35 @@ export function parseCookies(cookieString: string): Partial<HoyoAuth> {
 
     if (!key || !value) continue;
 
-    switch (key.trim()) {
-      case 'ltoken_v2':
-        cookies.ltoken_v2 = value;
-        break;
-      case 'ltuid_v2':
-        cookies.ltuid_v2 = value;
-        break;
-      case 'ltmid_v2':
-        cookies.ltmid_v2 = value;
-        break;
-      case 'cookie_token_v2':
-        cookies.cookie_token_v2 = value;
-        break;
-      case 'account_mid_v2':
-        cookies.account_mid_v2 = value;
-        break;
-      case 'account_id_v2':
-        cookies.account_id_v2 = value;
-        break;
+    const trimmedKey = key.trim();
+    if (
+      [
+        'ltoken_v2',
+        'ltuid_v2',
+        'ltmid_v2',
+        'cookie_token_v2',
+        'account_mid_v2',
+        'account_id_v2',
+      ].includes(trimmedKey)
+    ) {
+      cookies[trimmedKey] = value;
     }
   }
 
-  return cookies;
+  return cookies as Partial<z.infer<typeof HoyoAuthSchema>>;
 }
 
 /**
  * Build a cookie string from auth object
  */
-export function buildCookieString(auth: HoyoAuth): string {
+export function buildCookieString(
+  auth: z.infer<typeof HoyoAuthSchema>,
+): string {
   const cookies = [
     `ltoken_v2=${auth.ltoken_v2}`,
     `ltuid_v2=${auth.ltuid_v2}`,
     `ltmid_v2=${auth.ltmid_v2}`,
   ];
-
-  if (auth.cookie_token_v2) {
-    cookies.push(`cookie_token_v2=${auth.cookie_token_v2}`);
-  }
-  if (auth.account_mid_v2) {
-    cookies.push(`account_mid_v2=${auth.account_mid_v2}`);
-  }
-  if (auth.account_id_v2) {
-    cookies.push(`account_id_v2=${auth.account_id_v2}`);
-  }
 
   return cookies.join('; ');
 }
@@ -87,13 +55,17 @@ export function buildCookieString(auth: HoyoAuth): string {
 /**
  * Validate auth object
  */
-export function validateAuth(auth: unknown): HoyoAuth {
+export function validateAuth(
+  auth: unknown,
+): z.infer<typeof HoyoAuthSchema> {
   return HoyoAuthSchema.parse(auth);
 }
 
 /**
  * Check if auth is valid (has all required fields)
  */
-export function isValidAuth(auth: unknown): auth is HoyoAuth {
+export function isValidAuth(
+  auth: unknown,
+): auth is z.infer<typeof HoyoAuthSchema> {
   return HoyoAuthSchema.safeParse(auth).success;
 }

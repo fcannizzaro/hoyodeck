@@ -2,23 +2,23 @@ import {
   action,
   type KeyAction,
   type WillDisappearEvent,
-} from "@elgato/streamdeck";
-import { BaseAction } from "../base/base-action";
-import type { GenshinActionSettings } from "../../types/settings";
-import { GAMES } from "../../types/games";
-import { readLocalImageAsDataUri } from "../../utils/image";
-import { buildResinSvg, RESIN_FLOATS } from "../../utils/resin";
+} from '@elgato/streamdeck';
+import { BaseAction } from '../base/base-action';
+import type { StarRailActionSettings } from '../../types/settings';
+import { GAMES } from '../../types/games';
+import { readLocalImageAsDataUri } from '../../utils/image';
+import { buildResinSvg, RESIN_FLOATS } from '../../utils/resin';
 
-const BASE_IMG = "imgs/actions/gi/3-star.webp";
-const RESIN_IMG = "imgs/actions/gi/resin.webp";
+const BASE_IMG = 'imgs/actions/hsr/4-star-background copy.webp';
+const STAMINA_IMG = 'imgs/actions/hsr/trailblaze-power.webp';
 
 /**
- * Resin Counter Action
- * Displays current Original Resin as a floating fill gauge and refreshes on tap
+ * Trailblaze Power Action
+ * Displays current Trailblaze Power as a floating fill gauge and refreshes on tap
  */
-@action({ UUID: "com.fcannizzaro.hoyodeck.genshin.resin" })
-export class ResinAction extends BaseAction<GenshinActionSettings> {
-  private readonly MAX_RESIN = GAMES.genshin.staminaMax;
+@action({ UUID: 'com.fcannizzaro.hoyodeck.starrail.stamina' })
+export class StaminaAction extends BaseAction<StarRailActionSettings> {
+  private readonly MAX_STAMINA = GAMES.starrail.staminaMax;
 
   /** Interval handle for the floating animation */
   private animationInterval: ReturnType<typeof setInterval> | null = null;
@@ -36,24 +36,24 @@ export class ResinAction extends BaseAction<GenshinActionSettings> {
   }
 
   /**
-   * Start the floating resin animation.
+   * Start the floating stamina animation.
    * @param action Stream Deck key action
-   * @param current Current resin count
+   * @param current Current Trailblaze Power count
    */
   private startAnimation(
-    action: KeyAction<GenshinActionSettings>,
+    action: KeyAction<StarRailActionSettings>,
     current: number,
   ): void {
     const baseDataUri = readLocalImageAsDataUri(BASE_IMG);
-    const resinDataUri = readLocalImageAsDataUri(RESIN_IMG);
+    const staminaDataUri = readLocalImageAsDataUri(STAMINA_IMG);
 
     const renderFrame = async (): Promise<void> => {
       const svg = buildResinSvg(
         baseDataUri,
-        resinDataUri,
+        staminaDataUri,
         this.frameIndex,
         current,
-        this.MAX_RESIN,
+        this.MAX_STAMINA,
       );
       const base64 = `data:image/svg+xml;base64,${btoa(svg)}`;
       await action.setImage(base64);
@@ -69,8 +69,8 @@ export class ResinAction extends BaseAction<GenshinActionSettings> {
   }
 
   protected override async refresh(
-    action: KeyAction<GenshinActionSettings>,
-    settings: GenshinActionSettings,
+    action: KeyAction<StarRailActionSettings>,
+    settings: StarRailActionSettings,
   ): Promise<void> {
     this.clearAnimation();
 
@@ -80,23 +80,23 @@ export class ResinAction extends BaseAction<GenshinActionSettings> {
       return;
     }
 
-    const uid = this.getGameUid(ctx.account, 'genshin');
+    const uid = this.getGameUid(ctx.account, 'starrail');
     if (!uid) {
       await this.showNoUid(action);
       return;
     }
 
-    const dailyNote = await ctx.client.getGenshinDailyNote(uid);
+    const dailyNote = await ctx.client.getStarRailDailyNote(uid);
 
-    await action.setTitle("");
-    this.startAnimation(action, dailyNote.current_resin);
+    await action.setTitle('');
+    this.startAnimation(action, dailyNote.current_stamina);
   }
 
   /**
    * Clean up the animation interval when the action disappears from the deck
    */
   override onWillDisappear(
-    ev: WillDisappearEvent<GenshinActionSettings>,
+    ev: WillDisappearEvent<StarRailActionSettings>,
   ): void {
     this.clearAnimation();
   }

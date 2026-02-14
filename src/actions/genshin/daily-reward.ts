@@ -16,17 +16,17 @@ const DONE_IMG = 'imgs/actions/gi/done.png';
 export class DailyRewardAction extends BaseAction<DailyRewardSettings> {
   protected override async refresh(
     action: KeyAction<DailyRewardSettings>,
-    _settings: DailyRewardSettings
+    settings: DailyRewardSettings,
   ): Promise<void> {
-    const client = await this.getClient();
-    if (!client) {
-      await this.showNoAuth(action);
+    const ctx = await this.getAccountContext(settings);
+    if (!ctx) {
+      await this.showNoAccount(action);
       return;
     }
 
     const [info, rewards] = await Promise.all([
-      client.getGenshinCheckInInfo(),
-      client.getGenshinCheckInRewards(),
+      ctx.client.getGenshinCheckInInfo(),
+      ctx.client.getGenshinCheckInRewards(),
     ]);
 
     // If already claimed, show the latest claimed reward; otherwise show the next to claim
@@ -52,17 +52,17 @@ export class DailyRewardAction extends BaseAction<DailyRewardSettings> {
   }
 
   override async onKeyDown(
-    ev: KeyDownEvent<DailyRewardSettings>
+    ev: KeyDownEvent<DailyRewardSettings>,
   ): Promise<void> {
     await this.withErrorHandling(ev.action, async () => {
-      const client = await this.getClient();
-      if (!client) {
-        await this.showNoAuth(ev.action);
+      const ctx = await this.getAccountContext(ev.payload.settings);
+      if (!ctx) {
+        await this.showNoAccount(ev.action);
         return;
       }
 
       // Check if already claimed
-      const info = await client.getGenshinCheckInInfo();
+      const info = await ctx.client.getGenshinCheckInInfo();
       if (info.is_sign) {
         await ev.action.showOk();
         return;
@@ -72,7 +72,7 @@ export class DailyRewardAction extends BaseAction<DailyRewardSettings> {
       const claimOnClick = ev.payload.settings.claimOnClick ?? true;
       if (claimOnClick) {
         try {
-          await client.claimGenshinCheckIn();
+          await ctx.client.claimGenshinCheckIn();
           await ev.action.showOk();
         } catch (error) {
           if (error instanceof HoyolabApiError && error.retcode === -5003) {

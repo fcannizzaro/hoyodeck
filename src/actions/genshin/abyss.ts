@@ -13,19 +13,19 @@ export class AbyssAction extends BaseAction<GenshinActionSettings> {
     action: KeyAction<GenshinActionSettings>,
     settings: GenshinActionSettings
   ): Promise<void> {
-    const client = await this.getClient();
-    if (!client) {
-      await this.showNoAuth(action);
+    const ctx = await this.getAccountContext(settings);
+    if (!ctx) {
+      await this.showNoAccount(action);
       return;
     }
 
-    const uid = await this.getUid(settings);
+    const uid = this.getGameUid(ctx.account, 'genshin');
     if (!uid) {
       await this.showNoUid(action);
       return;
     }
 
-    const abyss = await client.getGenshinSpiralAbyss(uid);
+    const abyss = await ctx.client.getGenshinSpiralAbyss(uid);
 
     // Calculate days remaining
     const endDate = new Date(parseInt(abyss.end_time) * 1000);

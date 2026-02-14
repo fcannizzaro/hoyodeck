@@ -1,6 +1,7 @@
 import { useStreamDeck } from '../hooks/use-stream-deck';
 import { Heading } from '../components/Heading';
 import { Select } from '../components/Select';
+import { AccountPicker } from '../components/AccountPicker';
 
 const STYLE_OPTIONS = [
   { value: 'text', label: 'Text (Countdown)' },
@@ -14,6 +15,7 @@ export function TransformerPanel() {
   return (
     <>
       <Heading>Transformer Settings</Heading>
+      <AccountPicker game="genshin" />
       <Select
         label="Display Style"
         value={style}

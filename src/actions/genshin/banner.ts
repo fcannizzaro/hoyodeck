@@ -49,21 +49,19 @@ export class BannerAction extends BaseAction<BannerSettings> {
     action: KeyAction<BannerSettings>,
     settings: BannerSettings,
   ): Promise<void> {
-    const client = await this.getClient();
-
-    if (!client) {
-      await this.showNoAuth(action);
+    const ctx = await this.getAccountContext(settings);
+    if (!ctx) {
+      await this.showNoAccount(action);
       return;
     }
 
-    const uid = await this.getUid(settings);
-
+    const uid = this.getGameUid(ctx.account, 'genshin');
     if (!uid) {
       await this.showNoUid(action);
       return;
     }
 
-    const calendar = await client.getGenshinActCalendar(uid);
+    const calendar = await ctx.client.getGenshinActCalendar(uid);
 
     const type = settings.type ?? "character";
 

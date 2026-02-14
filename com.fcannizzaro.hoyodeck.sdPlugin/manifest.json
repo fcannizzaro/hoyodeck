@@ -113,6 +113,32 @@
       ]
     },
     {
+      "UUID": "com.fcannizzaro.hoyodeck.starrail.stamina",
+      "Name": "[HSR] Trailblaze Power",
+      "Icon": "imgs/actions/hsr/trailblaze-power-icon",
+      "Tooltip": "Display and refresh Trailblaze Power",
+      "Controllers": ["Keypad"],
+      "States": [
+        {
+          "Image": "imgs/actions/hsr/trailblaze-power-state",
+          "TitleAlignment": "middle"
+        }
+      ]
+    },
+    {
+      "UUID": "com.fcannizzaro.hoyodeck.starrail.banner",
+      "Name": "[HSR] Banner",
+      "Icon": "imgs/actions/hsr/banner-Icon",
+      "Tooltip": "Display current warp banner countdown",
+      "Controllers": ["Keypad"],
+      "States": [
+        {
+          "Image": "imgs/actions/hsr/banner-state",
+          "TitleAlignment": "middle"
+        }
+      ]
+    },
+    {
       "UUID": "com.fcannizzaro.hoyodeck.genshin.daily-reward",
       "Name": "Daily Reward",
       "Icon": "imgs/actions/gi/rewardIcon",

@@ -42,7 +42,7 @@ export const GAMES: Record<GameId, GameConfig> = {
   starrail: {
     id: 'starrail',
     name: 'Honkai: Star Rail',
-    staminaMax: 240,
+    staminaMax: 300,
     staminaField: 'current_stamina',
     staminaName: 'Trailblaze Power',
     dailyNoteEndpoint: '/game_record/hkrpg/api/note',

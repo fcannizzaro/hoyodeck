@@ -23,8 +23,8 @@ export const COMMON_HEADERS = {
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
   Accept: 'application/json, text/plain, */*',
   'Accept-Language': 'en-US,en;q=0.9',
-  'x-rpc-app_version': '2.42.0',
-  'x-rpc-client_type': '4',
+  'x-rpc-app_version': '1.5.0',
+  'x-rpc-client_type': '5',
   'x-rpc-language': 'en-us',
   Origin: 'https://act.hoyolab.com',
   Referer: 'https://act.hoyolab.com/',
@@ -55,6 +55,7 @@ export const STAR_RAIL = {
   ENDPOINTS: {
     DAILY_NOTE: '/game_record/hkrpg/api/note',
     FORGOT_HALL: '/game_record/hkrpg/api/challenge',
+    ACT_CALENDAR: '/game_record/hkrpg/api/get_act_calender',
   },
 } as const;
 

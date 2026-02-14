@@ -1,8 +1,8 @@
-import { parseCookies, validateAuth } from './api/hoyolab/auth';
-import { HoyolabClient } from './api/hoyolab/client';
-import { isValidUid } from './utils/region';
-import type { GameId } from './types/games';
-import { GAMES } from './types/games';
+import { parseCookies, validateAuth } from "./api/hoyolab/auth";
+import { HoyolabClient } from "./api/hoyolab/client";
+import { isValidUid } from "./utils/region";
+import type { GameId } from "./types/games";
+import { GAMES } from "./types/games";
 
 // ============================================
 // Help & Usage
@@ -27,6 +27,7 @@ Endpoints:
 
   starrail:
     daily-note <uid>          Trailblaze power, assignments, etc.
+    act-calendar <uid>        Active banners and events
 
   zzz:
     daily-note <uid>          Battery charge, scratch card, etc.
@@ -50,7 +51,7 @@ Examples:
 function parseArgs(argv: string[]) {
   const args = argv.slice(2);
 
-  if (args.length === 0 || args.includes('--help') || args.includes('-h')) {
+  if (args.length === 0 || args.includes("--help") || args.includes("-h")) {
     console.log(USAGE);
     process.exit(0);
   }
@@ -59,15 +60,15 @@ function parseArgs(argv: string[]) {
   const endpoint = args[1];
 
   if (!game || !endpoint) {
-    console.error('Error: <game> and <endpoint> are required.\n');
+    console.error("Error: <game> and <endpoint> are required.\n");
     console.log(USAGE);
     process.exit(1);
   }
 
-  const validGames: GameId[] = ['genshin', 'starrail', 'zzz'];
+  const validGames: GameId[] = ["genshin", "starrail", "zzz"];
   if (!validGames.includes(game as GameId)) {
     console.error(
-      `Error: Unknown game "${game}". Valid games: ${validGames.join(', ')}`
+      `Error: Unknown game "${game}". Valid games: ${validGames.join(", ")}`,
     );
     process.exit(1);
   }
@@ -78,9 +79,9 @@ function parseArgs(argv: string[]) {
 
   for (let i = 2; i < args.length; i++) {
     const arg = args[i]!;
-    if (arg.startsWith('--')) {
-      const [key, value] = arg.slice(2).split('=');
-      if (key) flags[key] = value ?? 'true';
+    if (arg.startsWith("--")) {
+      const [key, value] = arg.slice(2).split("=");
+      if (key) flags[key] = value ?? "true";
     } else if (!uid) {
       uid = arg;
     }
@@ -94,24 +95,24 @@ function parseArgs(argv: string[]) {
 // ============================================
 
 function getAuthFromEnv() {
-  const cookie = process.env['HOYOLAB_COOKIE'];
+  const parsed = {
+    ltoken_v2: process.env.LTOKEN,
+    ltuid_v2: process.env.LTUID,
+    ltmid_v2: process.env.LTMID,
+  };
 
-  if (!cookie) {
+  if (!parsed.ltoken_v2 || !parsed.ltuid_v2 || !parsed.ltmid_v2) {
     console.error(
-      'Error: HOYOLAB_COOKIE is not set.\n' +
-        'Create a .env file with:\n' +
-        '  HOYOLAB_COOKIE="ltoken_v2=xxx; ltuid_v2=yyy; ltmid_v2=zzz"'
+      "Error: Missing authentication environment variables. Ensure LTOKEN, LTUID, and LTMID are set.",
     );
     process.exit(1);
   }
-
-  const parsed = parseCookies(cookie);
 
   try {
     return validateAuth(parsed);
   } catch {
     console.error(
-      'Error: Invalid cookie. Ensure ltoken_v2, ltuid_v2, and ltmid_v2 are present.'
+      "Error: Invalid cookie. Ensure ltoken_v2, ltuid_v2, and ltmid_v2 are present.",
     );
     process.exit(1);
   }
@@ -128,16 +129,14 @@ function requireUid(uid: string | undefined, game: GameId): string {
   }
 
   if (!isValidUid(uid)) {
-    console.error(
-      `Error: Invalid UID "${uid}". Must be 9-10 digits.`
-    );
+    console.error(`Error: Invalid UID "${uid}". Must be 9-10 digits.`);
     process.exit(1);
   }
 
   const gameConfig = GAMES[game];
   console.error(`Game:   ${gameConfig.name}`);
   console.error(`UID:    ${uid}`);
-  console.error('');
+  console.error("");
 
   return uid;
 }
@@ -150,38 +149,44 @@ type EndpointHandler = (
   client: HoyolabClient,
   uid: string | undefined,
   flags: Record<string, string>,
-  game: GameId
+  game: GameId,
 ) => Promise<unknown>;
 
 const ENDPOINTS: Record<string, Record<string, EndpointHandler>> = {
   genshin: {
-    'daily-note': async (client, uid, _, game) => {
+    "daily-note": async (client, uid, _, game) => {
       return client.getGenshinDailyNote(requireUid(uid, game));
     },
     abyss: async (client, uid, flags, game) => {
-      const schedule = flags['schedule'] === '2' ? 2 : 1;
-      return client.getGenshinSpiralAbyss(requireUid(uid, game), schedule as 1 | 2);
+      const schedule = flags["schedule"] === "2" ? 2 : 1;
+      return client.getGenshinSpiralAbyss(
+        requireUid(uid, game),
+        schedule as 1 | 2,
+      );
     },
-    'check-in-info': async (client) => {
+    "check-in-info": async (client) => {
       return client.getGenshinCheckInInfo();
     },
-    'check-in-rewards': async (client) => {
+    "check-in-rewards": async (client) => {
       return client.getGenshinCheckInRewards();
     },
-    'check-in-claim': async (client) => {
+    "check-in-claim": async (client) => {
       return client.claimGenshinCheckIn();
     },
-    'act-calendar': async (client, uid, _, game) => {
+    "act-calendar": async (client, uid, _, game) => {
       return client.getGenshinActCalendar(requireUid(uid, game));
     },
   },
   starrail: {
-    'daily-note': async (client, uid, _, game) => {
+    "daily-note": async (client, uid, _, game) => {
       return client.getStarRailDailyNote(requireUid(uid, game));
+    },
+    "act-calendar": async (client, uid, _, game) => {
+      return client.getStarRailActCalendar(requireUid(uid, game));
     },
   },
   zzz: {
-    'daily-note': async (client, uid, _, game) => {
+    "daily-note": async (client, uid, _, game) => {
       return client.getZZZDailyNote(requireUid(uid, game));
     },
   },
@@ -204,10 +209,10 @@ async function main() {
 
   const handler = gameEndpoints[endpoint];
   if (!handler) {
-    const available = Object.keys(gameEndpoints).join(', ');
+    const available = Object.keys(gameEndpoints).join(", ");
     console.error(
       `Error: Unknown endpoint "${endpoint}" for ${game}.\n` +
-        `Available: ${available}`
+        `Available: ${available}`,
     );
     process.exit(1);
   }
@@ -219,7 +224,7 @@ async function main() {
     if (error instanceof Error) {
       console.error(`Error: ${error.message}`);
     } else {
-      console.error('Error:', error);
+      console.error("Error:", error);
     }
     process.exit(1);
   }

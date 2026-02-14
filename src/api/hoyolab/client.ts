@@ -11,6 +11,10 @@ import type {
   GenshinCheckInClaim,
   GenshinActCalendar,
 } from '../types/genshin';
+import type {
+  StarRailDailyNote,
+  StarRailActCalendar,
+} from '../types/starrail';
 import { getRegionFromUid } from '../../utils/region';
 import { cache, CacheTTL, buildCacheKey } from '../../services/cache';
 
@@ -213,10 +217,10 @@ export class HoyolabClient {
   /**
    * Get Star Rail daily note (trailblaze power, assignments, etc.)
    */
-  async getStarRailDailyNote(uid: string): Promise<unknown> {
+  async getStarRailDailyNote(uid: string): Promise<StarRailDailyNote> {
     const region = getRegionFromUid(uid, 'starrail');
 
-    return this.request<unknown>(
+    return this.request<StarRailDailyNote>(
       API_URLS.BATTLE_CHRONICLE,
       STAR_RAIL.ENDPOINTS.DAILY_NOTE,
       {
@@ -226,6 +230,34 @@ export class HoyolabClient {
         },
       }
     );
+  }
+
+  /**
+   * Get Star Rail act calendar (active banner pools, events, etc.)
+   */
+  async getStarRailActCalendar(uid: string): Promise<StarRailActCalendar> {
+    const cacheKey = buildCacheKey('starrail', 'act-calendar', uid);
+    const cached = cache.get<StarRailActCalendar>(cacheKey);
+
+    if (cached) {
+      return cached;
+    }
+
+    const region = getRegionFromUid(uid, 'starrail');
+
+    const data = await this.request<StarRailActCalendar>(
+      API_URLS.BATTLE_CHRONICLE,
+      STAR_RAIL.ENDPOINTS.ACT_CALENDAR,
+      {
+        query: {
+          role_id: uid,
+          server: region,
+        },
+      }
+    );
+
+    cache.set(cacheKey, data, CacheTTL.STATIC);
+    return data;
   }
 
   // ============================================

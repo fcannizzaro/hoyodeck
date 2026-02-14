@@ -1,6 +1,7 @@
 import { useStreamDeck } from '../hooks/use-stream-deck';
 import { Heading } from '../components/Heading';
 import { Select } from '../components/Select';
+import { AccountPicker } from '../components/AccountPicker';
 
 const BANNER_OPTIONS = [
   { value: 'character', label: 'Character Event Wish' },
@@ -14,6 +15,7 @@ export function BannerPanel() {
   return (
     <>
       <Heading>Banner Settings</Heading>
+      <AccountPicker />
       <Select
         label="Banner Type"
         value={type}

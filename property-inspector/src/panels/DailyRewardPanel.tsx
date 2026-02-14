@@ -1,6 +1,7 @@
 import { useStreamDeck } from '../hooks/use-stream-deck';
 import { Heading } from '../components/Heading';
 import { Checkbox } from '../components/Checkbox';
+import { AccountPicker } from '../components/AccountPicker';
 
 export function DailyRewardPanel() {
   const { settings, saveSettings } = useStreamDeck();
@@ -9,6 +10,7 @@ export function DailyRewardPanel() {
   return (
     <>
       <Heading>Daily Reward Settings</Heading>
+      <AccountPicker />
       <Checkbox
         label="Claim reward on click"
         checked={claimOnClick}

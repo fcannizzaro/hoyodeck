@@ -4,7 +4,7 @@ import { createHash } from 'crypto';
  * DS (Dynamic Secret) salt for overseas HoYoLAB API
  * This may need to be updated if HoYoverse changes it
  */
-const OS_DS_SALT = '6s25p5ox5y14ber1i2n801teleht01teleht';
+const OS_DS_SALT = '6s25p5ox5y14umn1p61aqyyvbvvl3lrt';
 
 /**
  * Lowercase letters and digits for random string generation

@@ -33,7 +33,7 @@ export abstract class StaminaAction<
    */
   protected abstract fetchDailyNote(
     client: HoyolabClient,
-    uid: string
+    uid: string,
   ): Promise<TDailyNote>;
 
   /**
@@ -53,21 +53,21 @@ export abstract class StaminaAction<
 
   protected override async refresh(
     action: KeyAction<TSettings>,
-    settings: TSettings
+    settings: TSettings,
   ): Promise<void> {
-    const client = await this.getClient();
-    if (!client) {
-      await this.showNoAuth(action);
+    const ctx = await this.getAccountContext(settings);
+    if (!ctx) {
+      await this.showNoAccount(action);
       return;
     }
 
-    const uid = await this.getUid(settings);
+    const uid = this.getGameUid(ctx.account, this.game);
     if (!uid) {
       await this.showNoUid(action);
       return;
     }
 
-    const dailyNote = await this.fetchDailyNote(client, uid);
+    const dailyNote = await this.fetchDailyNote(ctx.client, uid);
     const current = this.getCurrentStamina(dailyNote);
     const display = this.formatDisplay(current, this.maxStamina);
 

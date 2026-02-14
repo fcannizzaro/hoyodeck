@@ -13,20 +13,19 @@ export class TransformerAction extends BaseAction<TransformerSettings> {
     action: KeyAction<TransformerSettings>,
     settings: TransformerSettings,
   ): Promise<void> {
-    const client = await this.getClient();
-    if (!client) {
-      await this.showNoAuth(action);
+    const ctx = await this.getAccountContext(settings);
+    if (!ctx) {
+      await this.showNoAccount(action);
       return;
     }
 
-    const uid = await this.getUid(settings);
-    
+    const uid = this.getGameUid(ctx.account, 'genshin');
     if (!uid) {
       await this.showNoUid(action);
       return;
     }
 
-    const dailyNote = await client.getGenshinDailyNote(uid);
+    const dailyNote = await ctx.client.getGenshinDailyNote(uid);
 
     if (!dailyNote.transformer.obtained) {
       await action.setTitle("N/A");
