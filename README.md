@@ -1,6 +1,6 @@
 # Hoyo Deck
 
-A Stream Deck plugin for HoYoverse games. Track your Genshin Impact stats directly on your Stream Deck.
+A Stream Deck plugin for HoYoverse games. Track your Genshin Impact, Honkai: Star Rail, and Zenless Zone Zero stats directly on your Stream Deck.
 
 ## Features
 
@@ -12,16 +12,18 @@ A Stream Deck plugin for HoYoverse games. Track your Genshin Impact stats direct
 - **Teapot Currency** - Track your Serenitea Pot realm currency
 - **Transformer** - Check Parametric Transformer cooldown
 - **Spiral Abyss** - View reset timer and star count
-- **Daily Reward** - View and claim HoYoLAB check-in rewards
+- **Daily Reward** - View and claim HoYoLAB check-in rewards (supports all three games)
 - **Banner Countdown** - Track current wish banner end date
 
-### Honkai Star Rail
+### Honkai: Star Rail
 
-Coming soon
+- **Trailblaze Power** - Track your Trailblaze Power in real-time
+- **Banner Countdown** - Track current warp banner end date
 
-### Zenless Zone Zero 
+### Zenless Zone Zero
 
-Coming soon
+- **Battery Charge** - Track your Battery Charge in real-time
+- **Banner Countdown** - Track current Signal Search banner end date
 
 ## Installation
 
@@ -76,37 +78,61 @@ The plugin requires HoYoLAB authentication to access your game data.
 
 ## Actions
 
-### Resin
+### Genshin Impact
+
+#### Resin
 
 Displays current/original resin count (e.g., "45/200").
 
-### Commissions
+#### Commissions
 
 Shows remaining daily commissions (0-4).
 
-### Expeditions
+#### Expeditions
 
 Shows completed/total expeditions (e.g., "3/5").
 
-### Teapot
+#### Teapot
 
 Displays current realm currency amount.
 
-### Transformer
+#### Transformer
 
 Shows Parametric Transformer cooldown time.
 
-### Spiral Abyss
+#### Spiral Abyss
 
 Shows days remaining until reset and total stars earned.
 
-### Daily Reward
+#### Banner
 
-Shows today's check-in reward.
+Shows current wish banner countdown with featured character/weapon icon.
 
-### Banner
+### Honkai: Star Rail
 
-Shows current wish banner countdown.
+#### Trailblaze Power
+
+Displays current/max Trailblaze Power (e.g., "150/300").
+
+#### Banner
+
+Shows current warp banner countdown with featured character/light cone icon.
+
+### Zenless Zone Zero
+
+#### Battery Charge
+
+Displays current/max Battery Charge (e.g., "120/240").
+
+#### Banner
+
+Shows current Signal Search banner countdown with featured character/W-Engine icon.
+
+### Cross-Game
+
+#### Daily Reward
+
+Shows today's HoYoLAB check-in reward. Supports Genshin Impact, Honkai: Star Rail, and Zenless Zone Zero. Press to claim the daily reward.
 
 ## Requirements
 
@@ -118,27 +144,25 @@ Shows current wish banner countdown.
 
 ### Project Structure
 ```
-src/
+packages/shared/src/           # @hoyodeck/shared
+├── types/                     # Game types, settings, Zod schemas
+├── cookies/                   # Cookie parsing and validation
+└── games/                     # Game registry and config
+
+plugin/src/                    # Stream Deck plugin backend
 ├── actions/
-│   ├── base/         # Base action classes
-│   └── genshin/      # Genshin Impact actions
-├── api/
-│   ├── hoyolab/      # HoYoLAB API client
-│   └── banner/       # Banner Gist client
-├── services/          # Cache service
-├── types/             # TypeScript types
-└── utils/             # Utility functions
-```
+│   ├── base/                  # Base action classes
+│   ├── gi/                    # Genshin Impact actions
+│   ├── hsr/                   # Honkai: Star Rail actions
+│   └── zzz/                   # Zenless Zone Zero actions
+├── api/                       # HoYoLAB API client
+├── services/                  # Cross-cutting services
+└── utils/                     # Utility functions
 
-### Building
-```bash
-bun run build
-```
-
-### Testing
-```bash
-bun run build  # Build must succeed
-streamdeck link  # Load in Stream Deck for manual testing
+property-inspector/src/        # Stream Deck UI panel (React)
+├── components/                # Reusable UI components
+├── hooks/                     # React hooks
+└── panels/                    # Action settings panels
 ```
 
 ## Contributing
