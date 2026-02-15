@@ -1,0 +1,14 @@
+@import "tailwindcss";
+
+@theme {
+  --color-sd-bg: #2d2d2d;
+  --color-sd-text: #d8d8d8;
+  --color-sd-secondary: #999;
+  --color-sd-border: #3a3a3a;
+  --color-sd-input: #3c3c3c;
+  --color-sd-focus: #0078d4;
+  --color-sd-button: #4a4a4a;
+  --color-sd-button-hover: #555;
+  --color-sd-success: #4caf50;
+  --color-sd-error: #f44336;
+}

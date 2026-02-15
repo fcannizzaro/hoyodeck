@@ -1,0 +1,218 @@
+{
+  "$schema": "https://schemas.elgato.com/streamdeck/plugins/manifest.json",
+  "UUID": "com.fcannizzaro.hoyodeck",
+  "Name": "Hoyo Deck",
+  "Author": "fcannizzaro",
+  "Description": "HoYoverse games utilities for Stream Deck (Genshin Impact, Honkai: Star Rail and Zenless Zone Zero)",
+  "Version": "1.0.0.0",
+  "SDKVersion": 2,
+  "Software": {
+    "MinimumVersion": "6.6"
+  },
+  "OS": [
+    {
+      "Platform": "mac",
+      "MinimumVersion": "13"
+    },
+    {
+      "Platform": "windows",
+      "MinimumVersion": "10"
+    }
+  ],
+  "Nodejs": {
+    "Version": "20",
+    "Debug": "--inspect=127.0.0.1:9990"
+  },
+  "CodePath": "bin/plugin.js",
+  "Category": "Hoyo Deck",
+  "CategoryIcon": "imgs/plugin/category",
+  "Icon": "imgs/plugin/icon",
+  "PropertyInspectorPath": "ui/index.html",
+  "Actions": [
+    {
+      "UUID": "com.fcannizzaro.hoyodeck.genshin.resin",
+      "Name": "[GI] Resin",
+      "Icon": "imgs/actions/gi/resin-icon",
+      "Tooltip": "Display and refresh Original Resin",
+      "Controllers": [
+        "Keypad"
+      ],
+      "States": [
+        {
+          "Image": "imgs/actions/gi/resin-state",
+          "TitleAlignment": "middle"
+        }
+      ]
+    },
+    {
+      "UUID": "com.fcannizzaro.hoyodeck.genshin.commission",
+      "Name": "[GI] Commissions",
+      "Icon": "imgs/actions/gi/commissions-icon",
+      "Tooltip": "Display remaining daily commissions",
+      "Controllers": [
+        "Keypad"
+      ],
+      "States": [
+        {
+          "Image": "imgs/actions/gi/commissions-state",
+          "TitleAlignment": "middle"
+        }
+      ]
+    },
+    {
+      "UUID": "com.fcannizzaro.hoyodeck.genshin.expedition",
+      "Name": "[GI] Expeditions",
+      "Icon": "imgs/actions/gi/expeditions-icon",
+      "Tooltip": "Display completed expeditions",
+      "Controllers": [
+        "Keypad"
+      ],
+      "States": [
+        {
+          "Image": "imgs/actions/gi/expeditions-state",
+          "TitleAlignment": "middle"
+        }
+      ]
+    },
+    {
+      "UUID": "com.fcannizzaro.hoyodeck.genshin.teapot",
+      "Name": "[GI] Teapot",
+      "Icon": "imgs/actions/gi/teapot-icon",
+      "Tooltip": "Display Serenitea Pot realm currency",
+      "Controllers": [
+        "Keypad"
+      ],
+      "States": [
+        {
+          "Image": "imgs/actions/gi/teapot-state",
+          "TitleAlignment": "middle"
+        }
+      ]
+    },
+    {
+      "UUID": "com.fcannizzaro.hoyodeck.genshin.transformer",
+      "Name": "[GI] Transformer",
+      "Icon": "imgs/actions/gi/transformerIcon",
+      "Tooltip": "Display Parametric Transformer cooldown",
+      "Controllers": [
+        "Keypad"
+      ],
+      "States": [
+        {
+          "Image": "imgs/actions/gi/transformerState",
+          "TitleAlignment": "middle"
+        },
+        {
+          "Image": "imgs/actions/gi/transformerReadyState",
+          "TitleAlignment": "middle",
+          "Name": "Ready"
+        }
+      ]
+    },
+    {
+      "UUID": "com.fcannizzaro.hoyodeck.genshin.abyss",
+      "Name": "[GI] Spiral Abyss",
+      "Icon": "imgs/actions/gi/abyssIcon",
+      "Tooltip": "Display Spiral Abyss progress and reset timer",
+      "Controllers": [
+        "Keypad"
+      ],
+      "States": [
+        {
+          "Image": "imgs/actions/gi/abyssState",
+          "TitleAlignment": "middle"
+        }
+      ]
+    },
+    {
+      "UUID": "com.fcannizzaro.hoyodeck.genshin.banner",
+      "Name": "[GI] Banner",
+      "Icon": "imgs/actions/gi/banner-icon",
+      "Tooltip": "Display current wish banner countdown",
+      "Controllers": [
+        "Keypad"
+      ],
+      "States": [
+        {
+          "Image": "imgs/actions/gi/banner-state",
+          "TitleAlignment": "middle"
+        }
+      ]
+    },
+    {
+      "UUID": "com.fcannizzaro.hoyodeck.hsr.trailblaze-power",
+      "Name": "[HSR] Trailblaze Power",
+      "Icon": "imgs/actions/hsr/trailblaze-power-icon",
+      "Tooltip": "Display and refresh Trailblaze Power",
+      "Controllers": [
+        "Keypad"
+      ],
+      "States": [
+        {
+          "Image": "imgs/actions/hsr/trailblaze-power-state",
+          "TitleAlignment": "middle"
+        }
+      ]
+    },
+    {
+      "UUID": "com.fcannizzaro.hoyodeck.hsr.banner",
+      "Name": "[HSR] Banner",
+      "Icon": "imgs/actions/hsr/banner-Icon",
+      "Tooltip": "Display current warp banner countdown",
+      "Controllers": [
+        "Keypad"
+      ],
+      "States": [
+        {
+          "Image": "imgs/actions/hsr/banner-state",
+          "TitleAlignment": "middle"
+        }
+      ]
+    },
+    {
+      "UUID": "com.fcannizzaro.hoyodeck.zzz.battery-charge",
+      "Name": "[ZZZ] Battery Charge",
+      "Icon": "imgs/actions/zzz/battery-recharge-icon",
+      "Tooltip": "Display and refresh Battery Charge",
+      "Controllers": [
+        "Keypad"
+      ],
+      "States": [
+        {
+          "Image": "imgs/actions/zzz/battery-recharge-state",
+          "TitleAlignment": "middle"
+        }
+      ]
+    },
+    {
+      "UUID": "com.fcannizzaro.hoyodeck.zzz.banner",
+      "Name": "[ZZZ] Banner",
+      "Icon": "imgs/actions/zzz/banner-Icon",
+      "Tooltip": "Display current Signal Search banner countdown",
+      "Controllers": [
+        "Keypad"
+      ],
+      "States": [
+        {
+          "Image": "imgs/actions/zzz/banner-state",
+          "TitleAlignment": "middle"
+        }
+      ]
+    },
+    {
+      "UUID": "com.fcannizzaro.hoyodeck.genshin.daily-reward",
+      "Name": "Daily Reward",
+      "Icon": "imgs/actions/gi/reward-icon",
+      "Tooltip": "View and claim HoYoLAB daily check-in reward",
+      "Controllers": [
+        "Keypad"
+      ],
+      "States": [
+        {
+          "Image": "imgs/actions/gi/reward-state",
+          "TitleAlignment": "middle"
+        }
+      ]
+    }
+  ]
+}

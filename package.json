@@ -1,0 +1,22 @@
+{
+  "name": "hoyodeck-monorepo",
+  "private": true,
+  "version": "1.0.0",
+  "author": "fcannizzaro",
+  "license": "GPL-3.0",
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "typecheck": "turbo run typecheck"
+  },
+  "workspaces": ["packages/*", "plugin", "property-inspector"],
+  "devDependencies": {
+    "oxfmt": "^0.32.0",
+    "turbo": "^2.8.9",
+    "typescript": "^6.0.0-beta"
+  },
+  "packageManager": "bun@1.3.9",
+  "engines": {
+    "node": ">=24"
+  }
+}

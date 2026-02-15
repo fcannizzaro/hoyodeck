@@ -1,0 +1,151 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-border: var(--border);
+  --color-ring: var(--ring);
+}
+
+:root {
+  --radius: 0.625rem;
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --border: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+}
+
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --border: oklch(1 0 0 / 10%);
+  --ring: oklch(0.556 0 0);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Game section gradients                                              */
+/* ------------------------------------------------------------------ */
+
+.gradient-hero {
+  background: radial-gradient(
+    ellipse at 50% 40%,
+    oklch(0.14 0.01 260) 0%,
+    oklch(0.145 0 0) 70%
+  );
+}
+
+.gradient-genshin {
+  background:
+    radial-gradient(ellipse at 30% 50%, oklch(0.28 0.12 170 / 50%) 0%, transparent 60%),
+    linear-gradient(135deg, oklch(0.22 0.09 170) 0%, oklch(0.16 0.06 190) 40%, oklch(0.145 0 0) 100%);
+}
+
+.gradient-hsr {
+  background:
+    radial-gradient(ellipse at 70% 50%, oklch(0.28 0.12 280 / 50%) 0%, transparent 60%),
+    linear-gradient(135deg, oklch(0.22 0.09 280) 0%, oklch(0.16 0.06 300) 40%, oklch(0.145 0 0) 100%);
+}
+
+.gradient-zzz {
+  background:
+  radial-gradient(ellipse at 70% 40%, oklch(0.32 0.18 35 / 55%) 0%, transparent 65%), linear-gradient(225deg, oklch(0.26 0.14 38) 0%, oklch(0.19 0.09 32) 45%, oklch(0.13 0 0) 100%)
+
+}
+
+/* Anchor scroll offset for fixed navbar */
+section[id] {
+  scroll-margin-top: 4rem;
+}
+
+/* ------------------------------------------------------------------ */
+/* Animations                                                          */
+/* ------------------------------------------------------------------ */
+
+/* Hero floating animation */
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-12px);
+  }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* Scroll-driven entrance animations (IntersectionObserver-triggered) */
+
+/* All animated elements start hidden */
+[data-animate] {
+  opacity: 0;
+  transition:
+    opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  transition-delay: var(--stagger-delay, 0s);
+}
+
+[data-animate="fade-up"] {
+  transform: translateY(40px);
+}
+
+[data-animate="slide-left"] {
+  transform: translateX(-60px);
+}
+
+[data-animate="slide-right"] {
+  transform: translateX(60px);
+}
+
+/* Visible state — added by IntersectionObserver */
+[data-animate].is-visible {
+  opacity: 1;
+  transform: translate(0, 0);
+}

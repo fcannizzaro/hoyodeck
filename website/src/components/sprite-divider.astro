@@ -1,0 +1,48 @@
+---
+const frames = ["/divider/1.webp", "/divider/2.webp", "/divider/3.webp", "/divider/4.webp"];
+const duration = 0.8
+---
+
+<div class="flex items-center gap-6 px-6">
+  <!-- Left line -->
+  <div class="h-px flex-1 bg-linear-to-r from-transparent to-white/15" />
+
+  <!-- Sprite animation -->
+  <div class="sprite-container relative h-30 w-auto shrink-0">
+    <!-- Background scene -->
+    <img
+      src="/sprite-bg.webp"
+      alt="sprite background"
+      draggable="false"
+      class="inset-0 h-full mx-auto object-fit opacity-30"
+    />
+    {
+      frames.map((src, i) => (
+        <img
+          src={src}
+          alt={`sprite frame ${i + 1}`}
+          draggable="false"
+          class="absolute inset-0 h-full w-full object-contain"
+          style={`animation: sprite-frame ${duration}s steps(1) infinite; animation-delay: ${i * duration/4}s; opacity: 0;`}
+        />
+      ))
+    }
+  </div>
+
+  <!-- Right line -->
+  <div class="h-px flex-1 bg-linear-to-l from-transparent to-white/15" />
+</div>
+
+<style>
+  @keyframes sprite-frame {
+    0% {
+      opacity: 1;
+    }
+    25% {
+      opacity: 0;
+    }
+    100% {
+      opacity: 0;
+    }
+  }
+</style>

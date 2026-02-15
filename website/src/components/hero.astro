@@ -1,0 +1,53 @@
+---
+---
+
+<section class="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-6 py-24">
+  <!-- Background gradient -->
+  <div class="absolute inset-0 -z-10 gradient-hero" />
+
+  <!-- Background hero image with bottom fade -->
+  <div
+    class="absolute inset-0 -z-10 bg-cover bg-center opacity-25 [mask-image:linear-gradient(to_bottom,black_50%,transparent_100%)]"
+    style="background-image: url('/hero.webp');"
+  />
+
+  <!-- Floating Stream Deck placeholder -->
+  <div class="animate-float mb-12">
+    <div
+      class="flex h-64 w-96 items-center justify-center rounded-2xl border border-dashed border-muted-foreground/30 bg-muted/20 backdrop-blur-sm"
+    >
+      <span class="text-sm text-muted-foreground">Stream Deck image</span>
+    </div>
+  </div>
+
+  <!-- Text content -->
+  <div class="mx-auto max-w-2xl text-center" data-animate="fade-up">
+    <h1
+      class="mb-4 text-5xl font-bold tracking-tight text-foreground sm:text-6xl lg:text-7xl"
+    >
+      Hoyo Deck
+    </h1>
+    <p class="mb-6 text-xl text-muted-foreground sm:text-2xl">
+      HoYoverse games utilities for Stream Deck
+    </p>
+    <p class="text-base leading-relaxed text-muted-foreground/80">
+      Track your Genshin Impact, Honkai: Star Rail, and Zenless Zone Zero stats
+      directly on your Stream Deck. Monitor stamina, commissions, expeditions,
+      banners, and more — all at a glance.
+    </p>
+  </div>
+
+  <!-- Scroll indicator -->
+  <div class="absolute bottom-8 animate-bounce">
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      class="h-6 w-6 text-muted-foreground/50"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      stroke-width="2"
+    >
+      <path stroke-linecap="round" stroke-linejoin="round" d="M19 14l-7 7m0 0l-7-7"></path>
+    </svg>
+  </div>
+</section>

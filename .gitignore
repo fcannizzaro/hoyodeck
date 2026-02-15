@@ -1,0 +1,34 @@
+# Dependencies
+node_modules/
+
+# Build output
+com.fcannizzaro.hoyodeck.sdPlugin/bin/
+com.fcannizzaro.hoyodeck.streamDeckPlugin
+
+# Logs
+*.log
+com.fcannizzaro.hoyodeck.sdPlugin/logs/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Environment
+.env
+.env.local
+
+# Misc
+old
+
+# AI
+.opencode
+
+# uncompressed images
+**/imgs/**/original
+
+# turborepo
+.turbo

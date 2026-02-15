@@ -1,0 +1,56 @@
+---
+const links = [
+  { href: "#marketplace", label: "Marketplace" },
+  { href: "#games", label: "Supported Games" },
+  { href: "#setup", label: "Setup" },
+];
+---
+
+<nav
+  class="fixed top-0 right-0 left-0 z-50 border-b border-transparent transition-all duration-300"
+  id="navbar"
+>
+  <div class="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
+    <!-- Logo / name -->
+    <a href="#" class="text-lg font-bold tracking-tight text-foreground">
+        Hoyo <span class="opacity-80 font-normal">Deck</span>
+    </a>
+
+    <!-- Nav links — hidden on small screens, visible on md+ -->
+    <div class="hidden items-center gap-6 md:flex">
+      {
+        links.map((link) => (
+          <a
+            href={link.href}
+            class="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+          >
+            {link.label}
+          </a>
+        ))
+      }
+    </div>
+  </div>
+</nav>
+
+<script>
+  const navbar = document.getElementById("navbar");
+  if (navbar) {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) {
+          navbar.style.backgroundColor = "oklch(0.145 0 0 / 80%)";
+          navbar.style.backdropFilter = "blur(12px)";
+          navbar.style.borderColor = "oklch(1 0 0 / 10%)";
+        } else {
+          navbar.style.backgroundColor = "transparent";
+          navbar.style.backdropFilter = "none";
+          navbar.style.borderColor = "transparent";
+        }
+      },
+      { threshold: 0, rootMargin: "-64px 0px 0px 0px" },
+    );
+    // Observe the hero section — when it leaves viewport, apply blur bg
+    const hero = document.querySelector("section");
+    if (hero) observer.observe(hero);
+  }
+</script>

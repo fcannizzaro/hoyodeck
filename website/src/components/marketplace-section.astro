@@ -1,0 +1,84 @@
+---
+---
+
+<section class="px-6 py-16" id="marketplace">
+  <div class="mx-auto max-w-6xl text-center" data-animate="fade-up">
+    <h2 class="mb-6 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+      Soon on the Elgato Marketplace
+    </h2>
+
+    <!-- Countdown -->
+    <div class="mb-8 flex items-center justify-center gap-3 sm:gap-4" id="countdown">
+      <div class="flex flex-col items-center rounded-lg border border-white/10 bg-muted/20 px-4 py-3 min-w-[72px]">
+        <span class="text-2xl font-bold tabular-nums text-foreground sm:text-3xl" id="cd-days">--</span>
+        <span class="text-xs text-muted-foreground uppercase tracking-wide">days</span>
+      </div>
+      <span class="text-xl font-bold text-muted-foreground/50">:</span>
+      <div class="flex flex-col items-center rounded-lg border border-white/10 bg-muted/20 px-4 py-3 min-w-[72px]">
+        <span class="text-2xl font-bold tabular-nums text-foreground sm:text-3xl" id="cd-hours">--</span>
+        <span class="text-xs text-muted-foreground uppercase tracking-wide">hours</span>
+      </div>
+      <span class="text-xl font-bold text-muted-foreground/50">:</span>
+      <div class="flex flex-col items-center rounded-lg border border-white/10 bg-muted/20 px-4 py-3 min-w-[72px]">
+        <span class="text-2xl font-bold tabular-nums text-foreground sm:text-3xl" id="cd-mins">--</span>
+        <span class="text-xs text-muted-foreground uppercase tracking-wide">min</span>
+      </div>
+    </div>
+
+    <!-- Elgato Marketplace badge -->
+    <a
+      href="https://marketplace.elgato.com"
+      target="_blank"
+      aria-disabled="true"
+      rel="noopener noreferrer"
+      class="inline-block transition-opacity hover:opacity-80"
+    >
+      <img
+        src="https://docs.elgato.com/img/badges/get-it-on-marketplace--dark.svg"
+        alt="Get it on Elgato Marketplace"
+        class="h-12 opacity-40"
+        draggable="false"
+        title="Get Hoyo Deck on Elgato Marketplace"
+      />
+    </a>
+  </div>
+</section>
+
+<script>
+  const TARGET = new Date("2026-03-15T00:00:00Z").getTime();
+
+  function pad(n) {
+    return String(n).padStart(2, "0");
+  }
+
+  function update() {
+    const now = Date.now();
+    const diff = Math.max(0, TARGET - now);
+
+    const days = Math.floor(diff / 86_400_000);
+    const hours = Math.floor((diff % 86_400_000) / 3_600_000);
+    const mins = Math.floor((diff % 3_600_000) / 60_000);
+    const secs = Math.floor((diff % 60_000) / 1_000);
+
+    const el = (id) => document.getElementById(id);
+    const daysEl = el("cd-days");
+    const hoursEl = el("cd-hours");
+    const minsEl = el("cd-mins");
+
+    if(daysEl) daysEl.textContent = pad(days);
+    if(hoursEl) hoursEl.textContent = pad(hours);
+    if(minsEl) minsEl.textContent = pad(mins);
+
+    if (diff === 0) {
+      clearInterval(timer);
+      const countdown = el("countdown");
+      if (countdown) {
+        countdown.innerHTML =
+          '<p class="text-2xl font-bold text-foreground">Available Now!</p>';
+      }
+    }
+  }
+
+  update();
+  const timer = setInterval(update, 1000);
+</script>
