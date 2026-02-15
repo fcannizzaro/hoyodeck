@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { readFileSync, existsSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { cache, CacheTTL } from '@/services/cache';
 
@@ -27,6 +27,16 @@ export const readLocalImageAsDataUri = (relativePath: string): string => {
   cache.set(cacheKey, dataUri, CacheTTL.STATIC);
 
   return dataUri;
+};
+
+/**
+ * Check whether a local image file exists relative to the plugin directory.
+ * @param relativePath Path relative to the plugin directory (e.g. "imgs/banner/evernight-closed.png")
+ * @returns true if the file exists on disk
+ */
+export const localImageExists = (relativePath: string): boolean => {
+  const absolutePath = resolve(PLUGIN_DIR, relativePath);
+  return existsSync(absolutePath);
 };
 
 /**

@@ -32,3 +32,6 @@ old
 
 # turborepo
 .turbo
+
+# compiled plugin
+**/bin/

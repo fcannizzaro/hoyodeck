@@ -60,7 +60,7 @@ export class DailyRewardAction extends BaseAction<DailyRewardSettings, 'gi:check
     const doneDataUri = readLocalImageAsDataUri(`imgs/actions/${game}/done.png`);
 
     // Build 3-layer SVG: base frame + reward icon + optional done overlay
-    const svg = buildRewardSvg(baseDataUri, rewardDataUri, doneDataUri, info.is_sign);
+    const svg = buildRewardSvg(baseDataUri, rewardDataUri, doneDataUri, info.is_sign, game === 'zzz' && info.is_sign, `x${todayReward.cnt}`);
     const base64 = `data:image/svg+xml;base64,${btoa(svg)}`;
 
     await action.setTitle('');

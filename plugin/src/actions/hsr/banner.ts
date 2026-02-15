@@ -1,11 +1,11 @@
-import { action, type KeyAction, type KeyDownEvent } from "@elgato/streamdeck";
+import { action, type KeyAction, type KeyDownEvent, type WillDisappearEvent } from "@elgato/streamdeck";
 import { BaseAction } from "../base/base-action";
 import type { StarRailBannerSettings, BannerBadgeOptions } from "@/types/settings";
 import type { DataType, DataUpdate } from "@/services/data-controller.types";
 import { dataController } from "@/services/data-controller";
 import type { StarRailActCalendar, StarRailBannerPool } from "@/api/types/hsr";
 import { buildBannerSvg, formatCountdownFromSeconds } from "@/utils/banner";
-import { fetchImageAsDataUri } from "@/utils/image";
+import { fetchImageAsDataUri, localImageExists, readLocalImageAsDataUri } from "@/utils/image";
 
 /**
  * Star Rail Banner Action
@@ -21,6 +21,45 @@ export class BannerAction extends BaseAction<StarRailBannerSettings, 'hsr:act-ca
 
   /** Stored accountId for sync cache reads on key press */
   private currentAccountId: string | null = null;
+
+  /** Timeout handle for the eye blink animation */
+  private blinkTimeout: ReturnType<typeof setTimeout> | null = null;
+
+  /** Clear any running blink animation */
+  private clearBlinkAnimation(): void {
+    if (this.blinkTimeout !== null) {
+      clearTimeout(this.blinkTimeout);
+      this.blinkTimeout = null;
+    }
+  }
+
+  /**
+   * Start a natural eye-blink animation, alternating between open and closed frames.
+   * Eyes stay open for ~4s, then briefly close for ~200ms.
+   * @param action Stream Deck key action
+   * @param openBase64 Base64 data URI of the open-eyes SVG
+   * @param closedBase64 Base64 data URI of the closed-eyes SVG
+   */
+  private startBlinkAnimation(
+    action: KeyAction<StarRailBannerSettings>,
+    openBase64: string,
+    closedBase64: string,
+  ): void {
+    if (dataController.isAnimationDisabled()) return;
+
+    const showOpen = (): void => {
+      void action.setImage(openBase64);
+      this.blinkTimeout = setTimeout(showClosed, 4000);
+    };
+
+    const showClosed = (): void => {
+      void action.setImage(closedBase64);
+      this.blinkTimeout = setTimeout(showOpen, 200);
+    };
+
+    // Open frame is already shown by the caller; schedule first blink
+    this.blinkTimeout = setTimeout(showClosed, 4000);
+  }
 
   protected getSubscribedDataTypes(): DataType[] {
     return ['hsr:act-calendar'];
@@ -43,6 +82,9 @@ export class BannerAction extends BaseAction<StarRailBannerSettings, 'hsr:act-ca
   ): Promise<void> {
     const settings = ev.payload.settings;
     const type = settings.type ?? "character";
+
+    // Clear any running blink animation before cycling
+    this.clearBlinkAnimation();
 
     // Cycle through character banners on key press
     if (type === "character") {
@@ -73,6 +115,8 @@ export class BannerAction extends BaseAction<StarRailBannerSettings, 'hsr:act-ca
     action: KeyAction<StarRailBannerSettings>,
     update: DataUpdate<'hsr:act-calendar'>,
   ): Promise<void> {
+    this.clearBlinkAnimation();
+
     if (update.entry.status === 'error') {
       await this.showError(action);
       return;
@@ -126,6 +170,7 @@ export class BannerAction extends BaseAction<StarRailBannerSettings, 'hsr:act-ca
         .filter((it) => it.rarity === "5")
         .map((it) => ({
           icon: it.icon_url,
+          name: it.item_name,
           time_info: pool.time_info,
         })),
     );
@@ -138,10 +183,19 @@ export class BannerAction extends BaseAction<StarRailBannerSettings, 'hsr:act-ca
         this.getCountdownSeconds(item.time_info),
       );
       const dataUri = await fetchImageAsDataUri(item.icon);
-      const svg = buildBannerSvg(dataUri, countdown, "hsr", badge);
-      const base64 = `data:image/svg+xml;base64,${btoa(svg)}`;
+      const openSvg = buildBannerSvg(dataUri, countdown, "hsr", badge);
+      const openBase64 = `data:image/svg+xml;base64,${btoa(openSvg)}`;
       await action.setTitle("");
-      await action.setImage(base64);
+      await action.setImage(openBase64);
+
+      // Check for a local closed-eyes image to start blink animation
+      const closedPath = `imgs/banner/${item.name.toLowerCase()}-closed.png`;
+      if (localImageExists(closedPath)) {
+        const closedDataUri = readLocalImageAsDataUri(closedPath);
+        const closedSvg = buildBannerSvg(closedDataUri, countdown, "hsr", badge);
+        const closedBase64 = `data:image/svg+xml;base64,${btoa(closedSvg)}`;
+        this.startBlinkAnimation(action, openBase64, closedBase64);
+      }
     }
   }
 
@@ -177,5 +231,15 @@ export class BannerAction extends BaseAction<StarRailBannerSettings, 'hsr:act-ca
       await action.setTitle("");
       await action.setImage(base64);
     }
+  }
+
+  /**
+   * Clean up the blink animation when the action disappears from the deck
+   */
+  override onWillDisappear(
+    ev: WillDisappearEvent<StarRailBannerSettings>,
+  ): void {
+    super.onWillDisappear(ev);
+    this.clearBlinkAnimation();
   }
 }
