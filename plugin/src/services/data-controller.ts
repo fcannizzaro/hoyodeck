@@ -73,6 +73,11 @@ class DataControllerImpl {
   /** Previous disableAnimations value for diffing */
   private previousDisableAnimations = false;
 
+  /** Previous banner badge settings for diffing */
+  private previousBannerBadgePosition = "center";
+  private previousBannerBadgeLayout = "horizontal";
+  private previousBannerBadgeFontSize = 18;
+
   /** Debounce timer for global settings changes */
   private settingsDebounceTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -98,6 +103,9 @@ class DataControllerImpl {
     void streamDeck.settings.getGlobalSettings().then((s) => {
       const settings = s as unknown as GlobalSettings;
       this.previousDisableAnimations = settings.disableAnimations ?? false;
+      this.previousBannerBadgePosition = settings.bannerBadgePosition ?? "center";
+      this.previousBannerBadgeLayout = settings.bannerBadgeLayout ?? "horizontal";
+      this.previousBannerBadgeFontSize = settings.bannerBadgeFontSize ?? 18;
       this.previousAccounts = structuredClone(settings.accounts ?? {});
     });
 
@@ -301,10 +309,31 @@ class DataControllerImpl {
       }
     }
 
-    // Detect animation preference changes
+    // Detect rendering preference changes that require re-render
+    let needsRenotify = false;
+
     const newDisableAnimations = settings.disableAnimations ?? false;
     if (newDisableAnimations !== this.previousDisableAnimations) {
       this.previousDisableAnimations = newDisableAnimations;
+      needsRenotify = true;
+    }
+
+    const newBadgePosition = settings.bannerBadgePosition ?? "center";
+    const newBadgeLayout = settings.bannerBadgeLayout ?? "horizontal";
+    const newBadgeFontSize = settings.bannerBadgeFontSize ?? 18;
+
+    if (
+      newBadgePosition !== this.previousBannerBadgePosition ||
+      newBadgeLayout !== this.previousBannerBadgeLayout ||
+      newBadgeFontSize !== this.previousBannerBadgeFontSize
+    ) {
+      this.previousBannerBadgePosition = newBadgePosition;
+      this.previousBannerBadgeLayout = newBadgeLayout;
+      this.previousBannerBadgeFontSize = newBadgeFontSize;
+      needsRenotify = true;
+    }
+
+    if (needsRenotify) {
       this.renotifyAll();
     }
   }

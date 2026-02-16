@@ -35,3 +35,7 @@ old
 
 # compiled plugin
 **/bin/
+
+# inpaint-eyes
+inpaint-eyes/public/avatars/
+plugin/**/imgs/banner
