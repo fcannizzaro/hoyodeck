@@ -189,7 +189,7 @@ export class BannerAction extends BaseAction<StarRailBannerSettings, 'hsr:act-ca
       await action.setImage(openBase64);
 
       // Check for a local closed-eyes image to start blink animation
-      const closedPath = `imgs/banner/${item.name.toLowerCase()}-closed.png`;
+      const closedPath = `imgs/banner/${item.name.toLowerCase()}.png`;
       if (localImageExists(closedPath)) {
         const closedDataUri = readLocalImageAsDataUri(closedPath);
         const closedSvg = buildBannerSvg(closedDataUri, countdown, "hsr", badge);

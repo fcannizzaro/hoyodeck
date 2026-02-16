@@ -1,4 +1,4 @@
-import { action, type KeyAction, type KeyDownEvent } from "@elgato/streamdeck";
+import { action, type KeyAction, type KeyDownEvent, type WillDisappearEvent } from "@elgato/streamdeck";
 import { BaseAction } from "../base/base-action";
 import type { ZZZBannerSettings, BannerBadgeOptions } from "@/types/settings";
 import type { DataType, DataUpdate } from "@/services/data-controller.types";
@@ -9,7 +9,7 @@ import type {
   ZZZWeaponGachaEvent,
 } from "@/api/types/zzz";
 import { buildBannerSvg, formatCountdownFromSeconds } from "@/utils/banner";
-import { fetchImageAsDataUri } from "@/utils/image";
+import { fetchImageAsDataUri, localImageExists, readLocalImageAsDataUri } from "@/utils/image";
 
 /**
  * ZZZ Banner Action
@@ -26,6 +26,45 @@ export class BannerAction extends BaseAction<ZZZBannerSettings, 'zzz:gacha-calen
   /** Stored accountId for sync cache reads on key press */
   private currentAccountId: string | null = null;
 
+  /** Timeout handle for the eye blink animation */
+  private blinkTimeout: ReturnType<typeof setTimeout> | null = null;
+
+  /** Clear any running blink animation */
+  private clearBlinkAnimation(): void {
+    if (this.blinkTimeout !== null) {
+      clearTimeout(this.blinkTimeout);
+      this.blinkTimeout = null;
+    }
+  }
+
+  /**
+   * Start a natural eye-blink animation, alternating between open and closed frames.
+   * Eyes stay open for ~4s, then briefly close for ~200ms.
+   * @param action Stream Deck key action
+   * @param openBase64 Base64 data URI of the open-eyes SVG
+   * @param closedBase64 Base64 data URI of the closed-eyes SVG
+   */
+  private startBlinkAnimation(
+    action: KeyAction<ZZZBannerSettings>,
+    openBase64: string,
+    closedBase64: string,
+  ): void {
+    if (dataController.isAnimationDisabled()) return;
+
+    const showOpen = (): void => {
+      void action.setImage(openBase64);
+      this.blinkTimeout = setTimeout(showClosed, 4000);
+    };
+
+    const showClosed = (): void => {
+      void action.setImage(closedBase64);
+      this.blinkTimeout = setTimeout(showOpen, 200);
+    };
+
+    // Open frame is already shown by the caller; schedule first blink
+    this.blinkTimeout = setTimeout(showClosed, 4000);
+  }
+
   protected getSubscribedDataTypes(): DataType[] {
     return ['zzz:gacha-calendar'];
   }
@@ -35,6 +74,9 @@ export class BannerAction extends BaseAction<ZZZBannerSettings, 'zzz:gacha-calen
   ): Promise<void> {
     const settings = ev.payload.settings;
     const type = settings.type ?? "character";
+
+    // Clear any running blink animation before cycling
+    this.clearBlinkAnimation();
 
     // Cycle through character banners on key press
     if (type === "character") {
@@ -65,6 +107,8 @@ export class BannerAction extends BaseAction<ZZZBannerSettings, 'zzz:gacha-calen
     action: KeyAction<ZZZBannerSettings>,
     update: DataUpdate<'zzz:gacha-calendar'>,
   ): Promise<void> {
+    this.clearBlinkAnimation();
+
     if (update.entry.status === 'error') {
       await this.showError(action);
       return;
@@ -122,6 +166,7 @@ export class BannerAction extends BaseAction<ZZZBannerSettings, 'zzz:gacha-calen
         .filter((it) => it.rarity === "S")
         .map((it) => ({
           icon: it.icon,
+          name: it.avatar_name,
           left_end_ts: event.left_end_ts,
         })),
     );
@@ -137,10 +182,19 @@ export class BannerAction extends BaseAction<ZZZBannerSettings, 'zzz:gacha-calen
     if (item) {
       const countdown = formatCountdownFromSeconds(item.left_end_ts);
       const dataUri = await fetchImageAsDataUri(item.icon);
-      const svg = buildBannerSvg(dataUri, countdown, "zzz", badge);
-      const base64 = `data:image/svg+xml;base64,${btoa(svg)}`;
+      const openSvg = buildBannerSvg(dataUri, countdown, "zzz", badge);
+      const openBase64 = `data:image/svg+xml;base64,${btoa(openSvg)}`;
       await action.setTitle("");
-      await action.setImage(base64);
+      await action.setImage(openBase64);
+
+      // Check for a local closed-eyes image to start blink animation
+      const closedPath = `imgs/banner/${item.name.toLowerCase()}.png`;
+      if (localImageExists(closedPath)) {
+        const closedDataUri = readLocalImageAsDataUri(closedPath);
+        const closedSvg = buildBannerSvg(closedDataUri, countdown, "zzz", badge);
+        const closedBase64 = `data:image/svg+xml;base64,${btoa(closedSvg)}`;
+        this.startBlinkAnimation(action, openBase64, closedBase64);
+      }
     }
   }
 
@@ -174,5 +228,15 @@ export class BannerAction extends BaseAction<ZZZBannerSettings, 'zzz:gacha-calen
       await action.setTitle("");
       await action.setImage(base64);
     }
+  }
+
+  /**
+   * Clean up the blink animation when the action disappears from the deck
+   */
+  override onWillDisappear(
+    ev: WillDisappearEvent<ZZZBannerSettings>,
+  ): void {
+    super.onWillDisappear(ev);
+    this.clearBlinkAnimation();
   }
 }

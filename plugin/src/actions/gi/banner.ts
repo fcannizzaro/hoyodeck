@@ -1,11 +1,11 @@
-import { action, type KeyAction, type KeyDownEvent } from "@elgato/streamdeck";
+import { action, type KeyAction, type KeyDownEvent, type WillDisappearEvent } from "@elgato/streamdeck";
 import { BaseAction } from "../base/base-action";
 import type { BannerSettings, BannerBadgeOptions } from "@/types/settings";
 import type { DataType, DataUpdate } from "@/services/data-controller.types";
 import { dataController } from "@/services/data-controller";
 import type { GenshinActCalendar, GenshinBannerPool } from "@/api/types/genshin";
 import { buildBannerSvg, formatCountdownFromSeconds } from "@/utils/banner";
-import { fetchImageAsDataUri } from "@/utils/image";
+import { fetchImageAsDataUri, localImageExists, readLocalImageAsDataUri } from "@/utils/image";
 
 /**
  * Banner Action
@@ -22,11 +22,53 @@ export class BannerAction extends BaseAction<BannerSettings, 'gi:act-calendar'> 
   /** Stored accountId for sync cache reads on key press */
   private currentAccountId: string | null = null;
 
+  /** Timeout handle for the eye blink animation */
+  private blinkTimeout: ReturnType<typeof setTimeout> | null = null;
+
+  /** Clear any running blink animation */
+  private clearBlinkAnimation(): void {
+    if (this.blinkTimeout !== null) {
+      clearTimeout(this.blinkTimeout);
+      this.blinkTimeout = null;
+    }
+  }
+
+  /**
+   * Start a natural eye-blink animation, alternating between open and closed frames.
+   * Eyes stay open for ~4s, then briefly close for ~200ms.
+   * @param action Stream Deck key action
+   * @param openBase64 Base64 data URI of the open-eyes SVG
+   * @param closedBase64 Base64 data URI of the closed-eyes SVG
+   */
+  private startBlinkAnimation(
+    action: KeyAction<BannerSettings>,
+    openBase64: string,
+    closedBase64: string,
+  ): void {
+    if (dataController.isAnimationDisabled()) return;
+
+    const showOpen = (): void => {
+      void action.setImage(openBase64);
+      this.blinkTimeout = setTimeout(showClosed, 4000);
+    };
+
+    const showClosed = (): void => {
+      void action.setImage(closedBase64);
+      this.blinkTimeout = setTimeout(showOpen, 200);
+    };
+
+    // Open frame is already shown by the caller; schedule first blink
+    this.blinkTimeout = setTimeout(showClosed, 4000);
+  }
+
   protected getSubscribedDataTypes(): DataType[] {
     return ['gi:act-calendar'];
   }
 
   override async onKeyDown(ev: KeyDownEvent<BannerSettings>): Promise<void> {
+    // Clear any running blink animation before cycling
+    this.clearBlinkAnimation();
+
     this.bannerIndex++;
 
     // Re-render from cached data — no network call needed for banner cycling
@@ -54,6 +96,8 @@ export class BannerAction extends BaseAction<BannerSettings, 'gi:act-calendar'> 
     action: KeyAction<BannerSettings>,
     update: DataUpdate<'gi:act-calendar'>,
   ): Promise<void> {
+    this.clearBlinkAnimation();
+
     if (update.entry.status === 'error') {
       await this.showError(action);
       return;
@@ -109,6 +153,7 @@ export class BannerAction extends BaseAction<BannerSettings, 'gi:act-calendar'> 
         .filter((a) => a.rarity === 5)
         .map((a) => ({
           icon: a.icon,
+          name: a.name,
           countdown_seconds: pool.countdown_seconds,
         })),
     );
@@ -119,10 +164,19 @@ export class BannerAction extends BaseAction<BannerSettings, 'gi:act-calendar'> 
     if (item) {
       const countdown = formatCountdownFromSeconds(item.countdown_seconds);
       const dataUri = await fetchImageAsDataUri(item.icon);
-      const svg = buildBannerSvg(dataUri, countdown, "gi", badge);
-      const base64 = `data:image/svg+xml;base64,${btoa(svg)}`;
+      const openSvg = buildBannerSvg(dataUri, countdown, "gi", badge);
+      const openBase64 = `data:image/svg+xml;base64,${btoa(openSvg)}`;
       await action.setTitle("");
-      await action.setImage(base64);
+      await action.setImage(openBase64);
+
+      // Check for a local closed-eyes image to start blink animation
+      const closedPath = `imgs/banner/${item.name.toLowerCase()}.png`;
+      if (localImageExists(closedPath)) {
+        const closedDataUri = readLocalImageAsDataUri(closedPath);
+        const closedSvg = buildBannerSvg(closedDataUri, countdown, "gi", badge);
+        const closedBase64 = `data:image/svg+xml;base64,${btoa(closedSvg)}`;
+        this.startBlinkAnimation(action, openBase64, closedBase64);
+      }
     }
   }
 
@@ -156,5 +210,15 @@ export class BannerAction extends BaseAction<BannerSettings, 'gi:act-calendar'> 
       await action.setTitle("");
       await action.setImage(base64);
     }
+  }
+
+  /**
+   * Clean up the blink animation when the action disappears from the deck
+   */
+  override onWillDisappear(
+    ev: WillDisappearEvent<BannerSettings>,
+  ): void {
+    super.onWillDisappear(ev);
+    this.clearBlinkAnimation();
   }
 }
