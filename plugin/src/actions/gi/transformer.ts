@@ -1,7 +1,7 @@
 import { action, type KeyAction } from "@elgato/streamdeck";
 import { BaseAction } from "../base/base-action";
 import type { TransformerSettings } from "@/types/settings";
-import type { DataType, DataUpdate } from "@/services/data-controller.types";
+import type { DataType, SuccessDataUpdate } from "@/services/data-controller.types";
 import { formatTransformerTime } from "@/utils/time";
 
 /**
@@ -18,13 +18,8 @@ export class TransformerAction extends BaseAction<TransformerSettings, 'gi:daily
 
   protected override async onDataUpdate(
     action: KeyAction<TransformerSettings>,
-    update: DataUpdate<'gi:daily-note'>,
+    update: SuccessDataUpdate<'gi:daily-note'>,
   ): Promise<void> {
-    if (update.entry.status === 'error') {
-      await this.showDataError(action, update.entry);
-      return;
-    }
-
     const dailyNote = update.entry.data;
 
     if (!dailyNote.transformer.obtained) {

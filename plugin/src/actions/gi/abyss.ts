@@ -1,7 +1,7 @@
 import { action, type KeyAction } from "@elgato/streamdeck";
 import { BaseAction } from "../base/base-action";
 import type { GenshinActionSettings } from "@/types/settings";
-import type { DataType, DataUpdate } from "@/services/data-controller.types";
+import type { DataType, SuccessDataUpdate } from "@/services/data-controller.types";
 import { formatDaysRemaining } from "@/utils/time";
 
 /**
@@ -18,13 +18,8 @@ export class AbyssAction extends BaseAction<GenshinActionSettings, 'gi:spiral-ab
 
   protected override async onDataUpdate(
     action: KeyAction<GenshinActionSettings>,
-    update: DataUpdate<'gi:spiral-abyss'>,
+    update: SuccessDataUpdate<'gi:spiral-abyss'>,
   ): Promise<void> {
-    if (update.entry.status === 'error') {
-      await this.showDataError(action, update.entry);
-      return;
-    }
-
     const abyss = update.entry.data;
 
     // Calculate days remaining

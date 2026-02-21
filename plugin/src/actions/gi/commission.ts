@@ -5,7 +5,7 @@ import {
 } from "@elgato/streamdeck";
 import { BaseAction } from "../base/base-action";
 import type { GenshinActionSettings } from "@/types/settings";
-import type { DataType, DataUpdate } from "@/services/data-controller.types";
+import type { DataType, SuccessDataUpdate } from "@/services/data-controller.types";
 import { dataController } from "@/services";
 import { readLocalImageAsDataUri } from "@/utils/image";
 import { buildCommissionSvg, type CommissionImages } from "@/utils/commission";
@@ -102,17 +102,14 @@ export class CommissionAction extends BaseAction<GenshinActionSettings, 'gi:dail
     return ['gi:daily-note'];
   }
 
+  protected override onBeforeDataUpdate(): void {
+    this.clearAnimation();
+  }
+
   protected override async onDataUpdate(
     action: KeyAction<GenshinActionSettings>,
-    update: DataUpdate<'gi:daily-note'>,
+    update: SuccessDataUpdate<'gi:daily-note'>,
   ): Promise<void> {
-    this.clearAnimation();
-
-    if (update.entry.status === 'error') {
-      await this.showDataError(action, update.entry);
-      return;
-    }
-
     const dailyNote = update.entry.data;
 
     const completedTask = dailyNote.daily_task.attendance_rewards.filter(

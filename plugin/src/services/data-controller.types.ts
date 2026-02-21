@@ -48,6 +48,9 @@ export type DataEntry<T> =
   | { status: 'ok'; data: T; fetchedAt: number }
   | { status: 'error'; error: Error; fetchedAt: number };
 
+/** A DataEntry that is guaranteed to be successful */
+export type SuccessDataEntry<T> = Extract<DataEntry<T>, { status: 'ok' }>;
+
 /**
  * Composite key for the data store: `${accountId}:${dataType}`
  * e.g. "abc-123:gi:daily-note"
@@ -61,6 +64,13 @@ export interface DataUpdate<T extends DataType = DataType> {
   accountId: AccountId;
   dataType: T;
   entry: DataEntry<DataTypeMap[T]>;
+}
+
+/** A DataUpdate where the entry is guaranteed to be successful (status: 'ok') */
+export interface SuccessDataUpdate<T extends DataType = DataType> {
+  accountId: AccountId;
+  dataType: T;
+  entry: SuccessDataEntry<DataTypeMap[T]>;
 }
 
 /** Callback signature for data subscribers */

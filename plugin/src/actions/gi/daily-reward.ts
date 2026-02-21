@@ -2,7 +2,7 @@ import { action, type KeyAction, type KeyDownEvent } from '@elgato/streamdeck';
 import { BaseAction } from '../base/base-action';
 import type { DailyRewardSettings } from '@/types/settings';
 import type { GameId } from '@/types/games';
-import type { DataType, DataUpdate } from '@/services/data-controller.types';
+import type { DataType, SuccessDataUpdate } from '@/services/data-controller.types';
 import { dataController } from '@/services/data-controller';
 import { HoyolabApiError } from '@/api/types/common';
 import { fetchImageAsDataUri, readLocalImageAsDataUri } from '@/utils/image';
@@ -32,13 +32,8 @@ export class DailyRewardAction extends BaseAction<DailyRewardSettings, 'gi:check
 
   protected override async onDataUpdate(
     action: KeyAction<DailyRewardSettings>,
-    update: DataUpdate<'gi:check-in' | 'hsr:check-in' | 'zzz:check-in'>,
+    update: SuccessDataUpdate<'gi:check-in' | 'hsr:check-in' | 'zzz:check-in'>,
   ): Promise<void> {
-    if (update.entry.status === 'error') {
-      await this.showDataError(action, update.entry);
-      return;
-    }
-
     const checkInData = update.entry.data;
     const settings = await action.getSettings();
     const game = settings.game ?? 'gi';

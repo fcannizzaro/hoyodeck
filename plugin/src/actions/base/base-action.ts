@@ -17,7 +17,7 @@ import type {
 } from '@/types/settings';
 import type { GameId } from '@/types/games';
 import { dataController } from '@/services/data-controller';
-import type { DataEntry, DataType, DataUpdate } from '@/services/data-controller.types';
+import type { DataEntry, DataType, DataUpdate, SuccessDataUpdate } from '@/services/data-controller.types';
 
 /**
  * Resolved account context — everything an action needs to operate.
@@ -68,11 +68,19 @@ export abstract class BaseAction<
   /**
    * Called when the DataController pushes new data.
    * Subclasses implement this to re-render with fresh data.
+   * Error entries are handled automatically by the base class — subclasses
+   * only receive updates with status === 'ok'.
    */
   protected abstract onDataUpdate(
     action: KeyAction<TSettings>,
-    update: DataUpdate<TDataType>,
+    update: SuccessDataUpdate<TDataType>,
   ): Promise<void>;
+
+  /**
+   * Called before every data update (success or error).
+   * Override in subclasses to clear animations or reset state.
+   */
+  protected onBeforeDataUpdate(_action: KeyAction<TSettings>): void {}
 
   /**
    * Resolve the account referenced by this action's settings.
@@ -256,9 +264,14 @@ export abstract class BaseAction<
       accountId: account.id,
       dataTypes: this.getSubscribedDataTypes(ev.payload.settings),
       listener: (update) => {
-        void this.withErrorHandling(keyAction, () =>
-          this.onDataUpdate(keyAction, update as DataUpdate<TDataType>),
-        );
+        void this.withErrorHandling(keyAction, async () => {
+          this.onBeforeDataUpdate(keyAction);
+          if (update.entry.status === 'error') {
+            await this.showDataError(keyAction, update.entry);
+            return;
+          }
+          await this.onDataUpdate(keyAction, update as SuccessDataUpdate<TDataType>);
+        });
       },
     });
 
@@ -323,9 +336,14 @@ export abstract class BaseAction<
       accountId: account.id,
       dataTypes,
       listener: (update) => {
-        void this.withErrorHandling(keyAction, () =>
-          this.onDataUpdate(keyAction, update as DataUpdate<TDataType>),
-        );
+        void this.withErrorHandling(keyAction, async () => {
+          this.onBeforeDataUpdate(keyAction);
+          if (update.entry.status === 'error') {
+            await this.showDataError(keyAction, update.entry);
+            return;
+          }
+          await this.onDataUpdate(keyAction, update as SuccessDataUpdate<TDataType>);
+        });
       },
     });
 

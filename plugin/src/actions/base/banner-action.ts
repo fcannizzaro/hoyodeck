@@ -2,7 +2,7 @@ import type { KeyAction, KeyDownEvent, WillDisappearEvent } from "@elgato/stream
 import type { JsonObject } from "@elgato/utils";
 import { BaseAction } from "./base-action";
 import type { BannerBadgeOptions, GameActionSettings } from "@/types/settings";
-import type { DataType, DataUpdate } from "@/services/data-controller.types";
+import type { DataType, SuccessDataUpdate } from "@/services/data-controller.types";
 import { dataController } from "@/services/data-controller";
 import { buildBannerSvg, formatCountdownFromSeconds } from "@/utils/banner";
 import { fetchImageAsDataUri, localImageExists, readLocalImageAsDataUri } from "@/utils/image";
@@ -197,17 +197,16 @@ export abstract class BaseBannerAction<
     });
   }
 
-  protected override async onDataUpdate(
-    action: KeyAction<TSettings>,
-    update: DataUpdate<TDataType>,
-  ): Promise<void> {
+  protected override onBeforeDataUpdate(action: KeyAction<TSettings>): void {
     const state = this.getKeyState(action.id);
     this.clearBlinkAnimation(state);
+  }
 
-    if (update.entry.status === 'error') {
-      await this.showDataError(action, update.entry);
-      return;
-    }
+  protected override async onDataUpdate(
+    action: KeyAction<TSettings>,
+    update: SuccessDataUpdate<TDataType>,
+  ): Promise<void> {
+    const state = this.getKeyState(action.id);
 
     state.currentAccountId = update.accountId;
     const settings = await action.getSettings();

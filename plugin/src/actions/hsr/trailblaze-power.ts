@@ -5,7 +5,7 @@ import {
 } from "@elgato/streamdeck";
 import { BaseAction } from "../base/base-action";
 import type { StarRailActionSettings } from "../../types/settings";
-import type { DataType, DataUpdate } from "../../services/data-controller.types";
+import type { DataType, SuccessDataUpdate } from "../../services/data-controller.types";
 import { dataController } from "../../services";
 import { GAMES } from "../../types/games";
 import { readLocalImageAsDataUri } from "../../utils/image";
@@ -77,17 +77,14 @@ export class StaminaAction extends BaseAction<StarRailActionSettings, 'hsr:daily
     return ['hsr:daily-note'];
   }
 
+  protected override onBeforeDataUpdate(): void {
+    this.clearAnimation();
+  }
+
   protected override async onDataUpdate(
     action: KeyAction<StarRailActionSettings>,
-    update: DataUpdate<'hsr:daily-note'>,
+    update: SuccessDataUpdate<'hsr:daily-note'>,
   ): Promise<void> {
-    this.clearAnimation();
-
-    if (update.entry.status === 'error') {
-      await this.showDataError(action, update.entry);
-      return;
-    }
-
     const dailyNote = update.entry.data;
 
     await action.setTitle("");

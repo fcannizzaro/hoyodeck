@@ -5,7 +5,7 @@ import {
 } from "@elgato/streamdeck";
 import { BaseAction } from "../base/base-action";
 import type { ZZZActionSettings } from "../../types/settings";
-import type { DataType, DataUpdate } from "../../services/data-controller.types";
+import type { DataType, SuccessDataUpdate } from "../../services/data-controller.types";
 import { dataController } from "../../services";
 import { GAMES } from "../../types/games";
 import { readLocalImageAsDataUri } from "../../utils/image";
@@ -78,17 +78,14 @@ export class BatteryChargeAction extends BaseAction<ZZZActionSettings, 'zzz:dail
     return ['zzz:daily-note'];
   }
 
+  protected override onBeforeDataUpdate(): void {
+    this.clearAnimation();
+  }
+
   protected override async onDataUpdate(
     action: KeyAction<ZZZActionSettings>,
-    update: DataUpdate<'zzz:daily-note'>,
+    update: SuccessDataUpdate<'zzz:daily-note'>,
   ): Promise<void> {
-    this.clearAnimation();
-
-    if (update.entry.status === 'error') {
-      await this.showDataError(action, update.entry);
-      return;
-    }
-
     const dailyNote = update.entry.data;
 
     await action.setTitle("");
