@@ -7,7 +7,8 @@ interface InputProps {
   maxLength?: number;
   info?: string;
   icon?: ReactNode;
-  onChange: (value: string) => void;
+  readOnly?: boolean;
+  onChange?: (value: string) => void;
   onBlur?: () => void;
 }
 
@@ -18,6 +19,7 @@ export function Input({
   maxLength,
   info,
   icon,
+  readOnly,
   onChange,
   onBlur,
 }: InputProps) {
@@ -32,9 +34,14 @@ export function Input({
         value={value}
         placeholder={placeholder}
         maxLength={maxLength}
-        onChange={(e) => onChange(e.target.value)}
+        readOnly={readOnly}
+        onChange={readOnly ? undefined : (e) => onChange?.(e.target.value)}
         onBlur={onBlur}
-        className="w-full px-2.5 py-2 bg-sd-input border border-sd-border rounded text-sd-text text-xs outline-none transition-colors focus:border-sd-focus"
+        className={`w-full px-2.5 py-2 bg-sd-input border border-sd-border rounded text-sd-text text-xs outline-none transition-colors ${
+          readOnly
+            ? 'opacity-70 cursor-default'
+            : 'focus:border-sd-focus'
+        }`}
       />
       {info && <p className="text-[11px] text-sd-secondary mt-1">{info}</p>}
     </div>

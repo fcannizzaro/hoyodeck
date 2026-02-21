@@ -116,7 +116,9 @@ export abstract class BaseBannerAction<
 
   /**
    * Start a natural eye-blink animation, alternating between open and closed frames.
-   * Eyes stay open for ~4s, then briefly close for ~200ms.
+   * Eyes stay open for a random 3–5s, then briefly close for 200ms.
+   * Each cycle picks a fresh random delay so successive blinks feel organic.
+   * The wide initial delay range (0.8–3s) ensures multiple keys desync quickly.
    *
    * Each closure captures the current `blinkGeneration` and checks it on every
    * tick — if a newer generation has been started the closure silently exits,
@@ -137,20 +139,26 @@ export abstract class BaseBannerAction<
 
     const generation = state.blinkGeneration;
 
+    /** Random integer in [min, max] */
+    const randBetween = (min: number, max: number): number =>
+      Math.floor(Math.random() * (max - min + 1)) + min;
+
     const showOpen = (): void => {
       if (state.blinkGeneration !== generation) return;
       void action.setImage(openBase64);
-      state.blinkTimeout = setTimeout(showClosed, 4000);
+      // Random open duration: 3–5s for natural variation
+      state.blinkTimeout = setTimeout(showClosed, randBetween(3000, 5000));
     };
 
     const showClosed = (): void => {
       if (state.blinkGeneration !== generation) return;
       void action.setImage(closedBase64);
+      // Fixed blink duration: 200ms
       state.blinkTimeout = setTimeout(showOpen, 200);
     };
 
-    // Open frame is already shown by the caller; schedule first blink
-    state.blinkTimeout = setTimeout(showClosed, 4000);
+    // Open frame is already shown by the caller; schedule first blink with random delay
+    state.blinkTimeout = setTimeout(showClosed, randBetween(3000, 5000));
   }
 
   // ─── Lifecycle hooks ────────────────────────────────────────────
@@ -197,7 +205,7 @@ export abstract class BaseBannerAction<
     this.clearBlinkAnimation(state);
 
     if (update.entry.status === 'error') {
-      await this.showError(action);
+      await this.showDataError(action, update.entry);
       return;
     }
 

@@ -84,7 +84,7 @@ export class ResinAction extends BaseAction<GenshinActionSettings, 'gi:daily-not
     this.clearAnimation();
 
     if (update.entry.status === 'error') {
-      await this.showError(action);
+      await this.showDataError(action, update.entry);
       return;
     }
 

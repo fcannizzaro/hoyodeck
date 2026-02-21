@@ -9,6 +9,8 @@ import type { GameId } from '@/types/games';
 import { HoyolabClient } from '@/api/hoyolab/client';
 import { isValidAuth } from '@/api/hoyolab/auth';
 import type { HoyoAuth } from '@/api/hoyolab/auth';
+import { isAuthError } from '@/api/types/common';
+import { toJsonObject } from '@/types/settings';
 import type {
   DataType,
   DataTypeMap,
@@ -519,6 +521,38 @@ class DataControllerImpl {
       this.store.set(storeKey, entry);
       this.notifyListeners(accountId, dataType, entry);
     }
+
+    // If any result was an auth error, mark the account as invalid in global settings
+    await this.invalidateAuthIfNeeded(accountId, results);
+  }
+
+  /**
+   * If any fetch result contains an auth error, mark the account's authStatus
+   * as "invalid" so the Property Inspector reflects expired cookies.
+   */
+  private async invalidateAuthIfNeeded(
+    accountId: AccountId,
+    results: Map<DataType, DataEntry<unknown>>,
+  ): Promise<void> {
+    const hasAuthError = [...results.values()].some(
+      (entry) => entry.status === 'error' && isAuthError(entry.error),
+    );
+    if (!hasAuthError) return;
+
+    const globalSettings =
+      (await streamDeck.settings.getGlobalSettings()) as unknown as GlobalSettings;
+    const account = globalSettings.accounts?.[accountId];
+    if (!account || account.authStatus === 'invalid') return;
+
+    await streamDeck.settings.setGlobalSettings(
+      toJsonObject({
+        ...globalSettings,
+        accounts: {
+          ...globalSettings.accounts,
+          [accountId]: { ...account, authStatus: 'invalid' },
+        },
+      }),
+    );
   }
 
   /**

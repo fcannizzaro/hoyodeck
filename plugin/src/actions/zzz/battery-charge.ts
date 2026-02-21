@@ -85,7 +85,7 @@ export class BatteryChargeAction extends BaseAction<ZZZActionSettings, 'zzz:dail
     this.clearAnimation();
 
     if (update.entry.status === 'error') {
-      await this.showError(action);
+      await this.showDataError(action, update.entry);
       return;
     }
 

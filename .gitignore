@@ -35,6 +35,7 @@ old
 
 # compiled plugin
 **/bin/
+plugin/**/ui/index.html
 
 # inpaint-eyes
 inpaint-eyes/public/avatars/

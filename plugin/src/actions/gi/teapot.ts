@@ -85,7 +85,7 @@ export class TeapotAction extends BaseAction<GenshinActionSettings, 'gi:daily-no
     this.clearAnimation();
 
     if (update.entry.status === 'error') {
-      await this.showError(action);
+      await this.showDataError(action, update.entry);
       return;
     }
 

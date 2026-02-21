@@ -17,7 +17,7 @@ import type {
 } from '@/types/settings';
 import type { GameId } from '@/types/games';
 import { dataController } from '@/services/data-controller';
-import type { DataType, DataUpdate } from '@/services/data-controller.types';
+import type { DataEntry, DataType, DataUpdate } from '@/services/data-controller.types';
 
 /**
  * Resolved account context — everything an action needs to operate.
@@ -187,6 +187,24 @@ export abstract class BaseAction<
   ): Promise<void> {
     await action.setTitle(message ?? 'Error');
     await action.showAlert();
+  }
+
+  /**
+   * Show appropriate error based on a DataEntry's error type.
+   * Auth errors → "Setup Auth", rate limits → "Rate Limited", others → "Error".
+   */
+  protected async showDataError(
+    action: KeyAction<TSettings>,
+    entry: DataEntry<unknown>,
+  ): Promise<void> {
+    if (entry.status !== 'error') return;
+    if (isAuthError(entry.error)) {
+      await this.showNoAuth(action);
+    } else if (isRateLimitError(entry.error)) {
+      await this.showError(action, 'Rate\nLimited');
+    } else {
+      await this.showError(action);
+    }
   }
 
   /**

@@ -49,7 +49,7 @@ export function AccountCard({ account, onEdit, onDelete }: AccountCardProps) {
               className="inline-flex items-center gap-1 text-[10px] text-sd-secondary bg-sd-bg px-1.5 py-0.5 rounded"
             >
               <GameIcon game={game} size={12} />
-              {GAME_LABELS[game]}: {uid}
+              {GAME_LABELS[game]}: {account.nicknames?.[game] ?? uid}
             </span>
           ))}
         </div>

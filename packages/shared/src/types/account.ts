@@ -13,6 +13,8 @@ export interface HoyoAccount {
   authStatus: AuthStatus;
   /** Per-game UIDs — only games the user plays are present */
   uids: Partial<Record<GameId, string>>;
+  /** Per-game nicknames — auto-fetched from game record card */
+  nicknames?: Partial<Record<GameId, string>>;
 }
 
 /** Account without auth credentials — used by display components */

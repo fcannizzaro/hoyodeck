@@ -5,10 +5,24 @@ import { TextArea } from '../components/TextArea';
 import { Button } from '../components/Button';
 import { StatusMessage } from '../components/StatusMessage';
 import { parseCookies, extractAuthFromCookies, isValidAuth } from '@hoyodeck/shared/cookies';
+import { GAMES } from '@hoyodeck/shared/games';
 import type { GameId, HoyoAccount, HoyoAuth } from '@hoyodeck/shared/types';
 
 /** Console snippet that extracts HoYoLAB auth cookies and copies them to clipboard */
 const COOKIE_SCRIPT = `(()=>{const keys=['ltoken_v2','ltuid_v2','ltmid_v2','cookie_token_v2','account_mid_v2','account_id_v2'];const r=document.cookie.split('; ').filter(p=>{const k=p.substring(0,p.indexOf('='));return keys.includes(k)});if(!r.length){console.error('No HoYoLAB cookies found. Make sure you are logged in on hoyolab.com');return}navigator.clipboard.writeText(r.join('; ')).then(()=>console.log('Cookies copied to clipboard!')).catch(()=>prompt('Auto-copy failed. Manually copy:',r.join('; ')))})()`;
+
+/** All game IDs in display order */
+const GAME_IDS: GameId[] = ['gi', 'hsr', 'zzz'];
+
+/**
+ * Format a game role for display: "nickname (UID)" or just the UID.
+ */
+function formatGameRole(game: GameId, account: HoyoAccount): string {
+  const uid = account.uids?.[game];
+  if (!uid) return '';
+  const nickname = account.nicknames?.[game];
+  return nickname ? `${nickname} (${uid})` : uid;
+}
 
 interface AccountFormProps {
   /** Existing account to edit; undefined = creating new */
@@ -19,16 +33,11 @@ interface AccountFormProps {
 
 /**
  * Form for adding or editing a HoYoLAB account.
- * Collects name, cookies, and per-game UIDs.
+ * Collects name and cookies. Game UIDs are auto-fetched during validation.
  */
 export function AccountForm({ account, onSave, onCancel }: AccountFormProps) {
   const [name, setName] = useState(account?.name ?? '');
   const [cookies, setCookies] = useState('');
-  const [genshinUid, setGenshinUid] = useState(account?.uids?.gi ?? '');
-  const [starrailUid, setStarrailUid] = useState(
-    account?.uids?.hsr ?? '',
-  );
-  const [zzzUid, setZzzUid] = useState(account?.uids?.zzz ?? '');
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const copiedTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
@@ -40,11 +49,6 @@ export function AccountForm({ account, onSave, onCancel }: AccountFormProps) {
       copiedTimer.current = setTimeout(() => setCopied(false), 2000);
     });
   }, []);
-
-  const validateUid = (uid: string): boolean => {
-    if (!uid) return true; // empty is ok
-    return /^\d{9,10}$/.test(uid);
-  };
 
   const handleSave = useCallback(() => {
     if (!name.trim()) {
@@ -71,26 +75,6 @@ export function AccountForm({ account, onSave, onCancel }: AccountFormProps) {
       return;
     }
 
-    // Validate UIDs
-    if (!validateUid(genshinUid.trim())) {
-      setError('Genshin UID should be 9-10 digits');
-      return;
-    }
-    if (!validateUid(starrailUid.trim())) {
-      setError('Star Rail UID should be 9-10 digits');
-      return;
-    }
-    if (!validateUid(zzzUid.trim())) {
-      setError('ZZZ UID should be 9-10 digits');
-      return;
-    }
-
-    // Build UIDs — only include non-empty values
-    const uids: Partial<Record<GameId, string>> = {};
-    if (genshinUid.trim()) uids.gi = genshinUid.trim();
-    if (starrailUid.trim()) uids.hsr = starrailUid.trim();
-    if (zzzUid.trim()) uids.zzz = zzzUid.trim();
-
     onSave({
       id: account?.id ?? crypto.randomUUID(),
       name: name.trim(),
@@ -98,9 +82,10 @@ export function AccountForm({ account, onSave, onCancel }: AccountFormProps) {
       authStatus: cookies.trim()
         ? 'unknown'
         : (account?.authStatus ?? 'unknown'),
-      uids,
+      uids: account?.uids ?? {},
+      nicknames: account?.nicknames,
     });
-  }, [name, cookies, genshinUid, starrailUid, zzzUid, account, onSave]);
+  }, [name, cookies, account, onSave]);
 
   return (
     <div className="flex flex-col gap-2.5 p-2.5 border border-sd-border rounded bg-sd-input/30">
@@ -129,32 +114,22 @@ export function AccountForm({ account, onSave, onCancel }: AccountFormProps) {
 
       <div className="h-px bg-sd-border" />
 
-      <Input
-        label="Genshin Impact UID"
-        icon={<GameIcon game="gi" />}
-        value={genshinUid}
-        placeholder="Optional (9-10 digits)"
-        maxLength={10}
-        onChange={setGenshinUid}
-      />
-
-      <Input
-        label="Honkai: Star Rail UID"
-        icon={<GameIcon game="hsr" />}
-        value={starrailUid}
-        placeholder="Optional (9-10 digits)"
-        maxLength={10}
-        onChange={setStarrailUid}
-      />
-
-      <Input
-        label="Zenless Zone Zero UID"
-        icon={<GameIcon game="zzz" />}
-        value={zzzUid}
-        placeholder="Optional (9-10 digits)"
-        maxLength={10}
-        onChange={setZzzUid}
-      />
+      {account ? (
+        GAME_IDS.map((game) => (
+          <Input
+            key={game}
+            label={GAMES[game].name}
+            icon={<GameIcon game={game} />}
+            value={formatGameRole(game, account)}
+            placeholder="Not linked"
+            readOnly
+          />
+        ))
+      ) : (
+        <p className="text-[11px] text-sd-secondary">
+          Game UIDs will be auto-detected after saving.
+        </p>
+      )}
 
       {error && (
         <StatusMessage

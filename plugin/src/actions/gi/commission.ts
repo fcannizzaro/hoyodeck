@@ -109,7 +109,7 @@ export class CommissionAction extends BaseAction<GenshinActionSettings, 'gi:dail
     this.clearAnimation();
 
     if (update.entry.status === 'error') {
-      await this.showError(action);
+      await this.showDataError(action, update.entry);
       return;
     }
 

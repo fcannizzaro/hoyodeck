@@ -84,7 +84,7 @@ export class StaminaAction extends BaseAction<StarRailActionSettings, 'hsr:daily
     this.clearAnimation();
 
     if (update.entry.status === 'error') {
-      await this.showError(action);
+      await this.showDataError(action, update.entry);
       return;
     }
 

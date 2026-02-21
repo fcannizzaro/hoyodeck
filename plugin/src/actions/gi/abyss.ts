@@ -21,7 +21,7 @@ export class AbyssAction extends BaseAction<GenshinActionSettings, 'gi:spiral-ab
     update: DataUpdate<'gi:spiral-abyss'>,
   ): Promise<void> {
     if (update.entry.status === 'error') {
-      await this.showError(action);
+      await this.showDataError(action, update.entry);
       return;
     }
 

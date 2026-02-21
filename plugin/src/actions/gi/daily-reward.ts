@@ -35,7 +35,7 @@ export class DailyRewardAction extends BaseAction<DailyRewardSettings, 'gi:check
     update: DataUpdate<'gi:check-in' | 'hsr:check-in' | 'zzz:check-in'>,
   ): Promise<void> {
     if (update.entry.status === 'error') {
-      await this.showError(action);
+      await this.showDataError(action, update.entry);
       return;
     }
 

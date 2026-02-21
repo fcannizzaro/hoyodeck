@@ -21,6 +21,7 @@ import type {
   ZZZDailyNote,
   ZZZGachaCalendar,
 } from '../types/zzz';
+import type { GameRecordCardResponse } from '../types/game-record';
 import { getRegionFromUid } from '@/utils/region';
 import { type GameId, getGameConfig } from '@/types/games';
 
@@ -296,6 +297,24 @@ export class HoyolabClient {
           uid,
           region,
         },
+      }
+    );
+  }
+
+  // ============================================
+  // Account APIs
+  // ============================================
+
+  /**
+   * Get game record card — lists all linked games with UIDs and nicknames.
+   * Uses the HoYoLAB account UID (ltuid_v2), not an in-game UID.
+   */
+  async getGameRecordCard(ltuid: string): Promise<GameRecordCardResponse> {
+    return this.request<GameRecordCardResponse>(
+      API_URLS.ACCOUNT,
+      '/event/game_record/card/wapi/getGameRecordCard',
+      {
+        query: { uid: ltuid },
       }
     );
   }

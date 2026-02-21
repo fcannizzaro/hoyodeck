@@ -21,7 +21,7 @@ export class TransformerAction extends BaseAction<TransformerSettings, 'gi:daily
     update: DataUpdate<'gi:daily-note'>,
   ): Promise<void> {
     if (update.entry.status === 'error') {
-      await this.showError(action);
+      await this.showDataError(action, update.entry);
       return;
     }
 

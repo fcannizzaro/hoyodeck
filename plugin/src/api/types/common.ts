@@ -39,6 +39,7 @@ export class HoyolabApiError extends Error {
 export function isAuthError(error: unknown): error is HoyolabApiError {
   if (!(error instanceof HoyolabApiError)) return false;
   return (
+    error.retcode === API_ERRORS.INVALID_REQUEST ||
     error.retcode === API_ERRORS.NOT_LOGGED_IN ||
     error.retcode === API_ERRORS.LOGIN_REQUIRED
   );
