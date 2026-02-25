@@ -253,6 +253,27 @@ class DataControllerImpl {
   }
 
   /**
+   * Notify all actions registered to a deleted account and unregister them.
+   * Each action's onAccountRemoved callback is called so it can show "Select Account".
+   */
+  private notifyAccountRemoved(accountId: AccountId): void {
+    for (const [actionId, reg] of this.registrations) {
+      if (reg.accountId !== accountId) continue;
+
+      try {
+        reg.onAccountRemoved?.();
+      } catch (err) {
+        streamDeck.logger.error(
+          `[DataController] onAccountRemoved error for ${actionId}:`,
+          err,
+        );
+      }
+
+      this.registrations.delete(actionId);
+    }
+  }
+
+  /**
    * Invalidate all accounts and clients.
    * Used internally as a fallback; prefer invalidateAccount() for targeted invalidation.
    */
@@ -295,6 +316,7 @@ class DataControllerImpl {
           `[DataController] Account ${accountId} deleted, invalidating`,
         );
         this.invalidateAccount(accountId as AccountId);
+        this.notifyAccountRemoved(accountId as AccountId);
       }
     }
 

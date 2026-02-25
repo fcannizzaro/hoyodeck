@@ -1,4 +1,4 @@
-import type { AccountId } from "./auth";
+import type { AccountId, HoyoAuth } from "./auth";
 import type { HoyoAccount } from "./account";
 import type { GameId } from "./game";
 
@@ -25,6 +25,16 @@ export interface BannerBadgeOptions {
   fontSize: number;
 }
 
+// ─── Pending Login (webview login flow) ───────────────────────────
+
+/** Transient state for the native webview login flow. PI writes 'requested'; plugin drives the rest. */
+export type PendingLogin =
+  | { status: "requested" }
+  | { status: "polling" }
+  | { status: "success"; auth: HoyoAuth }
+  | { status: "cancelled" }
+  | { status: "error"; message: string };
+
 // ─── Global Settings ──────────────────────────────────────────────
 
 /**
@@ -50,6 +60,13 @@ export interface GlobalSettings {
 
   /** When true, animated actions render a single static frame instead of looping */
   disableAnimations?: boolean;
+
+  /**
+   * Signal for the native webview login flow.
+   * PI sets 'requested'; plugin opens webview and drives the state machine.
+   * PI reads the result and clears the field.
+   */
+  pendingLogin?: PendingLogin;
 }
 
 // ─── Per-Action Settings ──────────────────────────────────────────

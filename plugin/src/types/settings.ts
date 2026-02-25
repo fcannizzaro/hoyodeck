@@ -14,6 +14,7 @@ export type {
   BannerBadgePosition,
   BannerBadgeLayout,
   BannerBadgeOptions,
+  PendingLogin,
   GlobalSettings,
   GameActionSettings,
   GenshinActionSettings,

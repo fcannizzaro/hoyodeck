@@ -2,6 +2,7 @@ import streamDeck from '@elgato/streamdeck';
 
 // Import services
 import { registerAuthValidator } from '@/services/auth-validator';
+import { registerLoginHandler } from '@/services/hoyolab-login';
 import { dataController } from '@/services/data-controller';
 
 // Import all Genshin actions
@@ -30,6 +31,9 @@ import {
 
 // Register auth validation listener
 registerAuthValidator();
+
+// Register webview login handler (clears stale state on first global settings receive)
+registerLoginHandler();
 
 // Initialize data controller (diff-based global settings listener)
 dataController.init();

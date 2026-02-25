@@ -10,6 +10,7 @@ import streamDeck, {
 import type { JsonObject, JsonValue } from '@elgato/utils';
 import { HoyolabClient } from '@/api/hoyolab/client';
 import { isAuthError, isRateLimitError } from '@/api/types/common';
+import { readLocalImageAsDataUri } from '@/utils/image';
 import type {
   GlobalSettings,
   HoyoAccount,
@@ -18,6 +19,13 @@ import type {
 import type { GameId } from '@/types/games';
 import { dataController } from '@/services/data-controller';
 import type { DataEntry, DataType, DataUpdate, SuccessDataUpdate } from '@/services/data-controller.types';
+
+/** 5-star background image paths per game, used for the "Select Account" state */
+const GAME_BACKGROUNDS: Record<GameId, string> = {
+  gi: 'imgs/actions/gi/5-star.webp',
+  hsr: 'imgs/actions/hsr/5-star.png',
+  zzz: 'imgs/actions/zzz/5-star.png',
+};
 
 /**
  * Resolved account context — everything an action needs to operate.
@@ -128,6 +136,17 @@ export abstract class BaseAction<
       return selected;
     }
 
+    // Broader fallback: if only one account exists total, use it
+    // (handles the case where UIDs haven't been detected yet)
+    const allAccounts = Object.values(accounts);
+    if (allAccounts.length === 1) {
+      const selected = allAccounts[0]!;
+      if (action) {
+        await action.setSettings({ ...settings, accountId: selected.id });
+      }
+      return selected;
+    }
+
     return null;
   }
 
@@ -163,11 +182,12 @@ export abstract class BaseAction<
   }
 
   /**
-   * Show "Select Account" message and alert
+   * Show "Select Account" message with the game's 5-star background and alert
    */
   protected async showNoAccount(action: KeyAction<TSettings>): Promise<void> {
+    const bg = readLocalImageAsDataUri(GAME_BACKGROUNDS[this.game]);
+    await action.setImage(bg);
     await action.setTitle('Select\nAccount');
-    await action.showAlert();
   }
 
   /**
@@ -273,6 +293,9 @@ export abstract class BaseAction<
           await this.onDataUpdate(keyAction, update as SuccessDataUpdate<TDataType>);
         });
       },
+      onAccountRemoved: () => {
+        void this.showNoAccount(keyAction);
+      },
     });
 
     // Request immediate data for first render
@@ -344,6 +367,9 @@ export abstract class BaseAction<
           }
           await this.onDataUpdate(keyAction, update as SuccessDataUpdate<TDataType>);
         });
+      },
+      onAccountRemoved: () => {
+        void this.showNoAccount(keyAction);
       },
     });
 

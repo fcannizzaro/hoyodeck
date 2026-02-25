@@ -11,7 +11,7 @@ import type { HoyoAccount } from '@hoyodeck/shared/types';
  * Lists all accounts with status, and allows adding/editing/deleting accounts.
  */
 export function AccountPanel() {
-  const { globalSettings, saveGlobalSettings } = useStreamDeck();
+  const { globalSettings, saveGlobalSettings, saveSettings } = useStreamDeck();
   const accounts = (globalSettings.accounts ?? {}) as Record<
     string,
     HoyoAccount
@@ -29,6 +29,7 @@ export function AccountPanel() {
       accounts: { ...accounts, [account.id]: account },
       pendingValidation: account.id,
     });
+    saveSettings({ accountId: account.id });
     setShowAddForm(false);
     setEditingId(null);
   };

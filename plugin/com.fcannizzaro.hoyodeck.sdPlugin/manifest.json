@@ -20,7 +20,7 @@
     }
   ],
   "Nodejs": {
-    "Version": "20",
+    "Version": "24",
     "Debug": "--inspect=127.0.0.1:9990"
   },
   "CodePath": "bin/plugin.js",

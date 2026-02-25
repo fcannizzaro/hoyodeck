@@ -86,6 +86,8 @@ export interface ActionRegistration {
   dataTypes: DataType[];
   /** Callback invoked when any of the subscribed data types update */
   listener: DataListener;
+  /** Called when the bound account is deleted. Action should show "Select Account". */
+  onAccountRemoved?: () => void;
 }
 
 // ─── Controller Configuration ─────────────────────────────────────
