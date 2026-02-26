@@ -76,33 +76,31 @@ async function startLoginFlow(settings: GlobalSettings): Promise<void> {
       allowedHosts: ALLOWED_HOSTS,
     });
 
+    // Poll cookies on a fixed interval
+    const pollTimer = setInterval(() => void checkCookies(), POLL_INTERVAL_MS);
+
     /**
      * Check the webview's cookies for valid HoYoLAB auth tokens.
      * On success: store auth and close the window (triggers onClose).
      */
     const checkCookies = async () => {
       try {
-
         const cookies = await win.getCookies();
-
-        // Build a record from the cookie array
         const cookieRecord: Record<string, string> = {};
-
         for (const c of cookies) {
           cookieRecord[c.name] = c.value;
         }
-
         const auth = extractAuthFromCookies(cookieRecord);
         if (!isValidAuth(auth)) return; // Not logged in yet
         detectedAuth = auth;
+        clearInterval(pollTimer);
+        win.clearCookies()
         win.close();
       } catch (error) {
         streamDeck.logger.error("[HoyolabLogin] Cookie check failed:", error);
       }
     };
 
-    // Poll cookies on a fixed interval
-    const pollTimer = setInterval(() => void checkCookies(), POLL_INTERVAL_MS);
 
     // All cleanup and global settings writes happen here
     win.onClose(() => {
@@ -128,7 +126,6 @@ async function startLoginFlow(settings: GlobalSettings): Promise<void> {
     const message =
       error instanceof Error ? error.message : "Failed to open login window";
     streamDeck.logger.error("[HoyolabLogin] Failed to start:", error);
-
     const current = await readGlobalSettings();
     await updateGlobalSettings(current, {
       pendingLogin: { status: "error", message },

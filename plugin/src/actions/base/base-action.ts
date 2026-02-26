@@ -18,7 +18,7 @@ import type {
 } from '@/types/settings';
 import type { GameId } from '@/types/games';
 import { dataController } from '@/services/data-controller';
-import type { DataEntry, DataType, DataUpdate, SuccessDataUpdate } from '@/services/data-controller.types';
+import type { DataEntry, DataType, SuccessDataUpdate } from '@/services/data-controller.types';
 
 /** 5-star background image paths per game, used for the "Select Account" state */
 const GAME_BACKGROUNDS: Record<GameId, string> = {
@@ -107,19 +107,9 @@ export abstract class BaseAction<
     const globalSettings = await this.getGlobalSettings();
     const accounts = globalSettings.accounts ?? {};
 
-    // V2 path: accountId is set
     const accountId = raw['accountId'] as AccountId | undefined;
     if (accountId) {
       return accounts[accountId] ?? null;
-    }
-
-    // V1 fallback: uid is set but accountId is not
-    const legacyUid = raw['uid'] as string | undefined;
-    if (legacyUid) {
-      const match = Object.values(accounts).find((account) =>
-        Object.values(account.uids).includes(legacyUid),
-      );
-      return match ?? null;
     }
 
     // Auto-select: if exactly one account has a UID for this game, use it
@@ -322,7 +312,7 @@ export abstract class BaseAction<
     const keyAction = ev.action;
 
     const account = await this.resolveAccount(ev.payload.settings);
-    
+
     if (!account) {
       dataController.unregister(ev.action.id);
       await this.showNoAccount(keyAction);
@@ -331,7 +321,7 @@ export abstract class BaseAction<
 
     const game = this.getResolvedGame(ev.payload.settings);
     const uid = this.getGameUid(account, game);
-    
+
     if (!uid) {
       dataController.unregister(ev.action.id);
       await this.showNoUid(keyAction);

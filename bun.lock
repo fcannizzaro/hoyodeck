@@ -22,7 +22,7 @@
       "version": "1.0.0",
       "dependencies": {
         "@elgato/streamdeck": "^2.0.0",
-        "@fcannizzaro/native-window": "^0.1.8",
+        "@fcannizzaro/native-window": "^0.1.9",
         "@hoyodeck/shared": "workspace:*",
         "zod": "^4.3.6",
       },
@@ -32,14 +32,14 @@
         "@rollup/plugin-commonjs": "^29.0.0",
         "@rollup/plugin-json": "^6.1.0",
         "@rollup/plugin-node-resolve": "^16.0.3",
-        "@types/node": "^25.3.0",
+        "@types/node": "^25.3.1",
         "rollup": "^4.59.0",
         "rollup-plugin-swc3": "^0.12.1",
         "tslib": "^2.8.0",
       },
       "optionalDependencies": {
-        "@fcannizzaro/native-window-darwin-arm64": "0.1.8",
-        "@fcannizzaro/native-window-win32-x64-msvc": "0.1.8",
+        "@fcannizzaro/native-window-darwin-arm64": "0.1.9",
+        "@fcannizzaro/native-window-win32-x64-msvc": "0.1.9",
       },
     },
     "property-inspector": {
@@ -163,19 +163,19 @@
 
     "@fastify/deepmerge": ["@fastify/deepmerge@2.0.2", "", {}, "sha512-3wuLdX5iiiYeZWP6bQrjqhrcvBIf0NHbQH1Ur1WbHvoiuTYUEItgygea3zs8aHpiitn0lOB8gX20u1qO+FDm7Q=="],
 
-    "@fcannizzaro/native-window": ["@fcannizzaro/native-window@0.1.8", "", { "dependencies": { "zod": "^4.3.6" }, "optionalDependencies": { "@fcannizzaro/native-window-darwin-arm64": "0.1.8", "@fcannizzaro/native-window-darwin-x64": "0.1.8", "@fcannizzaro/native-window-linux-arm64-gnu": "0.1.8", "@fcannizzaro/native-window-linux-x64-gnu": "0.1.8", "@fcannizzaro/native-window-win32-arm64-msvc": "0.1.8", "@fcannizzaro/native-window-win32-x64-msvc": "0.1.8" }, "peerDependencies": { "typescript": "^5" } }, "sha512-ipmJErL03YQSZN3smLixR8Xua671TrvMu9q78rIEZQbYM3WM3W0pqf0E29jr9cJONIShxwRMup1Ry74P9QmOIA=="],
+    "@fcannizzaro/native-window": ["@fcannizzaro/native-window@0.1.9", "", { "dependencies": { "zod": "^4.3.6" }, "optionalDependencies": { "@fcannizzaro/native-window-darwin-arm64": "0.1.9", "@fcannizzaro/native-window-darwin-x64": "0.1.9", "@fcannizzaro/native-window-linux-arm64-gnu": "0.1.9", "@fcannizzaro/native-window-linux-x64-gnu": "0.1.9", "@fcannizzaro/native-window-win32-arm64-msvc": "0.1.9", "@fcannizzaro/native-window-win32-x64-msvc": "0.1.9" }, "peerDependencies": { "typescript": "^5" } }, "sha512-t/GbLacW956C9+Wc+Qc2ju0+MS1s0xvNDhTCJEH6zjpaTDFzUb0ipIXDCVytpbvlOxuyOBbo/J7ai7NhKN6quw=="],
 
-    "@fcannizzaro/native-window-darwin-arm64": ["@fcannizzaro/native-window-darwin-arm64@0.1.8", "", { "os": "darwin", "cpu": "arm64" }, "sha512-w/+JOe3XkCy0FiJvY3abrkpQR4HZGnfC1b1kQ9j+vWu77NR7H26M0ZJ7otZgcyU+fzZ8vT92RDQrmWxbPZiLBw=="],
+    "@fcannizzaro/native-window-darwin-arm64": ["@fcannizzaro/native-window-darwin-arm64@0.1.9", "", { "os": "darwin", "cpu": "arm64" }, "sha512-xnr/OAz/i4QaAAt+xtMRDJfx7Jb3z/mfM4GOrz2H2qoJz6B08dRoKXzxflM81FSQiOQqKdj9tCY2r3jRz788Zg=="],
 
-    "@fcannizzaro/native-window-darwin-x64": ["@fcannizzaro/native-window-darwin-x64@0.1.8", "", { "os": "darwin", "cpu": "x64" }, "sha512-Si3BhMCVyj0GVvzDBM8lhc2+GXr9ma6WfC05HtL0nuc4cyVoYa47f5NVX7d3Qf0CW6ltAgs8aNIqhP/HGx1RaQ=="],
+    "@fcannizzaro/native-window-darwin-x64": ["@fcannizzaro/native-window-darwin-x64@0.1.9", "", { "os": "darwin", "cpu": "x64" }, "sha512-wN0EWCT2PIORt0JISragoauxsXxTywzr/BRPNkryDQ3S2B5Pp8UyjLEbS1Vp3GtFWocHBM4dkBvjP7JXFEAg5Q=="],
 
-    "@fcannizzaro/native-window-linux-arm64-gnu": ["@fcannizzaro/native-window-linux-arm64-gnu@0.1.8", "", { "os": "linux", "cpu": "arm64" }, "sha512-AZiIrKM2GWJKZuNZWG7QE8DdcC7qy8WYZNLQYlgVLws2KnwJn+bun/K9JW4akmCemj+XLc8YwUj++6m/wpziMg=="],
+    "@fcannizzaro/native-window-linux-arm64-gnu": ["@fcannizzaro/native-window-linux-arm64-gnu@0.1.9", "", { "os": "linux", "cpu": "arm64" }, "sha512-Jdvv2cJc99JQzNXaknRtJqwM73NnhUohXW116ojZ+WzRdbdtDXj6QhLE0AlA5Opxw6GGLFD8Xr9J2sgRwwSMYg=="],
 
-    "@fcannizzaro/native-window-linux-x64-gnu": ["@fcannizzaro/native-window-linux-x64-gnu@0.1.8", "", { "os": "linux", "cpu": "x64" }, "sha512-25uLdM9CNfZU4GFMhtVR0OWrVZV/Sj3/PD1oQ0hujj5JDlsbjC2vYywHOuhqZwVVnfayiRGGT3UVZJHfefjjRw=="],
+    "@fcannizzaro/native-window-linux-x64-gnu": ["@fcannizzaro/native-window-linux-x64-gnu@0.1.9", "", { "os": "linux", "cpu": "x64" }, "sha512-BOfiuGtPVtXCfhI8HYYw41QOcHSePk4g92pbYwTJzmLLgIDbQhHBPGCSggsGe3DVVGNeXI1JuGlXGe/abP/elQ=="],
 
-    "@fcannizzaro/native-window-win32-arm64-msvc": ["@fcannizzaro/native-window-win32-arm64-msvc@0.1.8", "", { "os": "win32", "cpu": "arm64" }, "sha512-PkW6NldqbUCChkKjrBecyoiS3Bppbvv4QlxLxrPwBba0xm6GhqyosTWLppL0APd6FVovobPTHek5yLLwsqOKoQ=="],
+    "@fcannizzaro/native-window-win32-arm64-msvc": ["@fcannizzaro/native-window-win32-arm64-msvc@0.1.9", "", { "os": "win32", "cpu": "arm64" }, "sha512-bZUslnjx9CnOeANCGZ+D+BRWkCz1ADLmZmUSZy4WJtSIBpwvx3JGyJ7GGyg0njamFl/W/J3U4RNBDfjhIEjEhQ=="],
 
-    "@fcannizzaro/native-window-win32-x64-msvc": ["@fcannizzaro/native-window-win32-x64-msvc@0.1.8", "", { "os": "win32", "cpu": "x64" }, "sha512-Cbx3xGJsRyAf0O4Po4jd+7QOO4F/D8DlY8Hkeb0xNEz/hqkmg9Kgn+slOpm5JUeP7QwemwtnokjSFSatc1uLig=="],
+    "@fcannizzaro/native-window-win32-x64-msvc": ["@fcannizzaro/native-window-win32-x64-msvc@0.1.9", "", { "os": "win32", "cpu": "x64" }, "sha512-8l8S+JI0NrMaHXrzZ7iqQdrJ2ekWMutVKy64GGLl67hAIUWQjFgcVPEu6dT5SNDbbNeKU0TErAMcIMFy8vvSQw=="],
 
     "@hoyodeck/shared": ["@hoyodeck/shared@workspace:packages/shared"],
 
@@ -391,7 +391,7 @@
 
     "@types/estree": ["@types/estree@1.0.8", "", {}, "sha512-dWHzHa2WqEXI/O1E9OjrocMTKJl2mSrEolh1Iomrv6U+JuNwaHXsXx9bLu5gG7BUWFIN0skIQJQ/L1rIex4X6w=="],
 
-    "@types/node": ["@types/node@25.3.0", "", { "dependencies": { "undici-types": "~7.18.0" } }, "sha512-4K3bqJpXpqfg2XKGK9bpDTc6xO/xoUP/RBWS7AtRMug6zZFaRekiLzjVtAoZMquxoAbzBvy5nxQ7veS5eYzf8A=="],
+    "@types/node": ["@types/node@25.3.1", "", { "dependencies": { "undici-types": "~7.18.0" } }, "sha512-hj9YIJimBCipHVfHKRMnvmHg+wfhKc0o4mTtXh9pKBjC8TLJzz0nzGmLi5UJsYAUgSvXFHgb0V2oY10DUFtImw=="],
 
     "@types/react": ["@types/react@19.2.14", "", { "dependencies": { "csstype": "^3.2.2" } }, "sha512-ilcTH/UniCkMdtexkoCN0bI7pMcJDvmQFPvuPvmEaYA/NSfFTAgdUSLAoVjaRJm7+6PvcM+q1zYOwS4wTYMF9w=="],
 

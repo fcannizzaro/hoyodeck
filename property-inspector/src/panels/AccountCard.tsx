@@ -3,6 +3,9 @@ import { GameIcon } from '../components/GameIcon';
 import { GAME_LABELS } from '../constants/games';
 import type { GameId, HoyoAccountInfo } from '@hoyodeck/shared/types';
 
+/** All game IDs for skeleton placeholders */
+const GAME_IDS: GameId[] = ['gi', 'hsr', 'zzz'];
+
 const STATUS_CONFIG = {
   valid: { symbol: '\u25CF', color: 'text-sd-success', label: 'Valid' },
   invalid: { symbol: '\u25CB', color: 'text-sd-error', label: 'Invalid' },
@@ -40,8 +43,8 @@ export function AccountCard({ account, onEdit, onDelete }: AccountCardProps) {
         </span>
       </div>
 
-      {/* Game UIDs */}
-      {gameUids.length > 0 && (
+      {/* Game UIDs — show skeleton loaders while checking */}
+      {gameUids.length > 0 ? (
         <div className="flex flex-wrap gap-1.5">
           {gameUids.map(([game, uid]) => (
             <span
@@ -53,7 +56,19 @@ export function AccountCard({ account, onEdit, onDelete }: AccountCardProps) {
             </span>
           ))}
         </div>
-      )}
+      ) : statusKey === 'unknown' ? (
+        <div className="flex flex-wrap gap-1.5">
+          {GAME_IDS.map((game) => (
+            <span
+              key={game}
+              className="inline-flex items-center gap-1 bg-sd-bg px-1.5 py-0.5 rounded"
+            >
+              <GameIcon game={game} size={12} />
+              <span className="w-12 h-2.5 rounded bg-sd-border animate-pulse" />
+            </span>
+          ))}
+        </div>
+      ) : null}
 
       {/* Actions */}
       <div className="flex gap-2 mt-1">

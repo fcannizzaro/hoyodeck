@@ -37,6 +37,7 @@
       "Controllers": [
         "Keypad"
       ],
+      "DisableCaching": true,
       "States": [
         {
           "Image": "imgs/actions/gi/resin-state",
@@ -52,6 +53,7 @@
       "Controllers": [
         "Keypad"
       ],
+      "DisableCaching": true,
       "States": [
         {
           "Image": "imgs/actions/gi/commissions-state",
@@ -67,6 +69,7 @@
       "Controllers": [
         "Keypad"
       ],
+      "DisableCaching": true,
       "States": [
         {
           "Image": "imgs/actions/gi/expeditions-state",
@@ -82,6 +85,7 @@
       "Controllers": [
         "Keypad"
       ],
+      "DisableCaching": true,
       "States": [
         {
           "Image": "imgs/actions/gi/teapot-state",
@@ -97,6 +101,7 @@
       "Controllers": [
         "Keypad"
       ],
+      "DisableCaching": true,
       "States": [
         {
           "Image": "imgs/actions/gi/transformerState",
@@ -117,6 +122,7 @@
       "Controllers": [
         "Keypad"
       ],
+      "DisableCaching": true,
       "States": [
         {
           "Image": "imgs/actions/gi/abyssState",
@@ -132,6 +138,7 @@
       "Controllers": [
         "Keypad"
       ],
+      "DisableCaching": true,
       "States": [
         {
           "Image": "imgs/actions/gi/banner-state",
@@ -147,6 +154,7 @@
       "Controllers": [
         "Keypad"
       ],
+      "DisableCaching": true,
       "States": [
         {
           "Image": "imgs/actions/hsr/trailblaze-power-state",
@@ -162,6 +170,7 @@
       "Controllers": [
         "Keypad"
       ],
+      "DisableCaching": true,
       "States": [
         {
           "Image": "imgs/actions/hsr/banner-state",
@@ -177,6 +186,7 @@
       "Controllers": [
         "Keypad"
       ],
+      "DisableCaching": true,
       "States": [
         {
           "Image": "imgs/actions/zzz/battery-recharge-state",
@@ -192,6 +202,7 @@
       "Controllers": [
         "Keypad"
       ],
+      "DisableCaching": true,
       "States": [
         {
           "Image": "imgs/actions/zzz/banner-state",
@@ -207,6 +218,7 @@
       "Controllers": [
         "Keypad"
       ],
+      "DisableCaching": true,
       "States": [
         {
           "Image": "imgs/actions/gi/reward-state",
