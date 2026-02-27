@@ -36,12 +36,39 @@ export interface AccountContext {
 }
 
 /**
+ * Result of the account auto-pick strategy.
+ *
+ * - `resolved`: a valid account was found and should be used
+ * - `no-accounts`: no accounts configured at all → show login prompt in PI
+ * - `no-uid`: account found but has no UID for this game → show "Set UID"
+ * - `ambiguous`: 2+ accounts have a UID for this game → user must pick in PI
+ */
+export type AccountPickResult =
+  | { kind: 'resolved'; account: HoyoAccount }
+  | { kind: 'no-accounts' }
+  | { kind: 'no-uid' }
+  | { kind: 'ambiguous' };
+
+/**
  * Base action class with common functionality for all Hoyo Deck actions.
  *
- * Uses DataController for data lifecycle:
- * - Registers on onWillAppear, unregisters on onWillDisappear
- * - Receives pushed data updates via onDataUpdate()
- * - Requests instant updates on key press via dataController.requestUpdate()
+ * Account auto-picking strategy:
+ *
+ *   0 accounts                → no-accounts  (PI shows login-only view)
+ *   1 account, has game UID   → auto-select, never show picker in PI
+ *   1 account, no game UID    → no-uid
+ *   2+ accounts, exactly one
+ *     has the game UID        → auto-select, hide picker in PI
+ *   2+ accounts, multiple
+ *     have the game UID       → ambiguous, show picker in PI
+ *   accountId set in settings → use it directly (user already picked)
+ *
+ * Only `accountId` is persisted in action settings — never a UID.
+ *
+ * Account-change watcher:
+ * Actions in "no-accounts" or "ambiguous" state subscribe to structural
+ * account changes (account added/removed) via DataController so they
+ * automatically re-run resolution without requiring a user interaction.
  */
 export abstract class BaseAction<
   TSettings extends JsonObject = JsonObject,
@@ -90,54 +117,80 @@ export abstract class BaseAction<
    */
   protected onBeforeDataUpdate(_action: KeyAction<TSettings>): void {}
 
+  // ─── Account picking ─────────────────────────────────────────────
+
   /**
-   * Resolve the account referenced by this action's settings.
-   * Returns null if no account is selected or the account was deleted.
+   * Core account auto-pick logic.
    *
-   * Handles three resolution strategies:
-   * 1. accountId is set -> look up in globalSettings.accounts
-   * 2. Legacy uid is set but no accountId -> find matching account by UID
-   * 3. Exactly one account has a UID for this game -> auto-select and persist
+   * Rules (in order):
+   * 1. If `accountId` is in settings and the account still exists → resolved
+   * 2. Count accounts that have a UID for this game:
+   *    - 0 matching accounts total → no-accounts (or no-uid if accounts exist)
+   *    - Exactly 1 → auto-select (persist accountId if action handle provided)
+   *    - 2+ → ambiguous
+   *
+   * Only accountId is persisted — never a UID.
+   */
+  protected async pickAccount(
+    settings: TSettings,
+    game: GameId,
+    action?: KeyAction<TSettings>,
+  ): Promise<AccountPickResult> {
+    const globalSettings = await this.getGlobalSettings();
+    const accounts = globalSettings.accounts ?? {};
+    const allAccounts = Object.values(accounts);
+
+    // No accounts at all → must log in first
+    if (allAccounts.length === 0) {
+      return { kind: 'no-accounts' };
+    }
+
+    const raw = settings as Record<string, unknown>;
+    const storedAccountId = raw['accountId'] as AccountId | undefined;
+
+    // If an explicit accountId is stored, resolve it directly
+    if (storedAccountId) {
+      const account = accounts[storedAccountId];
+      if (account) {
+        return { kind: 'resolved', account };
+      }
+      // Stored accountId no longer exists → fall through to re-pick
+    }
+
+    // Find accounts that have a UID for this game
+    const candidates = allAccounts.filter((a) => a.uids[game] !== undefined);
+
+    if (candidates.length === 0) {
+      // Accounts exist but none has this game's UID
+      return { kind: 'no-uid' };
+    }
+
+    if (candidates.length === 1) {
+      // Exactly one match → auto-select and persist
+      const selected = candidates[0]!;
+      if (action) {
+        await action.setSettings({ ...settings, accountId: selected.id });
+      }
+      return { kind: 'resolved', account: selected };
+    }
+
+    // 2+ candidates → ambiguous, user must pick in PI
+    return { kind: 'ambiguous' };
+  }
+
+  /**
+   * Resolve account for rendering purposes (no persistence side-effect).
+   * Returns the account or null if not resolvable.
+   *
+   * @deprecated prefer pickAccount() for new code
    */
   protected async resolveAccount(
     settings: TSettings,
     action?: KeyAction<TSettings>,
   ): Promise<HoyoAccount | null> {
-    const raw = settings as Record<string, unknown>;
-    const globalSettings = await this.getGlobalSettings();
-    const accounts = globalSettings.accounts ?? {};
-
-    const accountId = raw['accountId'] as AccountId | undefined;
-    if (accountId) {
-      return accounts[accountId] ?? null;
-    }
-
-    // Auto-select: if exactly one account has a UID for this game, use it
     const game = this.getResolvedGame(settings);
-    const candidates = Object.values(accounts).filter(
-      (a) => a.uids[game] !== undefined,
-    );
-
-    if (candidates.length === 1) {
-      const selected = candidates[0]!;
-      if (action) {
-        await action.setSettings({ ...settings, accountId: selected.id });
-      }
-      return selected;
-    }
-
-    // Broader fallback: if only one account exists total, use it
-    // (handles the case where UIDs haven't been detected yet)
-    const allAccounts = Object.values(accounts);
-    if (allAccounts.length === 1) {
-      const selected = allAccounts[0]!;
-      if (action) {
-        await action.setSettings({ ...settings, accountId: selected.id });
-      }
-      return selected;
-    }
-
-    return null;
+    const result = await this.pickAccount(settings, game, action);
+    return result.kind === 'resolved' ? result.account : null;
   }
 
   /**
@@ -155,13 +208,14 @@ export abstract class BaseAction<
     settings: TSettings,
     action?: KeyAction<TSettings>,
   ): Promise<AccountContext | null> {
-    const account = await this.resolveAccount(settings, action);
-    if (!account) return null;
+    const game = this.getResolvedGame(settings);
+    const result = await this.pickAccount(settings, game, action);
+    if (result.kind !== 'resolved') return null;
 
-    const client = this.getClientForAccount(account);
+    const client = this.getClientForAccount(result.account);
     if (!client) return null;
 
-    return { account, client };
+    return { account: result.account, client };
   }
 
   /**
@@ -170,6 +224,8 @@ export abstract class BaseAction<
   protected getGameUid(account: HoyoAccount, game: GameId): string | null {
     return account.uids[game] ?? null;
   }
+
+  // ─── Display helpers ─────────────────────────────────────────────
 
   /**
    * Show "Select Account" message with the game's 5-star background and alert
@@ -246,92 +302,59 @@ export abstract class BaseAction<
     }
   }
 
-  /**
-   * Called when action appears — registers with DataController.
-   */
-  override async onWillAppear(
-    ev: WillAppearEvent<TSettings>,
-  ): Promise<void> {
-    if (!ev.action.isKey()) return;
-    const keyAction = ev.action;
+  // ─── Registration helper ─────────────────────────────────────────
 
-    const account = await this.resolveAccount(ev.payload.settings, keyAction);
-    if (!account) {
+  /**
+   * Attempt to register this action with the DataController.
+   *
+   * Handles all pick outcomes:
+   * - resolved + has UID  → register, fetch, unwatch
+   * - resolved + no UID   → showNoUid, unwatch
+   * - no-accounts         → showNoAccount, watch for account changes
+   * - ambiguous           → showNoAccount, watch for account changes
+   * - no-uid              → showNoUid, unwatch
+   */
+  private async attemptRegister(
+    actionId: string,
+    keyAction: KeyAction<TSettings>,
+    settings: TSettings,
+  ): Promise<void> {
+    const game = this.getResolvedGame(settings);
+    const result = await this.pickAccount(settings, game, keyAction);
+
+    if (result.kind === 'no-accounts' || result.kind === 'ambiguous') {
+      // No usable account yet — show placeholder and wait for account changes
+      dataController.unregister(actionId);
       await this.showNoAccount(keyAction);
+
+      // Subscribe so we retry as soon as an account is added/removed
+      dataController.subscribeAccountChanges(actionId, () => {
+        void this.attemptRegister(actionId, keyAction, settings);
+      });
       return;
     }
 
-    const game = this.getResolvedGame(ev.payload.settings);
-    const uid = this.getGameUid(account, game);
-    if (!uid) {
+    // Account resolved (or no-uid) — no need to watch for structure changes
+    dataController.unsubscribeAccountChanges(actionId);
+
+    if (result.kind === 'no-uid') {
+      dataController.unregister(actionId);
       await this.showNoUid(keyAction);
       return;
     }
 
-    // Register with DataController
-    dataController.register({
-      actionId: ev.action.id,
-      accountId: account.id,
-      dataTypes: this.getSubscribedDataTypes(ev.payload.settings),
-      listener: (update) => {
-        void this.withErrorHandling(keyAction, async () => {
-          this.onBeforeDataUpdate(keyAction);
-          if (update.entry.status === 'error') {
-            await this.showDataError(keyAction, update.entry);
-            return;
-          }
-          await this.onDataUpdate(keyAction, update as SuccessDataUpdate<TDataType>);
-        });
-      },
-      onAccountRemoved: () => {
-        void this.showNoAccount(keyAction);
-      },
-    });
-
-    // Request immediate data for first render
-    await this.withErrorHandling(keyAction, async () => {
-      await dataController.requestUpdate(account.id, game);
-    });
-  }
-
-  /**
-   * Called when action disappears — unregisters from DataController.
-   */
-  override onWillDisappear(ev: WillDisappearEvent<TSettings>): void {
-    dataController.unregister(ev.action.id);
-  }
-
-  /**
-   * Called when per-action settings change — re-registers with DataController
-   * only if the account or subscribed data types actually changed.
-   */
-  override async onDidReceiveSettings(
-    ev: DidReceiveSettingsEvent<TSettings>,
-  ): Promise<void> {
-    if (!ev.action.isKey()) return;
-    const keyAction = ev.action;
-
-    const account = await this.resolveAccount(ev.payload.settings);
-
-    if (!account) {
-      dataController.unregister(ev.action.id);
-      await this.showNoAccount(keyAction);
-      return;
-    }
-
-    const game = this.getResolvedGame(ev.payload.settings);
+    const { account } = result;
     const uid = this.getGameUid(account, game);
-
     if (!uid) {
-      dataController.unregister(ev.action.id);
+      dataController.unregister(actionId);
       await this.showNoUid(keyAction);
       return;
     }
 
-    const dataTypes = this.getSubscribedDataTypes(ev.payload.settings);
+    const dataTypes = this.getSubscribedDataTypes(settings);
 
     // Skip re-registration if nothing meaningful changed
-    const existing = dataController.getRegistration(ev.action.id);
+    const existing = dataController.getRegistration(actionId);
     if (
       existing &&
       existing.accountId === account.id &&
@@ -341,11 +364,9 @@ export abstract class BaseAction<
       return;
     }
 
-    // Unregister old subscription and re-register with new params
-    dataController.unregister(ev.action.id);
-
+    dataController.unregister(actionId);
     dataController.register({
-      actionId: ev.action.id,
+      actionId,
       accountId: account.id,
       dataTypes,
       listener: (update) => {
@@ -359,14 +380,55 @@ export abstract class BaseAction<
         });
       },
       onAccountRemoved: () => {
+        // Account deleted → show placeholder and start watching for a new one
         void this.showNoAccount(keyAction);
+        dataController.subscribeAccountChanges(actionId, () => {
+          void this.attemptRegister(actionId, keyAction, settings);
+        });
       },
     });
 
-    // Fetch fresh data for new settings
     await this.withErrorHandling(keyAction, async () => {
       await dataController.requestUpdate(account.id, game);
     });
+  }
+
+  // ─── Lifecycle hooks ─────────────────────────────────────────────
+
+  /**
+   * Called when action appears — registers with DataController.
+   */
+  override async onWillAppear(
+    ev: WillAppearEvent<TSettings>,
+  ): Promise<void> {
+    if (!ev.action.isKey()) return;
+    await this.attemptRegister(
+      ev.action.id,
+      ev.action,
+      ev.payload.settings,
+    );
+  }
+
+  /**
+   * Called when action disappears — unregisters from DataController.
+   */
+  override onWillDisappear(ev: WillDisappearEvent<TSettings>): void {
+    dataController.unregister(ev.action.id);
+    dataController.unsubscribeAccountChanges(ev.action.id);
+  }
+
+  /**
+   * Called when per-action settings change — re-runs full resolution.
+   */
+  override async onDidReceiveSettings(
+    ev: DidReceiveSettingsEvent<TSettings>,
+  ): Promise<void> {
+    if (!ev.action.isKey()) return;
+    await this.attemptRegister(
+      ev.action.id,
+      ev.action,
+      ev.payload.settings,
+    );
   }
 
   /**
@@ -381,11 +443,11 @@ export abstract class BaseAction<
       const keyAction = ev.action;
       const settings = (await keyAction.getSettings()) as TSettings;
 
-      const account = await this.resolveAccount(settings);
-      if (!account) return;
-
       const game = this.getResolvedGame(settings);
-      await dataController.requestUpdate(account.id, game);
+      const pickResult = await this.pickAccount(settings, game);
+      if (pickResult.kind !== 'resolved') return;
+
+      await dataController.requestUpdate(pickResult.account.id, game);
     }
   }
 
@@ -393,13 +455,13 @@ export abstract class BaseAction<
    * Called when key is pressed — request instant data refresh.
    */
   override async onKeyDown(ev: KeyDownEvent<TSettings>): Promise<void> {
-    const account = await this.resolveAccount(ev.payload.settings);
-    if (!account) return;
-
-    const game = this.getResolvedGame(ev.payload.settings);
+    const settings = ev.payload.settings;
+    const game = this.getResolvedGame(settings);
+    const pickResult = await this.pickAccount(settings, game);
+    if (pickResult.kind !== 'resolved') return;
 
     await this.withErrorHandling(ev.action, async () => {
-      await dataController.requestUpdate(account.id, game);
+      await dataController.requestUpdate(pickResult.account.id, game);
     });
   }
 }

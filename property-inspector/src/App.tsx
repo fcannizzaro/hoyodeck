@@ -6,7 +6,7 @@ import { BannerPanel } from './panels/BannerPanel';
 import { DailyRewardPanel } from './panels/DailyRewardPanel';
 import { TransformerPanel } from './panels/TransformerPanel';
 import { PreferencesPanel } from './panels/PreferencesPanel';
-import type { GameId } from '@hoyodeck/shared/types';
+import type { GameId, HoyoAccountInfo } from '@hoyodeck/shared/types';
 
 /** Actions that have their own custom settings panel (includes AccountPicker inside) */
 const ACTION_PANELS: Record<string, React.ComponentType> = {
@@ -29,7 +29,7 @@ const DEFAULT_GAME_FILTER: Record<string, GameId> = {
 };
 
 export default function App() {
-  const { actionInfo } = useStreamDeck();
+  const { actionInfo, globalSettings } = useStreamDeck();
 
   if (!actionInfo) {
     return (
@@ -39,6 +39,19 @@ export default function App() {
 
   const ActionPanel = ACTION_PANELS[actionInfo.action];
   const defaultGame = DEFAULT_GAME_FILTER[actionInfo.action];
+
+  const accounts = (globalSettings.accounts ?? {}) as Record<string, HoyoAccountInfo>;
+  const hasAccounts = Object.keys(accounts).length > 0;
+
+  // ─── Case 1: No accounts at all → show ONLY the account section ──
+  // The user must log in before anything else is visible.
+  if (!hasAccounts) {
+    return (
+      <div className="flex flex-col gap-4 p-3 bg-sd-bg text-sd-text text-xs leading-relaxed font-sans min-h-screen">
+        <AccountPanel />
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-4 p-3 bg-sd-bg text-sd-text text-xs leading-relaxed font-sans min-h-screen">

@@ -189,11 +189,11 @@ export abstract class BaseBannerAction<
     }
 
     // Fallback: request fresh data
-    const account = await this.resolveAccount(settings);
-    if (!account) return;
+    const pickResult = await this.pickAccount(settings, this.game);
+    if (pickResult.kind !== 'resolved') return;
 
     await this.withErrorHandling(ev.action, async () => {
-      await dataController.requestUpdate(account.id, this.game);
+      await dataController.requestUpdate(pickResult.account.id, this.game);
     });
   }
 

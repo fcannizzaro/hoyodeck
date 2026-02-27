@@ -62,6 +62,14 @@ class DataControllerImpl {
    */
   private readonly registrations = new Map<string, ActionRegistration>();
 
+  // ─── Account-change subscribers ─────────────────────────────────
+  /**
+   * Actions waiting for their first account (showing "Select Account").
+   * Keyed by actionId. Called when the accounts map structurally changes
+   * (new account added or account removed) so actions can retry resolution.
+   */
+  private readonly accountChangeSubscribers = new Map<string, () => void>();
+
   // ─── Polling ─────────────────────────────────────────────────────
   private pollTimer: ReturnType<typeof setInterval> | null = null;
 
@@ -253,6 +261,30 @@ class DataControllerImpl {
   }
 
   /**
+   * Subscribe to structural account changes (account added or removed).
+   * Called by BaseAction instances that are in "waiting for account" state
+   * so they can retry resolution when the accounts map changes.
+   *
+   * @returns unsubscribe function
+   */
+  subscribeAccountChanges(actionId: string, cb: () => void): void {
+    this.accountChangeSubscribers.set(actionId, cb);
+    streamDeck.logger.debug(
+      `[DataController] Subscribed account-change watcher for ${actionId}`,
+    );
+  }
+
+  /**
+   * Unsubscribe an action from account-change notifications.
+   */
+  unsubscribeAccountChanges(actionId: string): void {
+    this.accountChangeSubscribers.delete(actionId);
+    streamDeck.logger.debug(
+      `[DataController] Unsubscribed account-change watcher for ${actionId}`,
+    );
+  }
+
+  /**
    * Notify all actions registered to a deleted account and unregister them.
    * Each action's onAccountRemoved callback is called so it can show "Select Account".
    */
@@ -270,6 +302,23 @@ class DataControllerImpl {
       }
 
       this.registrations.delete(actionId);
+    }
+  }
+
+  /**
+   * Notify all account-change subscribers.
+   * Called when the accounts map gains or loses entries (not on auth-only updates).
+   */
+  private notifyAccountStructureChanged(): void {
+    for (const [actionId, cb] of this.accountChangeSubscribers) {
+      try {
+        cb();
+      } catch (err) {
+        streamDeck.logger.error(
+          `[DataController] accountChange callback error for ${actionId}:`,
+          err,
+        );
+      }
     }
   }
 
@@ -306,17 +355,33 @@ class DataControllerImpl {
     const newAccounts = settings.accounts ?? {};
     const oldAccounts = this.previousAccounts ?? {};
 
+    const oldIds = new Set(Object.keys(oldAccounts));
+    const newIds = new Set(Object.keys(newAccounts));
+
     // Save snapshot for next diff
     this.previousAccounts = structuredClone(newAccounts);
 
+    let structureChanged = false;
+
     // Check for deleted accounts
-    for (const accountId of Object.keys(oldAccounts)) {
-      if (!(accountId in newAccounts)) {
+    for (const accountId of oldIds) {
+      if (!newIds.has(accountId)) {
         streamDeck.logger.debug(
           `[DataController] Account ${accountId} deleted, invalidating`,
         );
         this.invalidateAccount(accountId as AccountId);
         this.notifyAccountRemoved(accountId as AccountId);
+        structureChanged = true;
+      }
+    }
+
+    // Check for new accounts
+    for (const accountId of newIds) {
+      if (!oldIds.has(accountId)) {
+        streamDeck.logger.debug(
+          `[DataController] Account ${accountId} added`,
+        );
+        structureChanged = true;
       }
     }
 
@@ -331,6 +396,12 @@ class DataControllerImpl {
         );
         this.invalidateAccount(accountId as AccountId);
       }
+    }
+
+    // If account structure changed, notify all watchers so they can retry resolution.
+    // This covers Case 1 (first login) and Case 3 (logout → re-check remaining accounts).
+    if (structureChanged) {
+      this.notifyAccountStructureChanged();
     }
 
     // Detect rendering preference changes that require re-render

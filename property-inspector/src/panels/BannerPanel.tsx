@@ -38,7 +38,7 @@ export function BannerPanel() {
   return (
     <>
       <Heading>Banner Settings</Heading>
-      <AccountPicker />
+      <AccountPicker game="gi" />
       <Select
         label="Banner Type"
         value={type}

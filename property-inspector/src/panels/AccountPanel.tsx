@@ -4,14 +4,19 @@ import { Heading } from '../components/Heading';
 import { Button } from '../components/Button';
 import { AccountCard } from './AccountCard';
 import { AccountForm } from './AccountForm';
-import type { HoyoAccount } from '@hoyodeck/shared/types';
+import type { HoyoAccount, HoyoAccountInfo } from '@hoyodeck/shared/types';
 
 /**
  * Account management panel.
  * Lists all accounts with status, and allows adding/editing/deleting accounts.
+ *
+ * Post-login refresh:
+ * After saving the *first* account, every action that has no accountId set
+ * will have it auto-assigned here (mirrors plugin-side auto-pick).
+ * For the second+ account, the plugin-side watcher handles re-resolution.
  */
 export function AccountPanel() {
-  const { globalSettings, saveGlobalSettings, saveSettings } = useStreamDeck();
+  const { globalSettings, saveGlobalSettings, settings, saveSettings } = useStreamDeck();
   const accounts = (globalSettings.accounts ?? {}) as Record<
     string,
     HoyoAccount
@@ -22,14 +27,29 @@ export function AccountPanel() {
   const handleDelete = (id: string) => {
     const { [id]: _, ...remaining } = accounts;
     saveGlobalSettings({ accounts: remaining });
+
+    // If the current action was using this account, clear it so the PI
+    // shows "Select Account" immediately (plugin-side will also re-resolve).
+    if ((settings.accountId as string) === id) {
+      saveSettings({ accountId: undefined });
+    }
   };
 
   const handleSave = (account: HoyoAccount) => {
+    const isFirstAccount = Object.keys(accounts).length === 0;
+
     saveGlobalSettings({
       accounts: { ...accounts, [account.id]: account },
       pendingValidation: account.id,
     });
-    saveSettings({ accountId: account.id });
+
+    // Auto-assign the new account to this action if:
+    // - it's the very first account (Case 1: silent auto-select), OR
+    // - the action has no account selected yet
+    if (isFirstAccount || !settings.accountId) {
+      saveSettings({ accountId: account.id });
+    }
+
     setShowAddForm(false);
     setEditingId(null);
   };
