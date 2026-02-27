@@ -94,7 +94,6 @@ async function startLoginFlow(settings: GlobalSettings): Promise<void> {
         if (!isValidAuth(auth)) return; // Not logged in yet
         detectedAuth = auth;
         clearInterval(pollTimer);
-        win.clearCookies()
         win.close();
       } catch (error) {
         streamDeck.logger.error("[HoyolabLogin] Cookie check failed:", error);
@@ -120,6 +119,10 @@ async function startLoginFlow(settings: GlobalSettings): Promise<void> {
       }
     })
 
+    // Clear any stale session cookies before loading so the user always
+    // sees a fresh login form instead of being auto-logged in from a
+    // previous session (WebView2 / WKWebView persist cookies on disk).
+    win.clearCookies();
     win.loadUrl(HOYOLAB_URL);
 
   } catch (error) {
