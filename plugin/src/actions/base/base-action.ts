@@ -397,6 +397,12 @@ export abstract class BaseAction<
           void this.attemptRegister(actionId, keyAction, settings);
         });
       },
+      onStructureChanged: () => {
+        // Any structural change (add/delete/UID update) — re-run resolution.
+        // This handles cases like: 2 accounts → 1 after a delete (auto-pick changes),
+        // or UIDs populated after login on a different action's account.
+        void this.attemptRegister(actionId, keyAction, settings);
+      },
     });
 
     await this.withErrorHandling(keyAction, async () => {

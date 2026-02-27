@@ -306,8 +306,16 @@ class DataControllerImpl {
   }
 
   /**
-   * Notify all account-change subscribers.
-   * Called when the accounts map gains or loses entries (not on auth-only updates).
+   * Notify all account-change subscribers AND all active registrations.
+   *
+   * - accountChangeSubscribers: actions in "waiting" state (no-accounts, ambiguous,
+   *   no-uid) that need to retry resolution.
+   * - registrations.onStructureChanged: actions already bound to an account that
+   *   may need to re-evaluate auto-pick (e.g. 2→1 accounts after a delete changes
+   *   whether the picker should be shown, or a different account now becomes the
+   *   only match).
+   *
+   * Called when the accounts map gains/loses entries or UIDs change.
    */
   private notifyAccountStructureChanged(): void {
     for (const [actionId, cb] of this.accountChangeSubscribers) {
@@ -316,6 +324,18 @@ class DataControllerImpl {
       } catch (err) {
         streamDeck.logger.error(
           `[DataController] accountChange callback error for ${actionId}:`,
+          err,
+        );
+      }
+    }
+
+    for (const [actionId, reg] of this.registrations) {
+      if (!reg.onStructureChanged) continue;
+      try {
+        reg.onStructureChanged();
+      } catch (err) {
+        streamDeck.logger.error(
+          `[DataController] onStructureChanged error for ${actionId}:`,
           err,
         );
       }

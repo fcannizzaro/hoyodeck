@@ -88,6 +88,12 @@ export interface ActionRegistration {
   listener: DataListener;
   /** Called when the bound account is deleted. Action should show "Select Account". */
   onAccountRemoved?: () => void;
+  /**
+   * Called when the accounts map structurally changes (account added, deleted,
+   * or UIDs updated) — even for accounts other than the one this action is bound to.
+   * Action should re-run resolution in case auto-pick results changed.
+   */
+  onStructureChanged?: () => void;
 }
 
 // ─── Controller Configuration ─────────────────────────────────────
