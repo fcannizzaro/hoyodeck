@@ -197,6 +197,11 @@ export abstract class BaseBannerAction<
     });
   }
 
+  protected override onStop(action: KeyAction<TSettings>): void {
+    const state = this.keyStates.get(action.id);
+    if (state) this.clearBlinkAnimation(state);
+  }
+
   protected override onBeforeDataUpdate(action: KeyAction<TSettings>): void {
     const state = this.getKeyState(action.id);
     this.clearBlinkAnimation(state);

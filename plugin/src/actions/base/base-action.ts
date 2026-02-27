@@ -117,6 +117,14 @@ export abstract class BaseAction<
    */
   protected onBeforeDataUpdate(_action: KeyAction<TSettings>): void {}
 
+  /**
+   * Called whenever the action transitions to a "no data" display state
+   * (showNoAccount, showNoUid, showNoAuth, showError).
+   * Override in subclasses to stop any running animations that would otherwise
+   * overwrite the placeholder image.
+   */
+  protected onStop(_action: KeyAction<TSettings>): void {}
+
   // ─── Account picking ─────────────────────────────────────────────
 
   /**
@@ -231,6 +239,7 @@ export abstract class BaseAction<
    * Show "Select Account" message with the game's 5-star background and alert
    */
   protected async showNoAccount(action: KeyAction<TSettings>): Promise<void> {
+    this.onStop(action);
     const bg = readLocalImageAsDataUri(GAME_BACKGROUNDS[this.game]);
     await action.setImage(bg);
     await action.setTitle('Select\nAccount');
@@ -240,6 +249,7 @@ export abstract class BaseAction<
    * Show "No Auth" message and alert
    */
   protected async showNoAuth(action: KeyAction<TSettings>): Promise<void> {
+    this.onStop(action);
     await action.setTitle('Setup\nAuth');
     await action.showAlert();
   }
@@ -248,6 +258,7 @@ export abstract class BaseAction<
    * Show "No UID" message
    */
   protected async showNoUid(action: KeyAction<TSettings>): Promise<void> {
+    this.onStop(action);
     await action.setTitle('Set\nUID');
     await action.showAlert();
   }

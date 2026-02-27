@@ -78,6 +78,10 @@ export class BatteryChargeAction extends BaseAction<ZZZActionSettings, 'zzz:dail
     return ['zzz:daily-note'];
   }
 
+  protected override onStop(): void {
+    this.clearAnimation();
+  }
+
   protected override onBeforeDataUpdate(): void {
     this.clearAnimation();
   }

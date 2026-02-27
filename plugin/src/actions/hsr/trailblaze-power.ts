@@ -77,6 +77,10 @@ export class StaminaAction extends BaseAction<StarRailActionSettings, 'hsr:daily
     return ['hsr:daily-note'];
   }
 
+  protected override onStop(): void {
+    this.clearAnimation();
+  }
+
   protected override onBeforeDataUpdate(): void {
     this.clearAnimation();
   }
