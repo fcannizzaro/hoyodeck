@@ -12,7 +12,7 @@
   "workspaces": ["packages/*", "plugin", "property-inspector"],
   "devDependencies": {
     "oxfmt": "^0.35.0",
-    "turbo": "^2.8.11",
+    "turbo": "^2.8.12",
     "typescript": "^6.0.0-beta"
   },
   "packageManager": "bun@1.3.9",
