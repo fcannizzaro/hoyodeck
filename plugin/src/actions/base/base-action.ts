@@ -320,10 +320,10 @@ export abstract class BaseAction<
    *
    * Handles all pick outcomes:
    * - resolved + has UID  → register, fetch, unwatch
-   * - resolved + no UID   → showNoUid, unwatch
    * - no-accounts         → showNoAccount, watch for account changes
    * - ambiguous           → showNoAccount, watch for account changes
-   * - no-uid              → showNoUid, unwatch
+   * - no-uid              → showNoUid, watch for account changes (UIDs may arrive later)
+   * - resolved + no UID   → showNoUid, watch for account changes
    */
   private async attemptRegister(
     actionId: string,
@@ -345,20 +345,29 @@ export abstract class BaseAction<
       return;
     }
 
-    // Account resolved (or no-uid) — no need to watch for structure changes
-    dataController.unsubscribeAccountChanges(actionId);
-
     if (result.kind === 'no-uid') {
+      // Account exists but has no UID for this game yet.
+      // This happens right after login before the auth-validator writes UIDs back.
+      // Keep watching so we re-resolve as soon as the UID lands.
       dataController.unregister(actionId);
       await this.showNoUid(keyAction);
+      dataController.subscribeAccountChanges(actionId, () => {
+        void this.attemptRegister(actionId, keyAction, settings);
+      });
       return;
     }
+
+    // Account resolved — no need to watch for structure changes
+    dataController.unsubscribeAccountChanges(actionId);
 
     const { account } = result;
     const uid = this.getGameUid(account, game);
     if (!uid) {
       dataController.unregister(actionId);
       await this.showNoUid(keyAction);
+      dataController.subscribeAccountChanges(actionId, () => {
+        void this.attemptRegister(actionId, keyAction, settings);
+      });
       return;
     }
 
