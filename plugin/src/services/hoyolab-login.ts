@@ -74,6 +74,10 @@ async function startLoginFlow(settings: GlobalSettings): Promise<void> {
       resizable: false,
       alwaysOnTop: true,
       allowedHosts: ALLOWED_HOSTS,
+      // Incognito mode ensures no HoYoLAB session cookies are carried over
+      // from a previous login — each login window starts with a clean slate.
+      // @ts-expect-error — incognito is a new option pending native-window release
+      incognito: true,
     });
 
     // Poll cookies on a fixed interval
@@ -119,10 +123,6 @@ async function startLoginFlow(settings: GlobalSettings): Promise<void> {
       }
     })
 
-    // Clear any stale session cookies before loading so the user always
-    // sees a fresh login form instead of being auto-logged in from a
-    // previous session (WebView2 / WKWebView persist cookies on disk).
-    win.clearCookies();
     win.loadUrl(HOYOLAB_URL);
 
   } catch (error) {
