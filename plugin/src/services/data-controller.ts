@@ -385,7 +385,7 @@ class DataControllerImpl {
       }
     }
 
-    // Check for auth changes on existing accounts
+    // Check for auth or UID changes on existing accounts
     for (const [accountId, newAccount] of Object.entries(newAccounts)) {
       const oldAccount = oldAccounts[accountId as AccountId];
       if (!oldAccount) continue; // New account — no cached data to invalidate
@@ -395,6 +395,15 @@ class DataControllerImpl {
           `[DataController] Auth changed for account ${accountId}, invalidating`,
         );
         this.invalidateAccount(accountId as AccountId);
+        // Auth change may also bring new UIDs, treat as structure change
+        structureChanged = true;
+      } else if (!this.uidsEqual(oldAccount.uids, newAccount.uids)) {
+        // UIDs updated (e.g. auth-validator wrote back game roles after login)
+        // Actions in no-uid state need to re-run resolution.
+        streamDeck.logger.debug(
+          `[DataController] UIDs changed for account ${accountId}, triggering re-resolution`,
+        );
+        structureChanged = true;
       }
     }
 
@@ -445,6 +454,20 @@ class DataControllerImpl {
       a.account_mid_v2 === b.account_mid_v2 &&
       a.account_id_v2 === b.account_id_v2
     );
+  }
+
+  /**
+   * Shallow comparison of per-game UID maps.
+   * Returns false (i.e. "changed") if any game UID was added, removed, or modified.
+   */
+  private uidsEqual(
+    a: Partial<Record<string, string>>,
+    b: Partial<Record<string, string>>,
+  ): boolean {
+    const aKeys = Object.keys(a);
+    const bKeys = Object.keys(b);
+    if (aKeys.length !== bKeys.length) return false;
+    return aKeys.every((k) => a[k] === b[k]);
   }
 
   /**
