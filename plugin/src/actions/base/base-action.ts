@@ -330,6 +330,11 @@ export abstract class BaseAction<
     keyAction: KeyAction<TSettings>,
     settings: TSettings,
   ): Promise<void> {
+    // Stop any running animation immediately — before the async pickAccount call.
+    // Without this, the interval fires during the await and overwrites any
+    // placeholder image (5-star bg, etc.) that was set just before.
+    this.onStop(keyAction);
+
     const game = this.getResolvedGame(settings);
     const result = await this.pickAccount(settings, game, keyAction);
 
