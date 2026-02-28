@@ -15,8 +15,8 @@ export default function Header() {
   return (
     <header className="border-b border-border bg-card px-4 py-2 flex items-center justify-between">
       <Link to="/" className="flex items-center gap-2">
-        <Eye className="h-5 w-5 text-primary" />
-        <span className="font-semibold text-sm">inpaint-eyes</span>
+        <span className="text-base">🎮</span>
+        <span className="font-semibold text-sm">Hoyo Deck Manager</span>
       </Link>
 
       {isAuthenticated && (
