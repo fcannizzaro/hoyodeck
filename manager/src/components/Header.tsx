@@ -1,5 +1,5 @@
 import { Link, useNavigate } from '@tanstack/react-router'
-import { Eye, LogOut, Paintbrush, Images } from 'lucide-react'
+import { LogOut, Paintbrush, Images, TicketCheck } from 'lucide-react'
 import { getPassword, clearPassword } from '@/lib/auth-store'
 import { Button } from '@/components/ui/button'
 
@@ -21,6 +21,12 @@ export default function Header() {
 
       {isAuthenticated && (
         <nav className="flex items-center gap-1">
+          <Button variant="ghost" size="sm" asChild>
+            <Link to="/codes">
+              <TicketCheck className="h-4 w-4 mr-1" />
+              Codes
+            </Link>
+          </Button>
           <Button variant="ghost" size="sm" asChild>
             <Link to="/editor">
               <Paintbrush className="h-4 w-4 mr-1" />

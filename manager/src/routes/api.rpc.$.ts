@@ -3,6 +3,10 @@ import '@/polyfill'
 import { RPCHandler } from '@orpc/server/fetch'
 import { createFileRoute } from '@tanstack/react-router'
 import router from '@/orpc/router'
+import { initServices } from '@/services/init'
+
+// Start background services (crawler, etc.) on first server module load
+initServices()
 
 const handler = new RPCHandler(router)
 
