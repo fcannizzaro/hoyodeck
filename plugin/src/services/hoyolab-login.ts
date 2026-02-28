@@ -76,7 +76,6 @@ async function startLoginFlow(settings: GlobalSettings): Promise<void> {
       allowedHosts: ALLOWED_HOSTS,
       // Incognito mode ensures no HoYoLAB session cookies are carried over
       // from a previous login — each login window starts with a clean slate.
-      // @ts-expect-error — incognito is a new option pending native-window release
       incognito: true,
     });
 
