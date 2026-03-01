@@ -3,11 +3,7 @@ import { Heading } from '../components/Heading';
 import { Select } from '../components/Select';
 import { NumberInput } from '../components/NumberInput';
 import { AccountPicker } from '../components/AccountPicker';
-
-const BANNER_OPTIONS = [
-  { value: 'character', label: 'Character Event Wish' },
-  { value: 'weapon', label: 'Weapon Event Wish' },
-];
+import type { GameId } from '@hoyodeck/shared/types';
 
 const BADGE_POSITION_OPTIONS = [
   { value: 'left', label: 'Left' },
@@ -20,7 +16,16 @@ const BADGE_LAYOUT_OPTIONS = [
   { value: 'vertical', label: 'Vertical' },
 ];
 
-export function BannerPanel() {
+interface BaseBannerPanelProps {
+  game: GameId;
+  typeOptions: { value: string; label: string }[];
+}
+
+/**
+ * Shared banner settings panel — renders account picker, banner type selector,
+ * and global badge style settings. Used by all three games.
+ */
+function BaseBannerPanel({ game, typeOptions }: BaseBannerPanelProps) {
   const {
     settings,
     saveSettings,
@@ -36,14 +41,14 @@ export function BannerPanel() {
     (globalSettings.bannerBadgeFontSize as number) ?? 18;
 
   return (
-    <>
+    <div className="flex flex-col gap-2">
       <Heading>Banner Settings</Heading>
-      <AccountPicker />
+      <AccountPicker game={game} />
       <Select
         label="Banner Type"
         value={type}
-        options={BANNER_OPTIONS}
-        info="Select which type of wish banner to display."
+        options={typeOptions}
+        info="Select which type of banner to display."
         onChange={(value) => saveSettings({ type: value })}
       />
       <Heading>Badge Style</Heading>
@@ -70,6 +75,45 @@ export function BannerPanel() {
         info="Adjust the countdown text size (default: 18)."
         onChange={(value) => saveGlobalSettings({ bannerBadgeFontSize: value })}
       />
-    </>
+    </div>
+  );
+}
+
+/** Genshin Impact banner panel — Character Event Wish / Weapon Event Wish */
+export function BannerPanel() {
+  return (
+    <BaseBannerPanel
+      game="gi"
+      typeOptions={[
+        { value: 'character', label: 'Character Event Wish' },
+        { value: 'weapon', label: 'Weapon Event Wish' },
+      ]}
+    />
+  );
+}
+
+/** Star Rail banner panel — Character Warp / Light Cone Warp */
+export function HSRBannerPanel() {
+  return (
+    <BaseBannerPanel
+      game="hsr"
+      typeOptions={[
+        { value: 'character', label: 'Character Warp' },
+        { value: 'lightcone', label: 'Light Cone Warp' },
+      ]}
+    />
+  );
+}
+
+/** ZZZ banner panel — Agent Signal Search / W-Engine Signal Search */
+export function ZZZBannerPanel() {
+  return (
+    <BaseBannerPanel
+      game="zzz"
+      typeOptions={[
+        { value: 'character', label: 'Agent Signal Search' },
+        { value: 'w-engine', label: 'W-Engine Signal Search' },
+      ]}
+    />
   );
 }

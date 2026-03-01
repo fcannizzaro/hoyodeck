@@ -22,7 +22,7 @@ function EndgamePanel({ game, heading, modeOptions, defaultMode }: EndgamePanelP
   const showName = (settings.showName as boolean) ?? true;
 
   return (
-    <>
+    <div className="flex flex-col gap-2">
       <Heading>{heading}</Heading>
       <AccountPicker game={game} />
       <Select
@@ -42,7 +42,7 @@ function EndgamePanel({ game, heading, modeOptions, defaultMode }: EndgamePanelP
         checked={showName}
         onChange={(checked) => saveSettings({ showName: checked })}
       />
-    </>
+    </div>
   );
 }
 

@@ -17,7 +17,7 @@ export function DailyRewardPanel() {
   const claimOnClick = (settings.claimOnClick as boolean) ?? true;
 
   return (
-    <>
+    <div className="flex flex-col gap-2">
       <Heading>Daily Reward Settings</Heading>
       <Select
         label="Game"
@@ -32,6 +32,6 @@ export function DailyRewardPanel() {
         info="When enabled, pressing the button will automatically claim the daily check-in reward."
         onChange={(checked) => saveSettings({ claimOnClick: checked })}
       />
-    </>
+    </div>
   );
 }

@@ -11,7 +11,7 @@ export function PreferencesPanel() {
   const disableAnimations = (globalSettings.disableAnimations as boolean) ?? false;
 
   return (
-    <>
+    <div className="flex flex-col gap-2">
       <Heading>Preferences</Heading>
       <Checkbox
         label="Disable Animations"
@@ -21,6 +21,6 @@ export function PreferencesPanel() {
           saveGlobalSettings({ disableAnimations: checked })
         }
       />
-    </>
+    </div>
   );
 }

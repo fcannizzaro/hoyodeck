@@ -1,6 +1,7 @@
-import type { KeyAction, WillDisappearEvent } from "@elgato/streamdeck";
+import type { DidReceiveSettingsEvent, KeyAction, WillDisappearEvent } from "@elgato/streamdeck";
 import type { JsonObject } from "@elgato/utils";
 import { BaseAction } from "./base-action";
+import { dataController } from "@/services/data-controller";
 import type { DataType, SuccessDataUpdate } from "@/services/data-controller.types";
 import { buildEndgameSvg, getNameCycleWidth } from "@/utils/endgame";
 import { endgameScroller } from "@/utils/endgame-scroller";
@@ -108,6 +109,40 @@ export abstract class BaseEndgameAction<
       await action.setTitle('');
       await action.setImage(svgToBase64(svg));
     }
+  }
+
+  // ─── Re-render on cosmetic setting changes ─────────────────────
+
+  /**
+   * Override to re-render from cached data when display-only settings
+   * (showStars, showName) change. The parent's attemptRegister skips
+   * re-registration when only cosmetic settings change, so we must
+   * trigger onDataUpdate ourselves.
+   */
+  override async onDidReceiveSettings(
+    ev: DidReceiveSettingsEvent<TSettings>,
+  ): Promise<void> {
+    await super.onDidReceiveSettings(ev);
+
+    if (!ev.action.isKey()) return;
+
+    const settings = this.getCachedSettings(ev.action.id);
+    if (!settings) return;
+
+    const mode = settings.mode ?? this.defaultMode;
+    const config = this.modes[mode] ?? this.modes[this.defaultMode]!;
+
+    const game = this.getResolvedGame(settings);
+    const pickResult = await this.pickAccount(settings, game);
+    if (pickResult.kind !== 'resolved') return;
+
+    const cached = dataController.getData(pickResult.account.id, config.dataType);
+    if (!cached || cached.status !== 'ok') return;
+
+    await this.onDataUpdate(ev.action, {
+      dataType: config.dataType,
+      entry: cached,
+    } as SuccessDataUpdate<TDataType>);
   }
 
   override onWillDisappear(ev: WillDisappearEvent<TSettings>): void {

@@ -94,6 +94,10 @@ export class ResinAction extends BaseAction<GenshinActionSettings, 'gi:daily-not
     return ['gi:daily-note'];
   }
 
+  protected override onStop(action: KeyAction<GenshinActionSettings>): void {
+    this.clearAnimation(action.id);
+  }
+
   protected override onBeforeDataUpdate(action: KeyAction<GenshinActionSettings>): void {
     this.clearAnimation(action.id);
   }

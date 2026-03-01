@@ -13,7 +13,7 @@ export function TransformerPanel() {
   const style = (settings.style as string) ?? 'text';
 
   return (
-    <>
+    <div className="flex flex-col gap-2">
       <Heading>Transformer Settings</Heading>
       <AccountPicker game="gi" />
       <Select
@@ -23,6 +23,6 @@ export function TransformerPanel() {
         info="Choose how to display the transformer status."
         onChange={(value) => saveSettings({ style: value })}
       />
-    </>
+    </div>
   );
 }

@@ -74,6 +74,7 @@ async function startLoginFlow(settings: GlobalSettings): Promise<void> {
       resizable: false,
       alwaysOnTop: true,
       allowedHosts: ALLOWED_HOSTS,
+      incognito: true,
     });
 
     // Poll cookies on a fixed interval
@@ -94,7 +95,6 @@ async function startLoginFlow(settings: GlobalSettings): Promise<void> {
         if (!isValidAuth(auth)) return; // Not logged in yet
         detectedAuth = auth;
         clearInterval(pollTimer);
-        win.clearCookies()
         win.close();
       } catch (error) {
         streamDeck.logger.error("[HoyolabLogin] Cookie check failed:", error);

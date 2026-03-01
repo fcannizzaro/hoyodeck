@@ -203,12 +203,18 @@ export abstract class BaseBannerAction<
 
     debug.log('[BannerAction] onKeyDown', ev.action.id, '| no cache, requesting fresh data');
     // Fallback: request fresh data
-    const account = await this.resolveAccount(settings);
-    if (!account) return;
+    const game = this.getResolvedGame(settings);
+    const pickResult = await this.pickAccount(settings, game);
+    if (pickResult.kind !== 'resolved') return;
 
     await this.withErrorHandling(ev.action, async () => {
-      await dataController.requestUpdate(account.id, this.game);
+      await dataController.requestUpdate(pickResult.account.id, this.game);
     });
+  }
+
+  protected override onStop(action: KeyAction<TSettings>): void {
+    const state = this.keyStates.get(action.id);
+    if (state) this.clearBlinkAnimation(state);
   }
 
   protected override onBeforeDataUpdate(action: KeyAction<TSettings>): void {

@@ -2,12 +2,12 @@ import { useStreamDeck } from './hooks/use-stream-deck';
 import { AccountPanel } from './panels/AccountPanel';
 import { AccountPicker } from './components/AccountPicker';
 import { Heading } from './components/Heading';
-import { BannerPanel } from './panels/BannerPanel';
+import { BannerPanel, HSRBannerPanel, ZZZBannerPanel } from './panels/BannerPanel';
 import { DailyRewardPanel } from './panels/DailyRewardPanel';
 import { TransformerPanel } from './panels/TransformerPanel';
 import { GenshinEndgamePanel, StarRailEndgamePanel, ZZZEndgamePanel } from './panels/EndgamePanel';
 import { PreferencesPanel } from './panels/PreferencesPanel';
-import type { GameId } from '@hoyodeck/shared/types';
+import type { GameId, HoyoAccountInfo } from '@hoyodeck/shared/types';
 
 /** Actions that have their own custom settings panel (includes AccountPicker inside) */
 const ACTION_PANELS: Record<string, React.ComponentType> = {
@@ -15,7 +15,9 @@ const ACTION_PANELS: Record<string, React.ComponentType> = {
   'com.fcannizzaro.hoyodeck.genshin.daily-reward': DailyRewardPanel,
   'com.fcannizzaro.hoyodeck.genshin.transformer': TransformerPanel,
   'com.fcannizzaro.hoyodeck.genshin.abyss': GenshinEndgamePanel,
+  'com.fcannizzaro.hoyodeck.hsr.banner': HSRBannerPanel,
   'com.fcannizzaro.hoyodeck.hsr.endgame': StarRailEndgamePanel,
+  'com.fcannizzaro.hoyodeck.zzz.banner': ZZZBannerPanel,
   'com.fcannizzaro.hoyodeck.zzz.endgame': ZZZEndgamePanel,
 };
 
@@ -26,13 +28,11 @@ const DEFAULT_GAME_FILTER: Record<string, GameId> = {
   'com.fcannizzaro.hoyodeck.genshin.expedition': 'gi',
   'com.fcannizzaro.hoyodeck.genshin.teapot': 'gi',
   'com.fcannizzaro.hoyodeck.hsr.trailblaze-power': 'hsr',
-  'com.fcannizzaro.hoyodeck.hsr.banner': 'hsr',
   'com.fcannizzaro.hoyodeck.zzz.battery-charge': 'zzz',
-  'com.fcannizzaro.hoyodeck.zzz.banner': 'zzz',
 };
 
 export default function App() {
-  const { actionInfo } = useStreamDeck();
+  const { actionInfo, globalSettings } = useStreamDeck();
 
   if (!actionInfo) {
     return (
@@ -40,25 +40,38 @@ export default function App() {
     );
   }
 
+  const accounts = (globalSettings.accounts ?? {}) as Record<string, HoyoAccountInfo>;
+  const hasAccounts = Object.keys(accounts).length > 0;
+
+  // No accounts → show ONLY AccountPanel (login button)
+  if (!hasAccounts) {
+    return (
+      <div className="flex flex-col gap-4 p-3 bg-sd-bg text-sd-text text-xs leading-relaxed font-sans min-h-screen">
+        <AccountPanel />
+      </div>
+    );
+  }
+
   const ActionPanel = ACTION_PANELS[actionInfo.action];
   const defaultGame = DEFAULT_GAME_FILTER[actionInfo.action];
+
+  // Check if the default AccountPicker would actually render (needs 2+ matching accounts)
+  const gameAccounts = defaultGame
+    ? Object.values(accounts).filter((a) => a.uids?.[defaultGame] !== undefined)
+    : [];
+  const showDefaultSection = defaultGame !== undefined && gameAccounts.length > 1;
 
   return (
     <div className="flex flex-col gap-4 p-3 bg-sd-bg text-sd-text text-xs leading-relaxed font-sans min-h-screen">
       {ActionPanel ? (
-        <>
-          <ActionPanel />
-          <div className="h-px bg-sd-border" />
-        </>
-      ) : defaultGame !== undefined ? (
-        <>
+        <ActionPanel />
+      ) : showDefaultSection ? (
+        <div className="flex flex-col gap-2">
           <Heading>Action Settings</Heading>
           <AccountPicker game={defaultGame} />
-          <div className="h-px bg-sd-border" />
-        </>
+        </div>
       ) : null}
       <PreferencesPanel />
-      <div className="h-px bg-sd-border" />
       <AccountPanel />
     </div>
   );

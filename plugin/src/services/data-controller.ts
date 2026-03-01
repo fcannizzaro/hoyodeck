@@ -64,6 +64,12 @@ class DataControllerImpl {
    */
   private readonly registrations = new Map<string, ActionRegistration>();
 
+  /**
+   * Actions waiting for account structure changes (not yet registered with DataController).
+   * Used by actions in no-accounts / ambiguous / no-uid states to auto-retry.
+   */
+  private readonly accountChangeSubscribers = new Map<string, () => void>();
+
   /** Pre-computed index of active subscriptions per account+game+dataType. */
   private readonly subscriptionIndex = new SubscriptionIndex();
 
@@ -220,6 +226,21 @@ class DataControllerImpl {
   }
 
   /**
+   * Subscribe to account structure changes (add/delete/UID change).
+   * Used by actions in non-resolved states to auto-retry when accounts change.
+   */
+  subscribeAccountChanges(actionId: string, cb: () => void): void {
+    this.accountChangeSubscribers.set(actionId, cb);
+  }
+
+  /**
+   * Unsubscribe from account structure changes.
+   */
+  unsubscribeAccountChanges(actionId: string): void {
+    this.accountChangeSubscribers.delete(actionId);
+  }
+
+  /**
    * Read cached data synchronously. Returns undefined if not yet fetched.
    */
   getData<T extends DataType>(
@@ -365,6 +386,8 @@ class DataControllerImpl {
     // Save snapshot for next diff
     this.previousAccounts = structuredClone(newAccounts);
 
+    let structureChanged = false;
+
     // Check for deleted accounts
     for (const accountId of Object.keys(oldAccounts)) {
       if (!(accountId in newAccounts)) {
@@ -374,13 +397,20 @@ class DataControllerImpl {
         );
         this.invalidateAccount(accountId as AccountId);
         this.notifyAccountRemoved(accountId as AccountId);
+        structureChanged = true;
       }
     }
 
-    // Check for auth changes on existing accounts
+    // Check for added accounts and auth/UID changes on existing accounts
     for (const [accountId, newAccount] of Object.entries(newAccounts)) {
       const oldAccount = oldAccounts[accountId as AccountId];
-      if (!oldAccount) continue; // New account — no cached data to invalidate
+
+      if (!oldAccount) {
+        // New account added
+        debug.log('[DataController] globalSettingsChanged | account added:', accountId);
+        structureChanged = true;
+        continue;
+      }
 
       if (!this.authEqual(oldAccount.auth, newAccount.auth)) {
         debug.log('[DataController] globalSettingsChanged | auth changed:', accountId);
@@ -389,6 +419,15 @@ class DataControllerImpl {
         );
         this.invalidateAccount(accountId as AccountId);
       }
+
+      if (!this.uidsEqual(oldAccount.uids, newAccount.uids)) {
+        debug.log('[DataController] globalSettingsChanged | UIDs changed:', accountId);
+        structureChanged = true;
+      }
+    }
+
+    if (structureChanged) {
+      this.notifyAccountStructureChanged();
     }
 
     // Detect rendering preference changes that require re-render
@@ -433,6 +472,37 @@ class DataControllerImpl {
       a.account_mid_v2 === b.account_mid_v2 &&
       a.account_id_v2 === b.account_id_v2
     );
+  }
+
+  /**
+   * Shallow comparison of UID maps.
+   */
+  private uidsEqual(
+    a: Partial<Record<string, string>>,
+    b: Partial<Record<string, string>>,
+  ): boolean {
+    const aKeys = Object.keys(a);
+    const bKeys = Object.keys(b);
+    if (aKeys.length !== bKeys.length) return false;
+    return aKeys.every((k) => a[k] === b[k]);
+  }
+
+  /**
+   * Notify all account-change subscribers and all registered actions
+   * with an `onStructureChanged` callback.
+   */
+  private notifyAccountStructureChanged(): void {
+    for (const [, cb] of this.accountChangeSubscribers) {
+      try { cb(); } catch (err) {
+        streamDeck.logger.error('[DataController] accountChangeSubscriber error:', err);
+      }
+    }
+    for (const [, reg] of this.registrations) {
+      if (!reg.onStructureChanged) continue;
+      try { reg.onStructureChanged(); } catch (err) {
+        streamDeck.logger.error('[DataController] onStructureChanged error:', err);
+      }
+    }
   }
 
   /**

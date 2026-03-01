@@ -11,7 +11,7 @@ import type { HoyoAccount } from '@hoyodeck/shared/types';
  * Lists all accounts with status, and allows adding/editing/deleting accounts.
  */
 export function AccountPanel() {
-  const { globalSettings, saveGlobalSettings, saveSettings } = useStreamDeck();
+  const { globalSettings, saveGlobalSettings, saveSettings, settings } = useStreamDeck();
   const accounts = (globalSettings.accounts ?? {}) as Record<
     string,
     HoyoAccount
@@ -22,14 +22,20 @@ export function AccountPanel() {
   const handleDelete = (id: string) => {
     const { [id]: _, ...remaining } = accounts;
     saveGlobalSettings({ accounts: remaining });
+    if ((settings.accountId as string) === id) {
+      saveSettings({ accountId: undefined });
+    }
   };
 
   const handleSave = (account: HoyoAccount) => {
+    const isFirstAccount = Object.keys(accounts).length === 0;
     saveGlobalSettings({
       accounts: { ...accounts, [account.id]: account },
       pendingValidation: account.id,
     });
-    saveSettings({ accountId: account.id });
+    if (isFirstAccount || !settings.accountId) {
+      saveSettings({ accountId: account.id });
+    }
     setShowAddForm(false);
     setEditingId(null);
   };
@@ -39,7 +45,7 @@ export function AccountPanel() {
   );
 
   return (
-    <>
+    <div className="flex flex-col gap-2">
       <Heading>Accounts</Heading>
 
       {sortedAccounts.length === 0 && !showAddForm && (
@@ -48,25 +54,27 @@ export function AccountPanel() {
         </p>
       )}
 
-      <div className="flex flex-col gap-2">
-        {sortedAccounts.map((account) =>
-          editingId === account.id ? (
-            <AccountForm
-              key={account.id}
-              account={account}
-              onSave={handleSave}
-              onCancel={() => setEditingId(null)}
-            />
-          ) : (
-            <AccountCard
-              key={account.id}
-              account={account}
-              onEdit={() => setEditingId(account.id)}
-              onDelete={() => handleDelete(account.id)}
-            />
-          ),
-        )}
-      </div>
+      {sortedAccounts.length > 0 && (
+        <div className="flex flex-col gap-2">
+          {sortedAccounts.map((account) =>
+            editingId === account.id ? (
+              <AccountForm
+                key={account.id}
+                account={account}
+                onSave={handleSave}
+                onCancel={() => setEditingId(null)}
+              />
+            ) : (
+              <AccountCard
+                key={account.id}
+                account={account}
+                onEdit={() => setEditingId(account.id)}
+                onDelete={() => handleDelete(account.id)}
+              />
+            ),
+          )}
+        </div>
+      )}
 
       {showAddForm ? (
         <AccountForm
@@ -76,6 +84,6 @@ export function AccountPanel() {
       ) : (
         <Button onClick={() => setShowAddForm(true)}>+ Add Account</Button>
       )}
-    </>
+    </div>
   );
 }

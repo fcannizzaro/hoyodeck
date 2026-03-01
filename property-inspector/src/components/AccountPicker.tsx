@@ -13,7 +13,8 @@ interface AccountPickerProps {
 /**
  * Account selector dropdown for action panels.
  * Filters accounts by game UID availability when game prop is set.
- * Auto-selects when exactly one account matches and none is currently selected.
+ * Auto-selects when exactly one account matches.
+ * Hides itself when there are 0 or 1 matching accounts.
  */
 export function AccountPicker({
   game,
@@ -36,12 +37,25 @@ export function AccountPicker({
     [accounts, game],
   );
 
-  // Auto-select when exactly one account matches and none is selected
+  // Stale selection cleanup + auto-select when exactly one matches
   useEffect(() => {
-    if (selectedAccountId) return;
-    if (filteredAccounts.length !== 1) return;
-    saveSettings({ accountId: filteredAccounts[0]!.id });
+    if (selectedAccountId) {
+      const stillValid = filteredAccounts.some((a) => a.id === selectedAccountId);
+      if (!stillValid) {
+        saveSettings({ accountId: undefined });
+      }
+      return;
+    }
+    // Auto-select when exactly ONE matches
+    if (filteredAccounts.length === 1) {
+      saveSettings({ accountId: filteredAccounts[0]!.id });
+    }
   }, [selectedAccountId, filteredAccounts, saveSettings]);
+
+  // Hide when 0 or 1 account matches
+  if (filteredAccounts.length <= 1) {
+    return null;
+  }
 
   const options = [
     { value: '', label: 'Select account...' },
@@ -51,17 +65,11 @@ export function AccountPicker({
     })),
   ];
 
-  const info =
-    filteredAccounts.length === 0
-      ? 'No accounts configured. Add one in the Accounts section below.'
-      : undefined;
-
   return (
     <Select
       label={label}
       value={selectedAccountId}
       options={options}
-      info={info}
       onChange={(value) => saveSettings({ accountId: value || undefined })}
     />
   );
