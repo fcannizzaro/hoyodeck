@@ -25,6 +25,7 @@ export type {
   StarRailBannerSettings,
   ZZZActionSettings,
   ZZZBannerSettings,
+  RedeemCodeSettings,
 } from "@hoyodeck/shared/types";
 
 export { HoyoAuthSchema } from "@hoyodeck/shared/types";

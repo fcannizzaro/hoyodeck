@@ -1,7 +1,8 @@
 import streamDeck from '@elgato/streamdeck';
 import type { HoyolabClient } from '@/api/hoyolab/client';
+import { getManagerClient } from '@/api/manager/client';
 import type { GameId } from '@/types/games';
-import type { DataType, DataEntry } from '../data-controller.types';
+import type { DataType, DataEntry, CodeList } from '../data-controller.types';
 
 /**
  * Abstract base for per-game data fetching.
@@ -17,14 +18,25 @@ export abstract class BaseGameController {
    * @param client - Authenticated HoyolabClient for this account
    * @param uid - The user's in-game UID for this game
    * @param requestedTypes - Only fetch these data types
+   * @param accountId - Account ID for code claim status lookups
    */
   async fetchAll(
     client: HoyolabClient,
     uid: string,
     requestedTypes: DataType[],
+    accountId?: string,
   ): Promise<Map<DataType, DataEntry<unknown>>> {
     const results = new Map<DataType, DataEntry<unknown>>();
     const fetchers = this.getFetchers(client, uid);
+
+    // Add codes fetcher if requested and manager is configured
+    const codesType = `${this.game}:codes` as DataType;
+    if (requestedTypes.includes(codesType) && !fetchers.has(codesType) && accountId) {
+      const managerClient = getManagerClient();
+      if (managerClient) {
+        fetchers.set(codesType, () => managerClient.getCodeList(this.game, accountId));
+      }
+    }
 
     const entries = [...fetchers.entries()].filter(([type]) =>
       requestedTypes.includes(type),

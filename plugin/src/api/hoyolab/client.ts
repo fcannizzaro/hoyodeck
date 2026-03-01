@@ -1,7 +1,7 @@
 import type { HoyoAuth } from './auth';
 import { buildCookieString } from './auth';
 import { generateDS } from './ds';
-import { API_URLS, COMMON_HEADERS, GENSHIN, STAR_RAIL, ZZZ } from './constants';
+import { API_URLS, COMMON_HEADERS, GENSHIN, STAR_RAIL, ZZZ, REDEEM_URLS, GAME_BIZ } from './constants';
 import { type ApiResponse, HoyolabApiError, isSuccess } from '../types/common';
 import type {
   GenshinDailyNote,
@@ -317,5 +317,55 @@ export class HoyolabClient {
         query: { uid: ltuid },
       }
     );
+  }
+  // ============================================
+  // Code Redemption
+  // ============================================
+
+  /**
+   * Redeem a gift code for a specific game.
+   *
+   * @param game - Game identifier (gi, hsr, zzz)
+   * @param code - The redemption code
+   * @param uid - In-game UID
+   * @returns Void on success (HoYoLAB returns empty data on success)
+   * @throws {HoyolabApiError} On already-redeemed, expired, or invalid codes
+   */
+  async redeemCode(game: GameId, code: string, uid: string): Promise<void> {
+    const region = getRegionFromUid(uid, game);
+    const redeemUrl = REDEEM_URLS[game];
+    const gameBiz = GAME_BIZ[game];
+
+    if (!redeemUrl || !gameBiz) {
+      throw new Error(`Unsupported game for code redemption: ${game}`);
+    }
+
+    const params = new URLSearchParams({
+      uid,
+      region,
+      lang: 'en',
+      cdkey: code,
+      game_biz: gameBiz,
+    });
+
+    const url = `${redeemUrl}?${params.toString()}`;
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        ...COMMON_HEADERS,
+        Cookie: this.cookieString,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    const json = (await response.json()) as ApiResponse<unknown>;
+
+    if (!isSuccess(json)) {
+      throw new HoyolabApiError(json.retcode, json.message);
+    }
   }
 }

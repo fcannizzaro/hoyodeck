@@ -535,7 +535,7 @@ class DataControllerImpl {
     }
 
     const controller = this.gameControllers[game];
-    const results = await controller.fetchAll(client, uid, dataTypes);
+    const results = await controller.fetchAll(client, uid, dataTypes, accountId);
 
     // Store + notify
     for (const [dataType, entry] of results) {

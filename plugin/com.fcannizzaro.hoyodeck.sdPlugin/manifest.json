@@ -225,6 +225,22 @@
           "TitleAlignment": "middle"
         }
       ]
+    },
+    {
+      "UUID": "com.fcannizzaro.hoyodeck.redeem-code",
+      "Name": "Redeem Code",
+      "Icon": "imgs/actions/common/redeem-icon",
+      "Tooltip": "View and redeem new game codes",
+      "Controllers": [
+        "Keypad"
+      ],
+      "DisableCaching": true,
+      "States": [
+        {
+          "Image": "imgs/actions/common/redeem-state",
+          "TitleAlignment": "middle"
+        }
+      ]
     }
   ]
 }

@@ -4,6 +4,7 @@ import { AccountPicker } from './components/AccountPicker';
 import { Heading } from './components/Heading';
 import { BannerPanel } from './panels/BannerPanel';
 import { DailyRewardPanel } from './panels/DailyRewardPanel';
+import { RedeemCodePanel } from './panels/RedeemCodePanel';
 import { TransformerPanel } from './panels/TransformerPanel';
 import { PreferencesPanel } from './panels/PreferencesPanel';
 import type { GameId } from '@hoyodeck/shared/types';
@@ -13,6 +14,7 @@ const ACTION_PANELS: Record<string, React.ComponentType> = {
   'com.fcannizzaro.hoyodeck.genshin.banner': BannerPanel,
   'com.fcannizzaro.hoyodeck.genshin.daily-reward': DailyRewardPanel,
   'com.fcannizzaro.hoyodeck.genshin.transformer': TransformerPanel,
+  'com.fcannizzaro.hoyodeck.redeem-code': RedeemCodePanel,
 };
 
 /** Actions without a custom panel — show a default AccountPicker with game filter */

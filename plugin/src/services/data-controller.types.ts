@@ -30,6 +30,11 @@ export interface DataTypeMap {
   'zzz:daily-note': ZZZDailyNote;
   'zzz:gacha-calendar': ZZZGachaCalendar;
   'zzz:check-in': CheckInData;
+
+  // Redeem Codes
+  'gi:codes': CodeList;
+  'hsr:codes': CodeList;
+  'zzz:codes': CodeList;
 }
 
 /** Combined check-in data (info + rewards fetched together) */
@@ -102,7 +107,23 @@ export const DEFAULT_POLL_INTERVAL_MS = 5 * 60 * 1000;
 
 /** Which data types each game can produce */
 export const GAME_DATA_TYPES: Record<GameId, DataType[]> = {
-  gi: ['gi:daily-note', 'gi:spiral-abyss', 'gi:act-calendar', 'gi:check-in'],
-  hsr: ['hsr:daily-note', 'hsr:act-calendar', 'hsr:check-in'],
-  zzz: ['zzz:daily-note', 'zzz:gacha-calendar', 'zzz:check-in'],
+  gi: ['gi:daily-note', 'gi:spiral-abyss', 'gi:act-calendar', 'gi:check-in', 'gi:codes'],
+  hsr: ['hsr:daily-note', 'hsr:act-calendar', 'hsr:check-in', 'hsr:codes'],
+  zzz: ['zzz:daily-note', 'zzz:gacha-calendar', 'zzz:check-in', 'zzz:codes'],
 };
+
+// ─── Redeem Codes ─────────────────────────────────────────────────
+
+/** A single redeemable code with its status */
+export interface CodeEntry {
+  id: number;
+  code: string;
+  rewards?: string;
+  status: 'new' | 'claimed' | 'dismissed' | 'failed' | 'expired';
+}
+
+/** Code list response from the manager API */
+export interface CodeList {
+  codes: CodeEntry[];
+  unclaimed: number;
+}

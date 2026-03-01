@@ -66,3 +66,21 @@ export const ZZZ = {
     GACHA_CALENDAR: '/event/game_record_zzz/api/zzz/gacha_calendar',
   },
 } as const;
+
+/**
+ * Code redemption base URLs per game
+ */
+export const REDEEM_URLS: Record<string, string> = {
+  gi: 'https://sg-hk4e-api.hoyolab.com/common/apicdkey/api/webExchangeCdkey',
+  hsr: 'https://sg-hkrpg-api.hoyolab.com/common/apicdkey/api/webExchangeCdkey',
+  zzz: 'https://public-operation-nap.hoyoverse.com/common/apicdkey/api/webExchangeCdkey',
+} as const;
+
+/**
+ * Game biz identifiers for code redemption
+ */
+export const GAME_BIZ: Record<string, string> = {
+  gi: 'hk4e_global',
+  hsr: 'hkrpg_global',
+  zzz: 'nap_global',
+} as const;

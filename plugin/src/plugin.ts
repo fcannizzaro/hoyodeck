@@ -29,6 +29,9 @@ import {
   BannerAction as ZZZBannerAction,
 } from './actions/zzz';
 
+// Import common actions
+import { RedeemCodeAction } from './actions/common/redeem-code';
+
 // Register auth validation listener
 registerAuthValidator();
 
@@ -55,6 +58,9 @@ streamDeck.actions.registerAction(new StarRailBannerAction());
 // Register all Zenless Zone Zero actions
 streamDeck.actions.registerAction(new ZZZBatteryChargeAction());
 streamDeck.actions.registerAction(new ZZZBannerAction());
+
+// Register common actions
+streamDeck.actions.registerAction(new RedeemCodeAction());
 
 // Connect to Stream Deck
 streamDeck.connect();

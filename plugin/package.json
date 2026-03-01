@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@elgato/streamdeck": "^2.0.0",
+    "@elgato/utils": "^0.4.2",
     "@fcannizzaro/native-window": "^0.1.10",
     "@hoyodeck/shared": "workspace:*",
     "zod": "^4.3.6"

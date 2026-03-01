@@ -131,3 +131,10 @@ export type ZZZActionSettings = GameActionSettings;
 export interface ZZZBannerSettings extends ZZZActionSettings {
   type?: "character" | "w-engine";
 }
+
+/**
+ * Redeem Code action settings
+ */
+export interface RedeemCodeSettings extends GameActionSettings {
+  game?: GameId;
+}
