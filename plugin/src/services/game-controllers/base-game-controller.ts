@@ -2,6 +2,7 @@ import streamDeck from '@elgato/streamdeck';
 import type { HoyolabClient } from '@/api/hoyolab/client';
 import type { GameId } from '@/types/games';
 import type { DataType, DataEntry } from '../data-controller.types';
+import { debug } from '@/utils/debug';
 
 /**
  * Abstract base for per-game data fetching.
@@ -29,6 +30,7 @@ export abstract class BaseGameController {
     const entries = [...fetchers.entries()].filter(([type]) =>
       requestedTypes.includes(type),
     );
+    debug.log('[GameController]', this.game, '| fetchAll | requested:', requestedTypes, '| fetching:', entries.map(([t]) => t));
 
     const settled = await Promise.allSettled(
       entries.map(async ([type, fetcher]) => {
@@ -47,6 +49,7 @@ export abstract class BaseGameController {
           data: result.value.data,
           fetchedAt: Date.now(),
         });
+        debug.log('[GameController]', this.game, '| OK:', result.value.type);
       } else {
         streamDeck.logger.warn(
           `[${this.game}] Failed to fetch ${type}:`,
@@ -60,9 +63,11 @@ export abstract class BaseGameController {
               : new Error(String(result.reason)),
           fetchedAt: Date.now(),
         });
+        debug.log('[GameController]', this.game, '| FAIL:', type);
       }
     }
 
+    debug.log('[GameController]', this.game, '| fetchAll complete |', results.size, 'results');
     return results;
   }
 

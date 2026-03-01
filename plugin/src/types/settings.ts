@@ -18,12 +18,18 @@ export type {
   GlobalSettings,
   GameActionSettings,
   GenshinActionSettings,
+  GenshinEndgameMode,
+  GenshinEndgameSettings,
   BannerSettings,
   DailyRewardSettings,
   TransformerSettings,
   StarRailActionSettings,
+  StarRailEndgameMode,
+  StarRailEndgameSettings,
   StarRailBannerSettings,
   ZZZActionSettings,
+  ZZZEndgameMode,
+  ZZZEndgameSettings,
   ZZZBannerSettings,
 } from "@hoyodeck/shared/types";
 

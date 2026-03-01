@@ -5,6 +5,7 @@ import { Heading } from './components/Heading';
 import { BannerPanel } from './panels/BannerPanel';
 import { DailyRewardPanel } from './panels/DailyRewardPanel';
 import { TransformerPanel } from './panels/TransformerPanel';
+import { GenshinEndgamePanel, StarRailEndgamePanel, ZZZEndgamePanel } from './panels/EndgamePanel';
 import { PreferencesPanel } from './panels/PreferencesPanel';
 import type { GameId } from '@hoyodeck/shared/types';
 
@@ -13,15 +14,17 @@ const ACTION_PANELS: Record<string, React.ComponentType> = {
   'com.fcannizzaro.hoyodeck.genshin.banner': BannerPanel,
   'com.fcannizzaro.hoyodeck.genshin.daily-reward': DailyRewardPanel,
   'com.fcannizzaro.hoyodeck.genshin.transformer': TransformerPanel,
+  'com.fcannizzaro.hoyodeck.genshin.abyss': GenshinEndgamePanel,
+  'com.fcannizzaro.hoyodeck.hsr.endgame': StarRailEndgamePanel,
+  'com.fcannizzaro.hoyodeck.zzz.endgame': ZZZEndgamePanel,
 };
 
 /** Actions without a custom panel — show a default AccountPicker with game filter */
 const DEFAULT_GAME_FILTER: Record<string, GameId> = {
-  'com.fcannizzaro.hoyodeck.gi.resin': 'gi',
-  'com.fcannizzaro.hoyodeck.gi.commission': 'gi',
-  'com.fcannizzaro.hoyodeck.gi.expedition': 'gi',
-  'com.fcannizzaro.hoyodeck.gi.teapot': 'gi',
-  'com.fcannizzaro.hoyodeck.gi.abyss': 'gi',
+  'com.fcannizzaro.hoyodeck.genshin.resin': 'gi',
+  'com.fcannizzaro.hoyodeck.genshin.commission': 'gi',
+  'com.fcannizzaro.hoyodeck.genshin.expedition': 'gi',
+  'com.fcannizzaro.hoyodeck.genshin.teapot': 'gi',
   'com.fcannizzaro.hoyodeck.hsr.trailblaze-power': 'hsr',
   'com.fcannizzaro.hoyodeck.hsr.banner': 'hsr',
   'com.fcannizzaro.hoyodeck.zzz.battery-charge': 'zzz',

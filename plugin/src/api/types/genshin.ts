@@ -138,6 +138,62 @@ export interface GenshinAbyssLevel {
 }
 
 // ============================================
+// Stygian Onslaught (Hard Challenge) types
+// ============================================
+
+/**
+ * Schedule info for a Stygian Onslaught season.
+ * Uses Unix timestamp strings (seconds since epoch).
+ */
+export interface GenshinHardChallengeSchedule {
+  schedule_id: string;
+  start_time: string;
+  end_time: string;
+  start_date_time: GenshinTheaterDateTime;
+  end_date_time: GenshinTheaterDateTime;
+  is_valid: boolean;
+  name: string;
+}
+
+/**
+ * Best result for a Stygian Onslaught season (single or mp).
+ * Difficulty: 1=Menacing, 2=Dire, 3=Fearless.
+ */
+export interface GenshinHardChallengeBest {
+  difficulty: number;
+  second: number;
+  icon: string;
+}
+
+/**
+ * Single-player or multiplayer challenge data
+ */
+export interface GenshinHardChallengeMode {
+  best: GenshinHardChallengeBest | null;
+  challenge: unknown[];
+  has_data: boolean;
+}
+
+/**
+ * A single Stygian Onslaught season entry.
+ */
+export interface GenshinHardChallengeEntry {
+  schedule: GenshinHardChallengeSchedule;
+  single: GenshinHardChallengeMode;
+  mp: GenshinHardChallengeMode;
+  blings: unknown[];
+}
+
+/**
+ * Stygian Onslaught (hard_challenge) response — wraps a list of season entries.
+ */
+export interface GenshinStygianOnslaught {
+  data: GenshinHardChallengeEntry[] | null;
+  is_unlock: boolean;
+  links: { lineup_link: string; play_link: string };
+}
+
+// ============================================
 // Act Calendar (Banner) types
 // ============================================
 
@@ -187,4 +243,66 @@ export interface GenshinActCalendar {
   avatar_card_pool_list: GenshinBannerPool[];
   weapon_card_pool_list: GenshinBannerPool[];
   selected_avatar_card_pool_list: GenshinBannerPool[];
+}
+
+// ============================================
+// Imaginarium Theater (Role Combat) types
+// ============================================
+
+/**
+ * Imaginarium Theater stat summary
+ */
+export interface GenshinTheaterStat {
+  difficulty_id: number;
+  max_round_id: number;
+  heraldry: number;
+  get_medal_round_list: number[];
+  medal_num: number;
+  coin_num: number;
+  avatar_bonus_num: number;
+  rent_cnt: number;
+  tarot_finished_cnt: number;
+}
+
+/**
+ * Date-time components used in Imaginarium Theater schedule
+ */
+export interface GenshinTheaterDateTime {
+  year: number;
+  month: number;
+  day: number;
+  hour: number;
+  minute: number;
+  second: number;
+}
+
+/**
+ * Schedule info for an Imaginarium Theater season
+ */
+export interface GenshinTheaterScheduleInfo {
+  start_time: string;
+  end_time: string;
+  schedule_type: number;
+  schedule_id: number;
+  start_date_time: GenshinTheaterDateTime;
+  end_date_time: GenshinTheaterDateTime;
+}
+
+/**
+ * A single Imaginarium Theater season entry
+ */
+export interface GenshinTheaterEntry {
+  detail: unknown | null;
+  stat: GenshinTheaterStat;
+  schedule: GenshinTheaterScheduleInfo;
+  has_data: boolean;
+  has_detail_data: boolean;
+}
+
+/**
+ * Imaginarium Theater response — contains a list of seasons
+ */
+export interface GenshinImaginariumTheater {
+  data: GenshinTheaterEntry[] | null;
+  is_unlock: boolean;
 }

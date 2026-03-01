@@ -7,6 +7,7 @@ import { dataController } from '@/services/data-controller';
 import { HoyolabApiError } from '@/api/types/common';
 import { fetchImageAsDataUri, readLocalImageAsDataUri } from '@/utils/image';
 import { buildRewardSvg } from '@/utils/reward';
+import { svgToBase64 } from '@/utils/svg';
 
 /**
  * Daily Reward (Check-in) Action
@@ -35,7 +36,8 @@ export class DailyRewardAction extends BaseAction<DailyRewardSettings, 'gi:check
     update: SuccessDataUpdate<'gi:check-in' | 'hsr:check-in' | 'zzz:check-in'>,
   ): Promise<void> {
     const checkInData = update.entry.data;
-    const settings = await action.getSettings();
+    const settings = this.getCachedSettings(action.id);
+    if (!settings) return;
     const game = settings.game ?? 'gi';
 
     const { info, rewards } = checkInData;
@@ -56,7 +58,7 @@ export class DailyRewardAction extends BaseAction<DailyRewardSettings, 'gi:check
 
     // Build 3-layer SVG: base frame + reward icon + optional done overlay
     const svg = buildRewardSvg(baseDataUri, rewardDataUri, doneDataUri, info.is_sign, game === 'zzz' && info.is_sign, `x${todayReward.cnt}`);
-    const base64 = `data:image/svg+xml;base64,${btoa(svg)}`;
+    const base64 = svgToBase64(svg);
 
     await action.setTitle('');
     await action.setImage(base64);

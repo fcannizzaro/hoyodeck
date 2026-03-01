@@ -4,7 +4,7 @@ import { BaseGameController } from './base-game-controller';
 
 /**
  * Zenless Zone Zero data fetcher.
- * Handles: daily note, gacha calendar, check-in.
+ * Handles: daily note, shiyu defense, deadly assault, gacha calendar, check-in.
  */
 export class ZZZController extends BaseGameController {
   readonly game = 'zzz' as const;
@@ -15,6 +15,8 @@ export class ZZZController extends BaseGameController {
   ): Map<DataType, () => Promise<unknown>> {
     return new Map<DataType, () => Promise<unknown>>([
       ['zzz:daily-note', () => client.getZZZDailyNote(uid)],
+      ['zzz:shiyu-defense', () => client.getZZZShiyuDefense(uid)],
+      ['zzz:deadly-assault', () => client.getZZZDeadlyAssault(uid)],
       ['zzz:gacha-calendar', () => client.getZZZGachaCalendar(uid)],
       [
         'zzz:check-in',

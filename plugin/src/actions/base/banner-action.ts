@@ -6,6 +6,8 @@ import type { DataType, SuccessDataUpdate } from "@/services/data-controller.typ
 import { dataController } from "@/services/data-controller";
 import { buildBannerSvg, formatCountdownFromSeconds } from "@/utils/banner";
 import { fetchImageAsDataUri, localImageExists, readLocalImageAsDataUri } from "@/utils/image";
+import { debug } from '@/utils/debug';
+import { svgToBase64 } from '@/utils/svg';
 
 // ─── Shared Types ─────────────────────────────────────────────────
 
@@ -25,6 +27,7 @@ export interface BannerItem {
  */
 interface BannerSettingsBase extends GameActionSettings {
   type?: string;
+  bannerIndex?: number;
 }
 
 /**
@@ -76,10 +79,10 @@ export abstract class BaseBannerAction<
   private readonly keyStates = new Map<string, BannerKeyState>();
 
   /** Get or create per-key state */
-  private getKeyState(actionId: string): BannerKeyState {
+  private getKeyState(actionId: string, initialBannerIndex?: number): BannerKeyState {
     let state = this.keyStates.get(actionId);
     if (!state) {
-      state = { bannerIndex: 0, currentAccountId: null, blinkTimeout: null, blinkGeneration: 0 };
+      state = { bannerIndex: initialBannerIndex ?? 0, currentAccountId: null, blinkTimeout: null, blinkGeneration: 0 };
       this.keyStates.set(actionId, state);
     }
     return state;
@@ -107,6 +110,7 @@ export abstract class BaseBannerAction<
    * and clears the tracked timeout if one exists.
    */
   private clearBlinkAnimation(state: BannerKeyState): void {
+    debug.log('[BannerAction] clearBlink | gen:', state.blinkGeneration, '->', state.blinkGeneration + 1);
     state.blinkGeneration++;
     if (state.blinkTimeout !== null) {
       clearTimeout(state.blinkTimeout);
@@ -135,7 +139,11 @@ export abstract class BaseBannerAction<
     openBase64: string,
     closedBase64: string,
   ): void {
-    if (dataController.isAnimationDisabled()) return;
+    if (dataController.isAnimationDisabled()) {
+      debug.log('[BannerAction] startBlink', action.id, '| skipped — animations disabled');
+      return;
+    }
+    debug.log('[BannerAction] startBlink', action.id, '| gen:', state.blinkGeneration);
 
     const generation = state.blinkGeneration;
 
@@ -167,13 +175,17 @@ export abstract class BaseBannerAction<
     ev: KeyDownEvent<TSettings>,
   ): Promise<void> {
     const settings = ev.payload.settings;
-    const state = this.getKeyState(ev.action.id);
+    const state = this.getKeyState(ev.action.id, settings.bannerIndex);
 
     // Clear any running blink animation before cycling
     this.clearBlinkAnimation(state);
 
     // Cycle through character banners on key press
     state.bannerIndex++;
+    debug.log('[BannerAction] onKeyDown', ev.action.id, '| bannerIndex:', state.bannerIndex);
+
+    // Persist the new index to action settings
+    await ev.action.setSettings({ ...settings, bannerIndex: state.bannerIndex } as TSettings);
 
     // Re-render from cached data — no network call needed for banner cycling
     if (state.currentAccountId) {
@@ -181,6 +193,7 @@ export abstract class BaseBannerAction<
       const dataType = dataTypes[0] as TDataType;
       const entry = dataController.getData(state.currentAccountId, dataType);
       if (entry?.status === 'ok') {
+        debug.log('[BannerAction] onKeyDown', ev.action.id, '| re-rendering from cache');
         await this.withErrorHandling(ev.action, async () => {
           await this.renderCalendar(ev.action, settings, entry.data as TCalendar);
         });
@@ -188,6 +201,7 @@ export abstract class BaseBannerAction<
       }
     }
 
+    debug.log('[BannerAction] onKeyDown', ev.action.id, '| no cache, requesting fresh data');
     // Fallback: request fresh data
     const account = await this.resolveAccount(settings);
     if (!account) return;
@@ -198,6 +212,7 @@ export abstract class BaseBannerAction<
   }
 
   protected override onBeforeDataUpdate(action: KeyAction<TSettings>): void {
+    debug.log('[BannerAction] onBeforeDataUpdate', action.id);
     const state = this.getKeyState(action.id);
     this.clearBlinkAnimation(state);
   }
@@ -206,10 +221,12 @@ export abstract class BaseBannerAction<
     action: KeyAction<TSettings>,
     update: SuccessDataUpdate<TDataType>,
   ): Promise<void> {
-    const state = this.getKeyState(action.id);
+    const settings = this.getCachedSettings(action.id);
+    const state = this.getKeyState(action.id, settings?.bannerIndex);
+    debug.log('[BannerAction] onDataUpdate', action.id, '| dataType:', update.dataType);
 
     state.currentAccountId = update.accountId;
-    const settings = await action.getSettings();
+    if (!settings) return;
     await this.renderCalendar(action, settings, update.entry.data as TCalendar);
   }
 
@@ -220,6 +237,7 @@ export abstract class BaseBannerAction<
     ev: WillDisappearEvent<TSettings>,
   ): void {
     super.onWillDisappear(ev);
+    debug.log('[BannerAction] onWillDisappear', ev.action.id);
     const state = this.keyStates.get(ev.action.id);
     if (state) {
       this.clearBlinkAnimation(state);
@@ -262,6 +280,7 @@ export abstract class BaseBannerAction<
     badge: BannerBadgeOptions,
     isCharacter: boolean,
   ): Promise<void> {
+    debug.log('[BannerAction] displayBanner', action.id, '| items:', items.length, '| isCharacter:', isCharacter);
     if (items.length === 0) {
       await action.setTitle("No\nBanner");
       return;
@@ -270,12 +289,13 @@ export abstract class BaseBannerAction<
     const state = this.getKeyState(action.id);
     const index = state.bannerIndex % items.length;
     const item = items[index];
+    debug.log('[BannerAction] displayBanner', action.id, '| index:', index, '| item:', item?.name ?? 'weapon');
     if (!item) return;
 
     const countdown = formatCountdownFromSeconds(item.countdownSeconds);
     const dataUri = await fetchImageAsDataUri(item.icon);
     const openSvg = buildBannerSvg(dataUri, countdown, this.game, badge);
-    const openBase64 = `data:image/svg+xml;base64,${btoa(openSvg)}`;
+    const openBase64 = svgToBase64(openSvg);
     await action.setTitle("");
     await action.setImage(openBase64);
 
@@ -285,8 +305,10 @@ export abstract class BaseBannerAction<
       if (localImageExists(closedPath)) {
         const closedDataUri = readLocalImageAsDataUri(closedPath);
         const closedSvg = buildBannerSvg(closedDataUri, countdown, this.game, badge);
-        const closedBase64 = `data:image/svg+xml;base64,${btoa(closedSvg)}`;
+        const closedBase64 = svgToBase64(closedSvg);
         this.startBlinkAnimation(state, action, openBase64, closedBase64);
+      } else {
+        debug.log('[BannerAction] displayBanner', action.id, '| no blink image for:', item.name);
       }
     }
   }

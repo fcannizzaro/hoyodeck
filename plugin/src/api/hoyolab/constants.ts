@@ -38,6 +38,8 @@ export const GENSHIN = {
   ENDPOINTS: {
     DAILY_NOTE: '/game_record/genshin/api/dailyNote',
     SPIRAL_ABYSS: '/game_record/genshin/api/spiralAbyss',
+    ROLE_COMBAT: '/game_record/genshin/api/role_combat',
+    HARD_CHALLENGE: '/game_record/genshin/api/hard_challenge',
     INDEX: '/game_record/genshin/api/index',
     CHARACTERS: '/game_record/genshin/api/character',
     ACT_CALENDAR: '/event/game_record/genshin/api/act_calendar',
@@ -51,7 +53,10 @@ export const STAR_RAIL = {
   CHECK_IN_ACT_ID: 'e202303301540311',
   ENDPOINTS: {
     DAILY_NOTE: '/game_record/hkrpg/api/note',
-    FORGOT_HALL: '/game_record/hkrpg/api/challenge',
+    CHALLENGE: '/game_record/hkrpg/api/challenge',
+    CHALLENGE_STORY: '/game_record/hkrpg/api/challenge_story',
+    CHALLENGE_BOSS: '/game_record/hkrpg/api/challenge_boss',
+    CHALLENGE_PEAK: '/game_record/hkrpg/api/challenge_peak',
     ACT_CALENDAR: '/game_record/hkrpg/api/get_act_calender',
   },
 } as const;
@@ -63,6 +68,8 @@ export const ZZZ = {
   CHECK_IN_ACT_ID: 'e202406031448091',
   ENDPOINTS: {
     DAILY_NOTE: '/event/game_record_zzz/api/zzz/note',
+    SHIYU_DEFENSE: '/event/game_record_zzz/api/zzz/hadal_info_v2',
+    DEADLY_ASSAULT: '/event/game_record_zzz/api/zzz/mem_detail',
     GACHA_CALENDAR: '/event/game_record_zzz/api/zzz/gacha_calendar',
   },
 } as const;

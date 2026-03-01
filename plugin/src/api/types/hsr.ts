@@ -106,3 +106,175 @@ export interface StarRailActCalendar {
   now: string;
   cur_game_version: string;
 }
+
+// ============================================
+// Challenge (Endgame) types
+// ============================================
+
+/**
+ * Date component object used by HoYoLAB API responses
+ */
+export interface StarRailDateComponents {
+  year: number;
+  month: number;
+  day: number;
+  hour: number;
+  minute: number;
+}
+
+/**
+ * Boss entry in an Apocalyptic Shadow challenge group
+ */
+export interface StarRailChallengeBoss {
+  id: number;
+  name_mi18n: string;
+  icon: string;
+}
+
+/**
+ * A challenge schedule group (current/previous season metadata)
+ */
+export interface StarRailChallengeGroup {
+  schedule_id: number;
+  begin_time: StarRailDateComponents;
+  end_time: StarRailDateComponents;
+  status: string;
+  name_mi18n: string;
+  upper_boss: StarRailChallengeBoss | null;
+  lower_boss: StarRailChallengeBoss | null;
+}
+
+/**
+ * Avatar used in a challenge node
+ */
+export interface StarRailChallengeAvatar {
+  id: number;
+  level: number;
+  icon: string;
+  rarity: number;
+  element: string;
+  rank: number;
+}
+
+/**
+ * Buff applied to a challenge node (Pure Fiction / Apocalyptic Shadow)
+ */
+export interface StarRailChallengeBuff {
+  id: number;
+  name_mi18n: string;
+  desc_mi18n: string;
+  icon: string;
+  simple_desc_mi18m?: string;
+}
+
+/**
+ * A single node within a challenge floor (upper or lower half)
+ */
+export interface StarRailChallengeNode {
+  challenge_time: StarRailDateComponents | null;
+  avatars: StarRailChallengeAvatar[];
+  buff?: StarRailChallengeBuff | null;
+  score?: string;
+  boss_defeated?: boolean;
+}
+
+/**
+ * A floor detail entry in a challenge
+ */
+export interface StarRailFloorDetail {
+  name: string;
+  round_num?: number;
+  star_num: number | string;
+  node_1: StarRailChallengeNode;
+  node_2: StarRailChallengeNode;
+  maze_id: number;
+  is_fast: boolean;
+  is_chaos?: boolean;
+  last_update_time?: StarRailDateComponents;
+}
+
+/**
+ * Star Rail Challenge response
+ * Shared by Memory of Chaos, Pure Fiction, and Apocalyptic Shadow.
+ * Some root-level fields are only present for MoC.
+ */
+export interface StarRailChallenge {
+  schedule_id?: number;
+  begin_time?: StarRailDateComponents;
+  end_time?: StarRailDateComponents;
+  star_num: number;
+  max_floor: string;
+  battle_num: number;
+  has_data?: boolean;
+  max_floor_detail?: unknown | null;
+  max_floor_id: number;
+  all_floor_detail: StarRailFloorDetail[];
+  groups: StarRailChallengeGroup[];
+}
+
+// ============================================
+// Anomaly Arbitration (Challenge Peak) types
+// ============================================
+
+/**
+ * Group metadata for an Anomaly Arbitration season
+ */
+export interface StarRailChallengePeakGroup {
+  group_id: number;
+  begin_time: StarRailDateComponents;
+  end_time: StarRailDateComponents;
+  status: string;
+  name_mi18n: string;
+  game_version: string;
+  theme_pic_path: string;
+}
+
+/**
+ * Mob (Knight) record in an Anomaly Arbitration season
+ */
+export interface StarRailChallengePeakMobRecord {
+  maze_id: number;
+  has_challenge_record: boolean;
+  challenge_time: StarRailDateComponents | null;
+  avatars: StarRailChallengeAvatar[];
+  round_num: number;
+  star_num: number;
+  is_fast: boolean;
+}
+
+/**
+ * A single Anomaly Arbitration season record
+ */
+export interface StarRailChallengePeakRecord {
+  group: StarRailChallengePeakGroup;
+  boss_info: unknown;
+  mob_infos: unknown[];
+  has_challenge_record: boolean;
+  battle_num: number;
+  boss_record: unknown | null;
+  mob_records: StarRailChallengePeakMobRecord[];
+  boss_stars: number;
+  mob_stars: number;
+}
+
+/**
+ * Best record brief for Anomaly Arbitration
+ */
+export interface StarRailChallengePeakBrief {
+  total_battle_num: number;
+  mob_stars: number;
+  boss_stars: number;
+  challenge_peak_rank_icon_type: string;
+  challenge_peak_rank_icon: string;
+}
+
+/**
+ * Anomaly Arbitration (challenge_peak) response.
+ * Different structure from StarRailChallenge — uses mob_stars + boss_stars.
+ */
+export interface StarRailChallengePeak {
+  challenge_peak_records: StarRailChallengePeakRecord[];
+  has_more_boss_record: boolean;
+  challenge_peak_best_record_brief: StarRailChallengePeakBrief;
+  role: unknown;
+}

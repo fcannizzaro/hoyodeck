@@ -57,3 +57,26 @@ export function formatTransformerTime(recovery: {
 export function parseRecoveryTime(time: string): number {
   return parseInt(time, 10) || 0;
 }
+
+/**
+ * Date component object used by HoYoLAB API responses
+ * (e.g. HSR challenges, GI Imaginarium Theater schedules)
+ */
+export interface DateComponents {
+  year: number;
+  month: number;
+  day: number;
+  hour: number;
+  minute: number;
+  second?: number;
+}
+
+/**
+ * Convert HoYoLAB date components to a Date object.
+ * Assumes server time is UTC+8 (Asia/Shanghai).
+ */
+export function dateComponentsToDate(dc: DateComponents): Date {
+  return new Date(
+    Date.UTC(dc.year, dc.month - 1, dc.day, dc.hour - 8, dc.minute, dc.second ?? 0),
+  );
+}

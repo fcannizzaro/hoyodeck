@@ -3,9 +3,11 @@ import type {
   GenshinDailyNote,
   GenshinSpiralAbyss,
   GenshinActCalendar,
+  GenshinImaginariumTheater,
+  GenshinStygianOnslaught,
 } from '@/api/types/genshin';
-import type { StarRailDailyNote, StarRailActCalendar } from '@/api/types/hsr';
-import type { ZZZDailyNote, ZZZGachaCalendar } from '@/api/types/zzz';
+import type { StarRailDailyNote, StarRailActCalendar, StarRailChallenge, StarRailChallengePeak } from '@/api/types/hsr';
+import type { ZZZDailyNote, ZZZGachaCalendar, ZZZShiyuDefense, ZZZDeadlyAssault } from '@/api/types/zzz';
 import type { CheckInInfo, CheckInRewards } from '@/api/types/check-in';
 
 // ─── Data Type Registry ───────────────────────────────────────────
@@ -18,16 +20,24 @@ export interface DataTypeMap {
   // Genshin Impact
   'gi:daily-note': GenshinDailyNote;
   'gi:spiral-abyss': GenshinSpiralAbyss;
+  'gi:imaginarium-theater': GenshinImaginariumTheater;
+  'gi:stygian-onslaught': GenshinStygianOnslaught;
   'gi:act-calendar': GenshinActCalendar;
   'gi:check-in': CheckInData;
 
   // Honkai: Star Rail
   'hsr:daily-note': StarRailDailyNote;
+  'hsr:memory-of-chaos': StarRailChallenge;
+  'hsr:pure-fiction': StarRailChallenge;
+  'hsr:apocalyptic-shadow': StarRailChallenge;
+  'hsr:anomaly-arbitration': StarRailChallengePeak;
   'hsr:act-calendar': StarRailActCalendar;
   'hsr:check-in': CheckInData;
 
   // Zenless Zone Zero
   'zzz:daily-note': ZZZDailyNote;
+  'zzz:shiyu-defense': ZZZShiyuDefense;
+  'zzz:deadly-assault': ZZZDeadlyAssault;
   'zzz:gacha-calendar': ZZZGachaCalendar;
   'zzz:check-in': CheckInData;
 }
@@ -102,7 +112,7 @@ export const DEFAULT_POLL_INTERVAL_MS = 5 * 60 * 1000;
 
 /** Which data types each game can produce */
 export const GAME_DATA_TYPES: Record<GameId, DataType[]> = {
-  gi: ['gi:daily-note', 'gi:spiral-abyss', 'gi:act-calendar', 'gi:check-in'],
-  hsr: ['hsr:daily-note', 'hsr:act-calendar', 'hsr:check-in'],
-  zzz: ['zzz:daily-note', 'zzz:gacha-calendar', 'zzz:check-in'],
+  gi: ['gi:daily-note', 'gi:spiral-abyss', 'gi:imaginarium-theater', 'gi:stygian-onslaught', 'gi:act-calendar', 'gi:check-in'],
+  hsr: ['hsr:daily-note', 'hsr:memory-of-chaos', 'hsr:pure-fiction', 'hsr:apocalyptic-shadow', 'hsr:anomaly-arbitration', 'hsr:act-calendar', 'hsr:check-in'],
+  zzz: ['zzz:daily-note', 'zzz:shiyu-defense', 'zzz:deadly-assault', 'zzz:gacha-calendar', 'zzz:check-in'],
 };
