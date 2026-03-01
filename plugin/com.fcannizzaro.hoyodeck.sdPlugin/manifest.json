@@ -56,7 +56,7 @@
       "DisableCaching": true,
       "States": [
         {
-          "Image": "imgs/actions/gi/commissions-state",
+          "Image": "imgs/actions/gi/commissions-bg",
           "TitleAlignment": "middle"
         }
       ]
@@ -117,7 +117,7 @@
     {
       "UUID": "com.fcannizzaro.hoyodeck.genshin.abyss",
       "Name": "[GI] Endgame",
-      "Icon": "imgs/actions/gi/resin-icon",
+      "Icon": "imgs/actions/common/endgame-icon",
       "Tooltip": "Display Spiral Abyss, Imaginarium Theater, or Stygian Onslaught progress",
       "Controllers": [
         "Keypad"
@@ -125,7 +125,7 @@
       "DisableCaching": true,
       "States": [
         {
-          "Image": "imgs/actions/gi/resin-state",
+          "Image": "imgs/actions/gi/5-star",
           "TitleAlignment": "middle"
         }
       ]
@@ -141,7 +141,7 @@
       "DisableCaching": true,
       "States": [
         {
-          "Image": "imgs/actions/gi/banner-state",
+          "Image": "imgs/actions/gi/5-star",
           "TitleAlignment": "middle"
         }
       ]
@@ -165,7 +165,7 @@
     {
       "UUID": "com.fcannizzaro.hoyodeck.hsr.banner",
       "Name": "[HSR] Banner",
-      "Icon": "imgs/actions/hsr/banner-Icon",
+      "Icon": "imgs/actions/hsr/banner-icon",
       "Tooltip": "Display current warp banner countdown",
       "Controllers": [
         "Keypad"
@@ -173,7 +173,7 @@
       "DisableCaching": true,
       "States": [
         {
-          "Image": "imgs/actions/hsr/banner-state",
+          "Image": "imgs/actions/hsr/5-star",
           "TitleAlignment": "middle"
         }
       ]
@@ -181,7 +181,7 @@
     {
       "UUID": "com.fcannizzaro.hoyodeck.hsr.endgame",
       "Name": "[HSR] Endgame",
-      "Icon": "imgs/actions/hsr/trailblaze-power-icon",
+      "Icon": "imgs/actions/common/endgame-icon",
       "Tooltip": "Display Memory of Chaos, Pure Fiction, or Apocalyptic Shadow progress",
       "Controllers": [
         "Keypad"
@@ -189,7 +189,7 @@
       "DisableCaching": true,
       "States": [
         {
-          "Image": "imgs/actions/hsr/trailblaze-power-state",
+          "Image": "imgs/actions/hsr/5-star",
           "TitleAlignment": "middle"
         }
       ]
@@ -213,7 +213,7 @@
     {
       "UUID": "com.fcannizzaro.hoyodeck.zzz.banner",
       "Name": "[ZZZ] Banner",
-      "Icon": "imgs/actions/zzz/banner-Icon",
+      "Icon": "imgs/actions/zzz/banner-icon",
       "Tooltip": "Display current Signal Search banner countdown",
       "Controllers": [
         "Keypad"
@@ -221,7 +221,7 @@
       "DisableCaching": true,
       "States": [
         {
-          "Image": "imgs/actions/zzz/banner-state",
+          "Image": "imgs/actions/zzz/5-star",
           "TitleAlignment": "middle"
         }
       ]
@@ -229,7 +229,7 @@
     {
       "UUID": "com.fcannizzaro.hoyodeck.zzz.endgame",
       "Name": "[ZZZ] Endgame",
-      "Icon": "imgs/actions/zzz/battery-recharge-icon",
+      "Icon": "imgs/actions/common/endgame-icon",
       "Tooltip": "Display Shiyu Defense or Deadly Assault progress",
       "Controllers": [
         "Keypad"
@@ -237,7 +237,7 @@
       "DisableCaching": true,
       "States": [
         {
-          "Image": "imgs/actions/zzz/battery-recharge-state",
+          "Image": "imgs/actions/zzz/5-star",
           "TitleAlignment": "middle"
         }
       ]

@@ -68,16 +68,27 @@ export class DailyRewardAction extends BaseAction<DailyRewardSettings, 'gi:check
     ev: KeyDownEvent<DailyRewardSettings>,
   ): Promise<void> {
     await this.withErrorHandling(ev.action, async () => {
-      const ctx = await this.getAccountContext(ev.payload.settings, ev.action);
-      if (!ctx) {
-        await this.showNoAccount(ev.action);
+      const game = ev.payload.settings.game ?? 'gi';
+      const result = await this.pickAccount(ev.payload.settings, game, ev.action);
+
+      if (result.kind !== 'resolved') {
+        if (result.kind === 'no-uid') {
+          await this.showNoUid(ev.action);
+        } else {
+          await this.showNoAccount(ev.action);
+        }
         return;
       }
 
-      const game = ev.payload.settings.game ?? 'gi';
+      const { account } = result;
+      const client = dataController.getClient(account);
+      if (!client) {
+        await this.showNoAuth(ev.action);
+        return;
+      }
 
       // Check cached check-in info to see if already claimed
-      const cached = dataController.getData(ctx.account.id, `${game}:check-in`);
+      const cached = dataController.getData(account.id, `${game}:check-in`);
       if (cached?.status === 'ok') {
         if (cached.data.info.is_sign) {
           await ev.action.showOk();
@@ -89,7 +100,7 @@ export class DailyRewardAction extends BaseAction<DailyRewardSettings, 'gi:check
       const claimOnClick = ev.payload.settings.claimOnClick ?? true;
       if (claimOnClick) {
         try {
-          await ctx.client.claimCheckIn(game);
+          await client.claimCheckIn(game);
           await ev.action.showOk();
         } catch (error) {
           if (error instanceof HoyolabApiError && error.retcode === -5003) {
@@ -102,7 +113,7 @@ export class DailyRewardAction extends BaseAction<DailyRewardSettings, 'gi:check
       }
 
       // Refresh display after claiming
-      await dataController.requestUpdate(ctx.account.id, game);
+      await dataController.requestUpdate(account.id, game);
     });
   }
 }

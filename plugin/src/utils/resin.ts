@@ -2,7 +2,7 @@
  * Resin fill-gauge SVG builder for Stream Deck keys.
  *
  * Layers (back to front):
- *   1. Base background (3-star.webp)
+ *   1. Base background (3-star.png)
  *   2. Full-brightness resin icon (floating)
  *   3. Dark overlay rect covering the unfilled top portion
  *   4. Bottom pill badge with current resin count
@@ -40,7 +40,7 @@ export const RESIN_FLOATS: ReadonlyArray<{ x: number; y: number; r: number }> =
 
 /**
  * Build a fill-gauge SVG for the resin action display.
- * @param baseDataUri  Data URI of the background image (3-star.webp)
+ * @param baseDataUri  Data URI of the background image (3-star.png)
  * @param resinDataUri Data URI of the resin icon (resin.webp)
  * @param frameIndex   Current animation frame index
  * @param current      Current resin count

@@ -6,7 +6,7 @@ import { readLocalImageAsDataUri } from "./image";
 import type { BannerBadgeOptions } from "@/types/settings";
 
 const BACKGROUNDS = {
-  gi: readLocalImageAsDataUri("imgs/actions/gi/5-star.webp"),
+  gi: readLocalImageAsDataUri("imgs/actions/gi/5-star.png"),
   hsr: readLocalImageAsDataUri("imgs/actions/hsr/5-star.png"),
   zzz: readLocalImageAsDataUri("imgs/actions/zzz/5-star.png"),
 };

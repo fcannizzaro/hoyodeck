@@ -8,7 +8,6 @@ import streamDeck, {
   type SendToPluginEvent,
 } from '@elgato/streamdeck';
 import type { JsonObject, JsonValue } from '@elgato/utils';
-import { HoyolabClient } from '@/api/hoyolab/client';
 import { isAuthError, isRateLimitError } from '@/api/types/common';
 import { readLocalImageAsDataUri } from '@/utils/image';
 import type {
@@ -23,7 +22,7 @@ import { debug } from '@/utils/debug';
 
 /** 5-star background image paths per game, used for the "Select Account" state */
 const GAME_BACKGROUNDS: Record<GameId, string> = {
-  gi: 'imgs/actions/gi/5-star.webp',
+  gi: 'imgs/actions/gi/5-star.png',
   hsr: 'imgs/actions/hsr/5-star.png',
   zzz: 'imgs/actions/zzz/5-star.png',
 };
@@ -43,14 +42,6 @@ export type AccountPickResult =
   | { kind: 'no-accounts' }
   | { kind: 'no-uid' }
   | { kind: 'ambiguous' };
-
-/**
- * Resolved account context — everything an action needs to operate.
- */
-export interface AccountContext {
-  account: HoyoAccount;
-  client: HoyolabClient;
-}
 
 /**
  * Base action class with common functionality for all Hoyo Deck actions.
@@ -186,40 +177,6 @@ export abstract class BaseAction<
     }
 
     return { kind: 'ambiguous' };
-  }
-
-  /**
-   * Legacy account resolution — kept as a thin wrapper around `pickAccount()`.
-   * Returns the resolved account or null.
-   */
-  protected async resolveAccount(
-    settings: TSettings,
-    action?: KeyAction<TSettings>,
-  ): Promise<HoyoAccount | null> {
-    const game = this.getResolvedGame(settings);
-    const result = await this.pickAccount(settings, game, action);
-    return result.kind === 'resolved' ? result.account : null;
-  }
-
-  protected getClientForAccount(account: HoyoAccount): HoyolabClient | null {
-    return dataController.getClient(account);
-  }
-
-  /**
-   * Get full account context: resolved account + client.
-   * Returns null if account not found or auth invalid.
-   */
-  protected async getAccountContext(
-    settings: TSettings,
-    action?: KeyAction<TSettings>,
-  ): Promise<AccountContext | null> {
-    const account = await this.resolveAccount(settings, action);
-    if (!account) return null;
-
-    const client = this.getClientForAccount(account);
-    if (!client) return null;
-
-    return { account, client };
   }
 
   /**

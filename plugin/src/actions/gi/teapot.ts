@@ -14,7 +14,7 @@ import { svgToBase64 } from "@/utils/svg";
 /** Tubby icon */
 const TUBBY_NORMAL = readLocalImageAsDataUri("imgs/actions/gi/tubby.png");
 const TUBBY_MAX = readLocalImageAsDataUri("imgs/actions/gi/tubby-max.png");
-const BACKGROUND = readLocalImageAsDataUri("imgs/actions/gi/5-star.webp");
+const BACKGROUND = readLocalImageAsDataUri("imgs/actions/gi/5-star.png");
 
 /** Per-key mutable animation state */
 interface TeapotKeyState {

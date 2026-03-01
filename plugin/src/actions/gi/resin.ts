@@ -12,7 +12,7 @@ import { readLocalImageAsDataUri } from "@/utils/image";
 import { buildResinSvg, RESIN_FLOATS } from "@/utils/resin";
 import { svgToBase64 } from "@/utils/svg";
 
-const BASE_IMG = "imgs/actions/gi/3-star.webp";
+const BASE_IMG = "imgs/actions/gi/3-star.png";
 const RESIN_IMG = "imgs/actions/gi/resin.webp";
 
 /** Per-key mutable animation state */
