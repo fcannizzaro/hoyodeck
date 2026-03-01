@@ -19,6 +19,7 @@ import type {
 import type { GameId } from '@/types/games';
 import { dataController } from '@/services/data-controller';
 import type { DataEntry, DataType, SuccessDataUpdate } from '@/services/data-controller.types';
+import { debug } from '@/utils/debug';
 
 /** 5-star background image paths per game, used for the "Select Account" state */
 const GAME_BACKGROUNDS: Record<GameId, string> = {
@@ -49,6 +50,30 @@ export abstract class BaseAction<
 > extends SingletonAction<TSettings> {
   /** Game identifier for this action */
   protected abstract readonly game: GameId;
+
+  /**
+   * Per-action settings cache.
+   * Avoids calling `action.getSettings()` (which triggers a WebSocket
+   * round-trip and re-fires `onDidReceiveSettings`, causing infinite loops).
+   * Updated from event payloads in onWillAppear and onDidReceiveSettings.
+   */
+  private readonly _settingsCache = new Map<string, TSettings>();
+
+  /**
+   * Re-entrancy guard for onDidReceiveSettings.
+   * Prevents infinite loops when code inside the handler indirectly
+   * triggers another didReceiveSettings event (e.g. via setSettings).
+   */
+  private readonly _settingsProcessing = new Set<string>();
+
+  /**
+   * Get the last-known settings for an action from the local cache.
+   * This is safe to call from onDataUpdate without triggering
+   * additional didReceiveSettings events.
+   */
+  protected getCachedSettings(actionId: string): TSettings | undefined {
+    return this._settingsCache.get(actionId);
+  }
 
   /**
    * Get the global settings
@@ -119,6 +144,7 @@ export abstract class BaseAction<
     );
 
     if (candidates.length === 1) {
+      debug.log('[BaseAction] resolveAccount | auto-selected by game uid, account:', candidates[0]!.id);
       const selected = candidates[0]!;
       if (action) {
         await action.setSettings({ ...settings, accountId: selected.id });
@@ -130,6 +156,7 @@ export abstract class BaseAction<
     // (handles the case where UIDs haven't been detected yet)
     const allAccounts = Object.values(accounts);
     if (allAccounts.length === 1) {
+      debug.log('[BaseAction] resolveAccount | auto-selected sole account:', allAccounts[0]!.id);
       const selected = allAccounts[0]!;
       if (action) {
         await action.setSettings({ ...settings, accountId: selected.id });
@@ -137,12 +164,9 @@ export abstract class BaseAction<
       return selected;
     }
 
+    debug.log('[BaseAction] resolveAccount | no account resolved');
     return null;
   }
-
-  /**
-   * Get authenticated client for the given account via DataController.
-   */
   protected getClientForAccount(account: HoyoAccount): HoyolabClient | null {
     return dataController.getClient(account);
   }
@@ -254,6 +278,7 @@ export abstract class BaseAction<
   ): Promise<void> {
     if (!ev.action.isKey()) return;
     const keyAction = ev.action;
+    this._settingsCache.set(ev.action.id, ev.payload.settings);
 
     const account = await this.resolveAccount(ev.payload.settings, keyAction);
     if (!account) {
@@ -261,18 +286,23 @@ export abstract class BaseAction<
       return;
     }
 
+    debug.log('[BaseAction] onWillAppear', ev.action.id, '| account:', account.id, '| game:', this.getResolvedGame(ev.payload.settings));
+
     const game = this.getResolvedGame(ev.payload.settings);
     const uid = this.getGameUid(account, game);
+    debug.log('[BaseAction] onWillAppear', ev.action.id, '| uid:', uid ?? 'none');
     if (!uid) {
       await this.showNoUid(keyAction);
       return;
     }
 
     // Register with DataController
+    const subscribedTypes = this.getSubscribedDataTypes(ev.payload.settings);
+    debug.log('[BaseAction] onWillAppear', ev.action.id, '| registering, dataTypes:', subscribedTypes);
     dataController.register({
       actionId: ev.action.id,
       accountId: account.id,
-      dataTypes: this.getSubscribedDataTypes(ev.payload.settings),
+      dataTypes: subscribedTypes,
       listener: (update) => {
         void this.withErrorHandling(keyAction, async () => {
           this.onBeforeDataUpdate(keyAction);
@@ -289,6 +319,7 @@ export abstract class BaseAction<
     });
 
     // Request immediate data for first render
+    debug.log('[BaseAction] onWillAppear', ev.action.id, '| requesting initial update');
     await this.withErrorHandling(keyAction, async () => {
       await dataController.requestUpdate(account.id, game);
     });
@@ -298,7 +329,9 @@ export abstract class BaseAction<
    * Called when action disappears — unregisters from DataController.
    */
   override onWillDisappear(ev: WillDisappearEvent<TSettings>): void {
+    debug.log('[BaseAction] onWillDisappear', ev.action.id);
     dataController.unregister(ev.action.id);
+    this._settingsCache.delete(ev.action.id);
   }
 
   /**
@@ -309,11 +342,31 @@ export abstract class BaseAction<
     ev: DidReceiveSettingsEvent<TSettings>,
   ): Promise<void> {
     if (!ev.action.isKey()) return;
+
+    // Re-entrancy guard: action.getSettings() triggers a didReceiveSettings
+    // round-trip through the SDK. If we're already processing for this action,
+    // skip to prevent infinite loops.
+    if (this._settingsProcessing.has(ev.action.id)) return;
+    this._settingsProcessing.add(ev.action.id);
+    this._settingsCache.set(ev.action.id, ev.payload.settings);
+
+    try {
+
+    // If no registration exists, onWillAppear hasn't finished yet — let it handle setup.
+    // This prevents the churn caused by resolveAccount's auto-select calling setSettings,
+    // which triggers onDidReceiveSettings before onWillAppear has registered the action.
+    const existing = dataController.getRegistration(ev.action.id);
+    if (!existing) {
+      debug.log('[BaseAction] onDidReceiveSettings', ev.action.id, '| skipped — no registration yet');
+      return;
+    }
+
     const keyAction = ev.action;
 
     const account = await this.resolveAccount(ev.payload.settings);
 
     if (!account) {
+      debug.log('[BaseAction] onDidReceiveSettings', ev.action.id, '| no account, unregistering');
       dataController.unregister(ev.action.id);
       await this.showNoAccount(keyAction);
       return;
@@ -323,6 +376,7 @@ export abstract class BaseAction<
     const uid = this.getGameUid(account, game);
 
     if (!uid) {
+      debug.log('[BaseAction] onDidReceiveSettings', ev.action.id, '| no uid, unregistering');
       dataController.unregister(ev.action.id);
       await this.showNoUid(keyAction);
       return;
@@ -331,16 +385,27 @@ export abstract class BaseAction<
     const dataTypes = this.getSubscribedDataTypes(ev.payload.settings);
 
     // Skip re-registration if nothing meaningful changed
-    const existing = dataController.getRegistration(ev.action.id);
     if (
-      existing &&
       existing.accountId === account.id &&
       existing.dataTypes.length === dataTypes.length &&
       existing.dataTypes.every((dt, i) => dt === dataTypes[i])
     ) {
+      debug.log('[BaseAction] onDidReceiveSettings', ev.action.id, '| subscription unchanged, re-rendering from cache');
+      // Display-only settings may have changed — re-render from cached data
+      for (const dt of dataTypes) {
+        const entry = dataController.getData(account.id, dt);
+        if (entry?.status === 'ok') {
+          // Clear animations/state before re-render (e.g. blink in banner actions)
+          this.onBeforeDataUpdate(keyAction);
+          await this.withErrorHandling(keyAction, async () => {
+            await this.onDataUpdate(keyAction, { accountId: account.id, dataType: dt, entry } as SuccessDataUpdate<TDataType>);
+          });
+        }
+      }
       return;
     }
 
+    debug.log('[BaseAction] onDidReceiveSettings', ev.action.id, '| subscription changed, re-registering');
     // Unregister old subscription and re-register with new params
     dataController.unregister(ev.action.id);
 
@@ -367,6 +432,10 @@ export abstract class BaseAction<
     await this.withErrorHandling(keyAction, async () => {
       await dataController.requestUpdate(account.id, game);
     });
+
+    } finally {
+      this._settingsProcessing.delete(ev.action.id);
+    }
   }
 
   /**
@@ -378,8 +447,10 @@ export abstract class BaseAction<
     if (!ev.action.isKey()) return;
     const payload = ev.payload as Record<string, unknown>;
     if (payload.event === 'refresh') {
+      debug.log('[BaseAction] onSendToPlugin | refresh', ev.action.id);
       const keyAction = ev.action;
-      const settings = (await keyAction.getSettings()) as TSettings;
+      const settings = this._settingsCache.get(ev.action.id) as TSettings | undefined;
+      if (!settings) return;
 
       const account = await this.resolveAccount(settings);
       if (!account) return;
@@ -393,6 +464,8 @@ export abstract class BaseAction<
    * Called when key is pressed — request instant data refresh.
    */
   override async onKeyDown(ev: KeyDownEvent<TSettings>): Promise<void> {
+    debug.log('[BaseAction] onKeyDown', ev.action.id);
+    this._settingsCache.set(ev.action.id, ev.payload.settings);
     const account = await this.resolveAccount(ev.payload.settings);
     if (!account) return;
 

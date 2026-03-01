@@ -5,6 +5,7 @@ import alias from "@rollup/plugin-alias";
 import commonjs from "@rollup/plugin-commonjs";
 import json from "@rollup/plugin-json";
 import resolve from "@rollup/plugin-node-resolve";
+import replace from "@rollup/plugin-replace";
 import { swc } from "rollup-plugin-swc3";
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
@@ -91,6 +92,12 @@ export default {
   },
   external: [/^@fcannizzaro\/native-window/],
   plugins: [
+    replace({
+      preventAssignment: true,
+      values: {
+        __DEBUG__: process.env.DEBUG === "1" ? "true" : "false",
+      },
+    }),
     alias({
       entries: [
         { find: /^@\/(.*)/, replacement: path.resolve(__dirname, "src/$1") },

@@ -7,6 +7,8 @@ import type {
   GenshinDailyNote,
   GenshinSpiralAbyss,
   GenshinActCalendar,
+  GenshinImaginariumTheater,
+  GenshinStygianOnslaught,
 } from '../types/genshin';
 import type {
   CheckInInfo,
@@ -16,10 +18,14 @@ import type {
 import type {
   StarRailDailyNote,
   StarRailActCalendar,
+  StarRailChallenge,
+  StarRailChallengePeak,
 } from '../types/hsr';
 import type {
   ZZZDailyNote,
   ZZZGachaCalendar,
+  ZZZShiyuDefense,
+  ZZZDeadlyAssault,
 } from '../types/zzz';
 import type { GameRecordCardResponse } from '../types/game-record';
 import { getRegionFromUid } from '@/utils/region';
@@ -132,6 +138,44 @@ export class HoyolabClient {
           role_id: uid,
           server: region,
           schedule_type: String(scheduleType),
+        },
+      }
+    );
+  }
+
+  /**
+   * Get Genshin Imaginarium Theater data
+   */
+  async getGenshinImaginariumTheater(uid: string): Promise<GenshinImaginariumTheater> {
+    const region = getRegionFromUid(uid, 'gi');
+
+    return this.request<GenshinImaginariumTheater>(
+      API_URLS.BATTLE_CHRONICLE,
+      GENSHIN.ENDPOINTS.ROLE_COMBAT,
+      {
+        query: {
+          role_id: uid,
+          server: region,
+          need_detail: 'false',
+        },
+      }
+    );
+  }
+
+  /**
+   * Get Genshin Stygian Onslaught data
+   */
+  async getGenshinStygianOnslaught(uid: string): Promise<GenshinStygianOnslaught> {
+    const region = getRegionFromUid(uid, 'gi');
+
+    return this.request<GenshinStygianOnslaught>(
+      API_URLS.BATTLE_CHRONICLE,
+      GENSHIN.ENDPOINTS.HARD_CHALLENGE,
+      {
+        query: {
+          role_id: uid,
+          server: region,
+          need_detail: 'true',
         },
       }
     );
@@ -258,6 +302,85 @@ export class HoyolabClient {
     );
   }
 
+  /**
+   * Get Star Rail Memory of Chaos data
+   */
+  async getStarRailMemoryOfChaos(uid: string): Promise<StarRailChallenge> {
+    const region = getRegionFromUid(uid, 'hsr');
+
+    return this.request<StarRailChallenge>(
+      API_URLS.BATTLE_CHRONICLE,
+      STAR_RAIL.ENDPOINTS.CHALLENGE,
+      {
+        query: {
+          role_id: uid,
+          server: region,
+          schedule_type: '1',
+          need_all: 'true',
+        },
+      }
+    );
+  }
+
+  /**
+   * Get Star Rail Pure Fiction data
+   */
+  async getStarRailPureFiction(uid: string): Promise<StarRailChallenge> {
+    const region = getRegionFromUid(uid, 'hsr');
+
+    return this.request<StarRailChallenge>(
+      API_URLS.BATTLE_CHRONICLE,
+      STAR_RAIL.ENDPOINTS.CHALLENGE_STORY,
+      {
+        query: {
+          role_id: uid,
+          server: region,
+          schedule_type: '1',
+          need_all: 'true',
+        },
+      }
+    );
+  }
+
+  /**
+   * Get Star Rail Apocalyptic Shadow data
+   */
+  async getStarRailApocalypticShadow(uid: string): Promise<StarRailChallenge> {
+    const region = getRegionFromUid(uid, 'hsr');
+
+    return this.request<StarRailChallenge>(
+      API_URLS.BATTLE_CHRONICLE,
+      STAR_RAIL.ENDPOINTS.CHALLENGE_BOSS,
+      {
+        query: {
+          role_id: uid,
+          server: region,
+          schedule_type: '1',
+          need_all: 'true',
+        },
+      }
+    );
+  }
+
+  /**
+   * Get Star Rail Anomaly Arbitration data
+   */
+  async getStarRailAnomalyArbitration(uid: string): Promise<StarRailChallengePeak> {
+    const region = getRegionFromUid(uid, 'hsr');
+
+    return this.request<StarRailChallengePeak>(
+      API_URLS.BATTLE_CHRONICLE,
+      STAR_RAIL.ENDPOINTS.CHALLENGE_PEAK,
+      {
+        query: {
+          role_id: uid,
+          server: region,
+          schedule_type: '1',
+        },
+      }
+    );
+  }
+
   // ============================================
   // Zenless Zone Zero APIs
   // ============================================
@@ -296,6 +419,50 @@ export class HoyolabClient {
         query: {
           uid,
           region,
+        },
+      }
+    );
+  }
+
+  /**
+   * Get ZZZ Shiyu Defense data.
+   * The raw response wraps the data under a versioned key (hadal_info_v1 or hadal_info_v2).
+   */
+  async getZZZShiyuDefense(uid: string): Promise<ZZZShiyuDefense> {
+    const region = getRegionFromUid(uid, 'zzz');
+
+    const raw = await this.request<Record<string, unknown>>(
+      API_URLS.CALCULATOR,
+      ZZZ.ENDPOINTS.SHIYU_DEFENSE,
+      {
+        query: {
+          role_id: uid,
+          server: region,
+          schedule_type: '1',
+        },
+      }
+    );
+
+    // Response is wrapped: { hadal_ver: "v1"|"v2", hadal_info_v2: {...}, ... }
+    const version = raw.hadal_ver as string ?? 'v2';
+    return raw[`hadal_info_${version}`] as ZZZShiyuDefense;
+  }
+
+  /**
+   * Get ZZZ Deadly Assault data.
+   * This endpoint uses uid/region params (not role_id/server).
+   */
+  async getZZZDeadlyAssault(uid: string): Promise<ZZZDeadlyAssault> {
+    const region = getRegionFromUid(uid, 'zzz');
+
+    return this.request<ZZZDeadlyAssault>(
+      API_URLS.CALCULATOR,
+      ZZZ.ENDPOINTS.DEADLY_ASSAULT,
+      {
+        query: {
+          uid,
+          region,
+          schedule_type: '1',
         },
       }
     );

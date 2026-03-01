@@ -60,3 +60,52 @@ export interface ZZZGachaCalendar {
   avatar_gacha_schedule_list: ZZZCharacterGachaEvent[];
   weapon_gacha_schedule_list: ZZZWeaponGachaEvent[];
 }
+
+// ============================================
+// Endgame types
+// ============================================
+
+/**
+ * Date components used in ZZZ API responses
+ */
+export interface ZZZDateComponents {
+  year: number;
+  month: number;
+  day: number;
+  hour: number;
+  minute: number;
+  second: number;
+}
+
+/**
+ * ZZZ Shiyu Defense (Hadal) response (v2 format)
+ */
+export interface ZZZShiyuDefense {
+  zone_id: number;
+  hadal_begin_time: ZZZDateComponents | null;
+  hadal_end_time: ZZZDateComponents | null;
+  pass_fifth_floor: boolean;
+  brief: unknown | null;
+  fitfh_layer_detail: unknown | null;
+  fourth_layer_detail: unknown | null;
+  begin_time: string;
+  end_time: string;
+}
+
+/**
+ * ZZZ Deadly Assault response
+ */
+export interface ZZZDeadlyAssault {
+  start_time: ZZZDateComponents;
+  end_time: ZZZDateComponents;
+  rank_percent: number;
+  list: unknown[];
+  has_data: boolean;
+  nick_name: string;
+  avatar_icon: string;
+  total_score: number;
+  total_star: number;
+  zone_id: number;
+  total_max_score: number;
+  room_max_score: number;
+}

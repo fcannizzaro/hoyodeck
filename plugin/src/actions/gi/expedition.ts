@@ -9,6 +9,7 @@ import type { DataType, SuccessDataUpdate } from "@/services/data-controller.typ
 import { dataController } from "@/services";
 import { fetchImageAsDataUri, readLocalImageAsDataUri } from "@/utils/image";
 import { buildExpeditionSvg, type ExpeditionCircle } from "@/utils/expedition";
+import { svgToBase64 } from "@/utils/svg";
 
 /** Background image loaded once at module init */
 const BACKGROUND = readLocalImageAsDataUri(
@@ -17,6 +18,14 @@ const BACKGROUND = readLocalImageAsDataUri(
 
 /** Countdown re-render interval in milliseconds (30 seconds) */
 const COUNTDOWN_INTERVAL_MS = 30_000;
+
+/** Per-key mutable state for the expedition countdown */
+interface ExpeditionKeyState {
+  interval: ReturnType<typeof setInterval> | null;
+  lastRefreshTime: number;
+  expeditionData: ExpeditionCircle[];
+  totalExpeditions: number;
+}
 
 /**
  * Expedition Action
@@ -27,23 +36,26 @@ const COUNTDOWN_INTERVAL_MS = 30_000;
 export class ExpeditionAction extends BaseAction<GenshinActionSettings, 'gi:daily-note'> {
   protected readonly game = 'gi' as const;
 
-  /** Interval handle for the countdown re-render loop */
-  private animationInterval: ReturnType<typeof setInterval> | null = null;
+  /** Per-key state (SingletonAction shares one instance across all keys) */
+  private readonly keyStates = new Map<string, ExpeditionKeyState>();
 
-  /** Timestamp of the last data fetch */
-  private lastRefreshTime = 0;
+  /** Get or create per-key state */
+  private getKeyState(actionId: string): ExpeditionKeyState {
+    let state = this.keyStates.get(actionId);
+    if (!state) {
+      state = { interval: null, lastRefreshTime: 0, expeditionData: [], totalExpeditions: 0 };
+      this.keyStates.set(actionId, state);
+    }
+    return state;
+  }
 
-  /** Expedition snapshot from the last data fetch */
-  private expeditionData: ExpeditionCircle[] = [];
-
-  /** Total expedition slot count */
-  private totalExpeditions = 0;
-
-  /** Clear the running countdown interval, if any */
-  private clearAnimation(): void {
-    if (this.animationInterval !== null) {
-      clearInterval(this.animationInterval);
-      this.animationInterval = null;
+  /** Clear the running countdown interval for a specific key */
+  private clearAnimation(actionId: string): void {
+    const state = this.keyStates.get(actionId);
+    if (!state) return;
+    if (state.interval !== null) {
+      clearInterval(state.interval);
+      state.interval = null;
     }
   }
 
@@ -52,10 +64,12 @@ export class ExpeditionAction extends BaseAction<GenshinActionSettings, 'gi:dail
    * and re-renders the SVG every 30 seconds.
    */
   private startCountdown(action: KeyAction<GenshinActionSettings>): void {
-    const renderFrame = async (): Promise<void> => {
-      const elapsedSinceRefresh = (Date.now() - this.lastRefreshTime) / 1000;
+    const state = this.getKeyState(action.id);
 
-      const circles = this.expeditionData.slice(0, 5).map((exp) => {
+    const renderFrame = async (): Promise<void> => {
+      const elapsedSinceRefresh = (Date.now() - state.lastRefreshTime) / 1000;
+
+      const circles = state.expeditionData.slice(0, 5).map((exp) => {
         const remaining = Math.max(
           0,
           exp.remainingSeconds - elapsedSinceRefresh,
@@ -70,9 +84,9 @@ export class ExpeditionAction extends BaseAction<GenshinActionSettings, 'gi:dail
       const svg = buildExpeditionSvg(
         BACKGROUND,
         circles,
-        this.totalExpeditions,
+        state.totalExpeditions,
       );
-      const base64 = `data:image/svg+xml;base64,${btoa(svg)}`;
+      const base64 = svgToBase64(svg);
       await action.setImage(base64);
     };
 
@@ -81,7 +95,7 @@ export class ExpeditionAction extends BaseAction<GenshinActionSettings, 'gi:dail
 
     if (dataController.isAnimationDisabled()) return;
 
-    this.animationInterval = setInterval(() => {
+    state.interval = setInterval(() => {
       void renderFrame();
     }, COUNTDOWN_INTERVAL_MS);
   }
@@ -90,8 +104,8 @@ export class ExpeditionAction extends BaseAction<GenshinActionSettings, 'gi:dail
     return ['gi:daily-note'];
   }
 
-  protected override onBeforeDataUpdate(): void {
-    this.clearAnimation();
+  protected override onBeforeDataUpdate(action: KeyAction<GenshinActionSettings>): void {
+    this.clearAnimation(action.id);
   }
 
   protected override async onDataUpdate(
@@ -99,6 +113,7 @@ export class ExpeditionAction extends BaseAction<GenshinActionSettings, 'gi:dail
     update: SuccessDataUpdate<'gi:daily-note'>,
   ): Promise<void> {
     const dailyNote = update.entry.data;
+    const state = this.getKeyState(action.id);
 
     // Fetch all avatar images in parallel
     const avatarDataUris = await Promise.all(
@@ -107,9 +122,9 @@ export class ExpeditionAction extends BaseAction<GenshinActionSettings, 'gi:dail
       ),
     );
 
-    this.lastRefreshTime = Date.now();
-    this.totalExpeditions = dailyNote.current_expedition_num;
-    this.expeditionData = dailyNote.expeditions.map((exp, i) => ({
+    state.lastRefreshTime = Date.now();
+    state.totalExpeditions = dailyNote.current_expedition_num;
+    state.expeditionData = dailyNote.expeditions.map((exp, i) => ({
       avatarDataUri: avatarDataUris[i]!,
       finished: exp.status === "Finished",
       remainingSeconds: parseInt(exp.remained_time, 10) || 0,
@@ -124,6 +139,7 @@ export class ExpeditionAction extends BaseAction<GenshinActionSettings, 'gi:dail
     ev: WillDisappearEvent<GenshinActionSettings>,
   ): void {
     super.onWillDisappear(ev);
-    this.clearAnimation();
+    this.clearAnimation(ev.action.id);
+    this.keyStates.delete(ev.action.id);
   }
 }

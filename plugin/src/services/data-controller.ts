@@ -10,6 +10,7 @@ import { HoyolabClient } from '@/api/hoyolab/client';
 import { isValidAuth } from '@/api/hoyolab/auth';
 import type { HoyoAuth } from '@/api/hoyolab/auth';
 import { isAuthError } from '@/api/types/common';
+import { debug } from '@/utils/debug';
 import { toJsonObject } from '@/types/settings';
 import type {
   DataType,
@@ -19,6 +20,7 @@ import type {
   ActionRegistration,
 } from './data-controller.types';
 import { DEFAULT_POLL_INTERVAL_MS } from './data-controller.types';
+import { SubscriptionIndex } from './subscription-index';
 import { GenshinController } from './game-controllers/genshin-controller';
 import { HSRController } from './game-controllers/hsr-controller';
 import { ZZZController } from './game-controllers/zzz-controller';
@@ -62,11 +64,17 @@ class DataControllerImpl {
    */
   private readonly registrations = new Map<string, ActionRegistration>();
 
+  /** Pre-computed index of active subscriptions per account+game+dataType. */
+  private readonly subscriptionIndex = new SubscriptionIndex();
+
   // ─── Polling ─────────────────────────────────────────────────────
   private pollTimer: ReturnType<typeof setInterval> | null = null;
 
   /** Whether a poll cycle is currently running (prevents overlap) */
   private polling = false;
+
+  /** In-flight fetch promises for request deduplication, keyed by `${accountId}:${game}` */
+  private readonly inflight = new Map<string, Promise<void>>();
 
   // ─── Global Settings Diffing ────────────────────────────────────
   /** Previous accounts snapshot for diffing */
@@ -101,6 +109,7 @@ class DataControllerImpl {
    * Must be called once at plugin startup before actions are registered.
    */
   init(): void {
+    debug.log('[DataController] init');
     // Seed initial preference values
     void streamDeck.settings.getGlobalSettings().then((s) => {
       const settings = s as unknown as GlobalSettings;
@@ -134,6 +143,7 @@ class DataControllerImpl {
    * Starts polling if this is the first registration.
    */
   register(registration: ActionRegistration): void {
+    debug.log('[DataController] register', registration.actionId, '| account:', registration.accountId, '| types:', registration.dataTypes);
     // Skip if already registered with the same account and data types
     const existing = this.registrations.get(registration.actionId);
     if (
@@ -142,10 +152,17 @@ class DataControllerImpl {
       existing.dataTypes.length === registration.dataTypes.length &&
       existing.dataTypes.every((dt, i) => dt === registration.dataTypes[i])
     ) {
+      debug.log('[DataController] register', registration.actionId, '| skipped — duplicate');
       return;
     }
 
+    // If replacing an existing registration, remove old subscriptions first
+    if (existing) {
+      this.subscriptionIndex.remove(existing.accountId, existing.dataTypes);
+    }
+
     this.registrations.set(registration.actionId, registration);
+    this.subscriptionIndex.add(registration.accountId, registration.dataTypes);
     streamDeck.logger.debug(
       `[DataController] Registered ${registration.actionId} for ${registration.dataTypes.join(', ')}`,
     );
@@ -155,6 +172,7 @@ class DataControllerImpl {
       const key = this.buildStoreKey(registration.accountId, dataType);
       const entry = this.store.get(key);
       if (entry) {
+        debug.log('[DataController] register', registration.actionId, '| pushing cached', dataType, '| status:', entry.status);
         try {
           registration.listener({
             accountId: registration.accountId,
@@ -178,10 +196,17 @@ class DataControllerImpl {
    * Stops polling if no registrations remain.
    */
   unregister(actionId: string): void {
+    debug.log('[DataController] unregister', actionId);
+    const existing = this.registrations.get(actionId);
+    if (existing) {
+      this.subscriptionIndex.remove(existing.accountId, existing.dataTypes);
+    }
+
     this.registrations.delete(actionId);
     streamDeck.logger.debug(`[DataController] Unregistered ${actionId}`);
 
-    if (this.registrations.size === 0) {
+    if (!this.subscriptionIndex.hasSubscriptions) {
+      debug.log('[DataController] unregister | no subscriptions left, stopping poll');
       this.stopPolling();
     }
   }
@@ -210,13 +235,42 @@ class DataControllerImpl {
    * Fetches all data types that have active subscribers for this account+game,
    * then notifies listeners. Returns when fetching is complete.
    *
+   * Concurrent calls for the same account+game are coalesced: only one network
+   * fetch runs and all callers share the same Promise.
+   *
    * Use for key-press "refresh now" scenarios.
    */
   async requestUpdate(accountId: AccountId, game: GameId): Promise<void> {
-    const typesNeeded = this.getActiveDataTypes(accountId, game);
-    if (typesNeeded.length === 0) return;
+    const typesNeeded = this.subscriptionIndex.getActiveDataTypes(accountId, game);
+    debug.log('[DataController] requestUpdate', accountId, game, '| types:', typesNeeded);
+    if (typesNeeded.length === 0) {
+      debug.log('[DataController] requestUpdate', accountId, game, '| no active types');
+      return;
+    }
 
-    await this.fetchAndNotify(accountId, game, typesNeeded);
+    const key = `${accountId}:${game}`;
+    const existing = this.inflight.get(key);
+    if (existing) {
+      debug.log('[DataController] requestUpdate', accountId, game, '| dedup — joining inflight');
+      await existing;
+      // Inflight may not have fetched our types (registered after it started).
+      // Check if any needed types are still missing from the store.
+      const stillMissing = typesNeeded.some(
+        dt => !this.store.has(this.buildStoreKey(accountId, dt)),
+      );
+      if (stillMissing) {
+        debug.log('[DataController] requestUpdate', accountId, game, '| follow-up — types missing after inflight');
+        return this.requestUpdate(accountId, game);
+      }
+      return;
+    }
+
+    const promise = this.fetchAndNotify(accountId, game, typesNeeded).finally(() => {
+      this.inflight.delete(key);
+    });
+
+    this.inflight.set(key, promise);
+    return promise;
   }
 
   /**
@@ -239,6 +293,7 @@ class DataControllerImpl {
    * Called when account auth changes or account is deleted.
    */
   invalidateAccount(accountId: AccountId): void {
+    debug.log('[DataController] invalidateAccount', accountId);
     this.clientCache.delete(accountId);
 
     for (const key of [...this.store.keys()]) {
@@ -269,6 +324,7 @@ class DataControllerImpl {
         );
       }
 
+      this.subscriptionIndex.remove(reg.accountId, reg.dataTypes);
       this.registrations.delete(actionId);
     }
   }
@@ -312,6 +368,7 @@ class DataControllerImpl {
     // Check for deleted accounts
     for (const accountId of Object.keys(oldAccounts)) {
       if (!(accountId in newAccounts)) {
+        debug.log('[DataController] globalSettingsChanged | account deleted:', accountId);
         streamDeck.logger.debug(
           `[DataController] Account ${accountId} deleted, invalidating`,
         );
@@ -326,6 +383,7 @@ class DataControllerImpl {
       if (!oldAccount) continue; // New account — no cached data to invalidate
 
       if (!this.authEqual(oldAccount.auth, newAccount.auth)) {
+        debug.log('[DataController] globalSettingsChanged | auth changed:', accountId);
         streamDeck.logger.debug(
           `[DataController] Auth changed for account ${accountId}, invalidating`,
         );
@@ -358,6 +416,7 @@ class DataControllerImpl {
     }
 
     if (needsRenotify) {
+      debug.log('[DataController] globalSettingsChanged | renotifying all (prefs changed)');
       this.renotifyAll();
     }
   }
@@ -381,6 +440,7 @@ class DataControllerImpl {
    * Used when a global preference changes that affects rendering.
    */
   private renotifyAll(): void {
+    debug.log('[DataController] renotifyAll |', this.registrations.size, 'registrations');
     for (const reg of this.registrations.values()) {
       for (const dataType of reg.dataTypes) {
         const key = this.buildStoreKey(reg.accountId, dataType);
@@ -405,7 +465,7 @@ class DataControllerImpl {
 
   private startPollingIfNeeded(): void {
     if (this.pollTimer) return;
-    if (this.registrations.size === 0) return;
+    if (!this.subscriptionIndex.hasSubscriptions) return;
 
     streamDeck.logger.info(
       `[DataController] Starting polling (interval: ${this.pollIntervalMs}ms)`,
@@ -429,6 +489,7 @@ class DataControllerImpl {
    */
   private async pollTick(): Promise<void> {
     if (this.polling) {
+      debug.log('[DataController] pollTick | skipped — already running');
       streamDeck.logger.debug(
         '[DataController] Poll tick skipped (already running)',
       );
@@ -436,15 +497,17 @@ class DataControllerImpl {
     }
 
     this.polling = true;
+    debug.log('[DataController] pollTick | starting');
 
     try {
-      const activeMap = this.getActiveAccountGames();
+      const activeMap = this.subscriptionIndex.getActiveAccountGames();
+      debug.log('[DataController] pollTick | accounts:', [...activeMap.entries()].map(([id, g]) => `${id}:[${[...g].join(',')}]`));
 
       const promises: Promise<void>[] = [];
 
       for (const [accountId, games] of activeMap) {
         for (const game of games) {
-          const typesNeeded = this.getActiveDataTypes(accountId, game);
+          const typesNeeded = this.subscriptionIndex.getActiveDataTypes(accountId, game);
           if (typesNeeded.length > 0) {
             promises.push(this.fetchAndNotify(accountId, game, typesNeeded));
           }
@@ -460,49 +523,6 @@ class DataControllerImpl {
   // ─── Internal Helpers ────────────────────────────────────────────
 
   /**
-   * Determine which accounts and games have active subscriptions.
-   */
-  private getActiveAccountGames(): Map<AccountId, Set<GameId>> {
-    const result = new Map<AccountId, Set<GameId>>();
-
-    for (const reg of this.registrations.values()) {
-      let games = result.get(reg.accountId);
-      if (!games) {
-        games = new Set();
-        result.set(reg.accountId, games);
-      }
-
-      for (const dt of reg.dataTypes) {
-        const game = dt.split(':')[0] as GameId;
-        games.add(game);
-      }
-    }
-
-    return result;
-  }
-
-  /**
-   * Get the set of data types actively subscribed for an account+game.
-   */
-  private getActiveDataTypes(
-    accountId: AccountId,
-    game: GameId,
-  ): DataType[] {
-    const types = new Set<DataType>();
-
-    for (const reg of this.registrations.values()) {
-      if (reg.accountId !== accountId) continue;
-      for (const dt of reg.dataTypes) {
-        if (dt.startsWith(`${game}:`)) {
-          types.add(dt);
-        }
-      }
-    }
-
-    return [...types];
-  }
-
-  /**
    * Fetch data for one account+game, store results, notify listeners.
    */
   private async fetchAndNotify(
@@ -510,6 +530,7 @@ class DataControllerImpl {
     game: GameId,
     dataTypes: DataType[],
   ): Promise<void> {
+    debug.log('[DataController] fetchAndNotify', accountId, game, '| types:', dataTypes);
     const account = await this.resolveAccount(accountId);
     if (!account) {
       streamDeck.logger.warn(
@@ -536,6 +557,7 @@ class DataControllerImpl {
 
     const controller = this.gameControllers[game];
     const results = await controller.fetchAll(client, uid, dataTypes);
+    debug.log('[DataController] fetchAndNotify', accountId, game, '| results:', [...results.entries()].map(([dt, e]) => `${dt}:${e.status}`));
 
     // Store + notify
     for (const [dataType, entry] of results) {
@@ -585,6 +607,7 @@ class DataControllerImpl {
     dataType: DataType,
     entry: DataEntry<unknown>,
   ): void {
+    debug.log('[DataController] notifyListeners', accountId, dataType, '| status:', entry.status);
     for (const reg of this.registrations.values()) {
       if (reg.accountId !== accountId) continue;
       if (!reg.dataTypes.includes(dataType)) continue;

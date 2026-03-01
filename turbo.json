@@ -9,7 +9,8 @@
     "build": {
       "dependsOn": ["^build"],
       "outputs": ["dist"],
-      "cache": false
+      "cache": false,
+      "env": ["DEBUG"]
     },
     "typecheck": {
       "cache": false

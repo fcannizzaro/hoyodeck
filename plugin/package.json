@@ -6,7 +6,7 @@
   "license": "GPL-3.0",
   "type": "module",
   "scripts": {
-    "dev": "bunx --bun rollup -c -w --watch.onEnd=\"streamdeck restart com.fcannizzaro.hoyodeck\"",
+    "dev": "DEBUG=1 bunx --bun rollup -c -w --watch.onEnd=\"streamdeck restart com.fcannizzaro.hoyodeck\"",
     "build": "tsc --noEmit && rollup -c",
     "package": "streamdeck pack --force-update-check  -f ./com.fcannizzaro.hoyodeck.sdPlugin",
     "link": "streamdeck link com.fcannizzaro.hoyodeck.sdPlugin",
@@ -25,6 +25,7 @@
     "@rollup/plugin-commonjs": "^29.0.0",
     "@rollup/plugin-json": "^6.1.0",
     "@rollup/plugin-node-resolve": "^16.0.3",
+    "@rollup/plugin-replace": "^6.0.3",
     "@types/node": "^25.3.2",
     "rollup": "^4.59.0",
     "rollup-plugin-swc3": "^0.12.1",

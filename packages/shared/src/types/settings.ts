@@ -91,6 +91,7 @@ export type GenshinActionSettings = GameActionSettings;
  */
 export interface BannerSettings extends GenshinActionSettings {
   type?: "character" | "weapon";
+  bannerIndex?: number;
 }
 
 /**
@@ -118,6 +119,7 @@ export type StarRailActionSettings = GameActionSettings;
  */
 export interface StarRailBannerSettings extends StarRailActionSettings {
   type?: "character" | "lightcone";
+  bannerIndex?: number;
 }
 
 /**
@@ -130,4 +132,53 @@ export type ZZZActionSettings = GameActionSettings;
  */
 export interface ZZZBannerSettings extends ZZZActionSettings {
   type?: "character" | "w-engine";
+  bannerIndex?: number;
+}
+
+// ─── Endgame Action Settings ──────────────────────────────────────
+
+/**
+ * Genshin endgame mode
+ */
+export type GenshinEndgameMode = "spiral-abyss" | "imaginarium-theater" | "stygian-onslaught";
+
+/**
+ * Genshin endgame action settings (Spiral Abyss / Imaginarium Theater)
+ */
+export interface GenshinEndgameSettings extends GenshinActionSettings {
+  mode?: GenshinEndgameMode;
+  showStars?: boolean;
+  showName?: boolean;
+}
+
+/**
+ * Star Rail endgame mode
+ */
+export type StarRailEndgameMode =
+  | "memory-of-chaos"
+  | "pure-fiction"
+  | "apocalyptic-shadow"
+  | "anomaly-arbitration";
+
+/**
+ * Star Rail endgame action settings (MoC / Pure Fiction / Apocalyptic Shadow)
+ */
+export interface StarRailEndgameSettings extends StarRailActionSettings {
+  mode?: StarRailEndgameMode;
+  showStars?: boolean;
+  showName?: boolean;
+}
+
+/**
+ * ZZZ endgame mode
+ */
+export type ZZZEndgameMode = "shiyu-defense" | "deadly-assault";
+
+/**
+ * ZZZ endgame action settings (Shiyu Defense / Deadly Assault)
+ */
+export interface ZZZEndgameSettings extends ZZZActionSettings {
+  mode?: ZZZEndgameMode;
+  showStars?: boolean;
+  showName?: boolean;
 }

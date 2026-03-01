@@ -10,9 +10,16 @@ import { dataController } from "../../services";
 import { GAMES } from "../../types/games";
 import { readLocalImageAsDataUri } from "../../utils/image";
 import { buildResinSvg, RESIN_FLOATS } from "../../utils/resin";
+import { svgToBase64 } from "../../utils/svg";
 
 const BASE_IMG = "imgs/actions/hsr/trailblaze-power-state@2x.png";
 const STAMINA_IMG = "imgs/actions/hsr/trailblaze-power.webp";
+
+/** Per-key mutable animation state */
+interface StaminaKeyState {
+  interval: ReturnType<typeof setInterval> | null;
+  frameIndex: number;
+}
 
 /**
  * Trailblaze Power Action
@@ -23,18 +30,27 @@ export class StaminaAction extends BaseAction<StarRailActionSettings, 'hsr:daily
   protected readonly game = 'hsr' as const;
   private readonly MAX_STAMINA = GAMES.hsr.staminaMax;
 
-  /** Interval handle for the floating animation */
-  private animationInterval: ReturnType<typeof setInterval> | null = null;
+  /** Per-key animation state (SingletonAction shares one instance across all keys) */
+  private readonly keyStates = new Map<string, StaminaKeyState>();
 
-  /** Current frame index in the float cycle */
-  private frameIndex = 0;
+  /** Get or create per-key state */
+  private getKeyState(actionId: string): StaminaKeyState {
+    let state = this.keyStates.get(actionId);
+    if (!state) {
+      state = { interval: null, frameIndex: 0 };
+      this.keyStates.set(actionId, state);
+    }
+    return state;
+  }
 
-  /** Clear the running animation interval, if any */
-  private clearAnimation(): void {
-    if (this.animationInterval !== null) {
-      clearInterval(this.animationInterval);
-      this.animationInterval = null;
-      this.frameIndex = 0;
+  /** Clear the running animation interval for a specific key */
+  private clearAnimation(actionId: string): void {
+    const state = this.keyStates.get(actionId);
+    if (!state) return;
+    if (state.interval !== null) {
+      clearInterval(state.interval);
+      state.interval = null;
+      state.frameIndex = 0;
     }
   }
 
@@ -47,6 +63,7 @@ export class StaminaAction extends BaseAction<StarRailActionSettings, 'hsr:daily
     action: KeyAction<StarRailActionSettings>,
     current: number,
   ): void {
+    const state = this.getKeyState(action.id);
     const baseDataUri = readLocalImageAsDataUri(BASE_IMG);
     const staminaDataUri = readLocalImageAsDataUri(STAMINA_IMG);
 
@@ -54,13 +71,13 @@ export class StaminaAction extends BaseAction<StarRailActionSettings, 'hsr:daily
       const svg = buildResinSvg(
         baseDataUri,
         staminaDataUri,
-        this.frameIndex,
+        state.frameIndex,
         current,
         this.MAX_STAMINA,
       );
-      const base64 = `data:image/svg+xml;base64,${btoa(svg)}`;
+      const base64 = svgToBase64(svg);
       await action.setImage(base64);
-      this.frameIndex = (this.frameIndex + 1) % RESIN_FLOATS.length;
+      state.frameIndex = (state.frameIndex + 1) % RESIN_FLOATS.length;
     };
 
     // Show the first frame immediately
@@ -68,7 +85,7 @@ export class StaminaAction extends BaseAction<StarRailActionSettings, 'hsr:daily
 
     if (dataController.isAnimationDisabled()) return;
 
-    this.animationInterval = setInterval(() => {
+    state.interval = setInterval(() => {
       void renderFrame();
     }, 200);
   }
@@ -77,8 +94,8 @@ export class StaminaAction extends BaseAction<StarRailActionSettings, 'hsr:daily
     return ['hsr:daily-note'];
   }
 
-  protected override onBeforeDataUpdate(): void {
-    this.clearAnimation();
+  protected override onBeforeDataUpdate(action: KeyAction<StarRailActionSettings>): void {
+    this.clearAnimation(action.id);
   }
 
   protected override async onDataUpdate(
@@ -98,6 +115,7 @@ export class StaminaAction extends BaseAction<StarRailActionSettings, 'hsr:daily
     ev: WillDisappearEvent<StarRailActionSettings>,
   ): void {
     super.onWillDisappear(ev);
-    this.clearAnimation();
+    this.clearAnimation(ev.action.id);
+    this.keyStates.delete(ev.action.id);
   }
 }

@@ -4,7 +4,7 @@ import { BaseGameController } from './base-game-controller';
 
 /**
  * Genshin Impact data fetcher.
- * Handles: daily note, spiral abyss, act calendar, check-in.
+ * Handles: daily note, spiral abyss, imaginarium theater, stygian onslaught, act calendar, check-in.
  */
 export class GenshinController extends BaseGameController {
   readonly game = 'gi' as const;
@@ -16,6 +16,8 @@ export class GenshinController extends BaseGameController {
     return new Map<DataType, () => Promise<unknown>>([
       ['gi:daily-note', () => client.getGenshinDailyNote(uid)],
       ['gi:spiral-abyss', () => client.getGenshinSpiralAbyss(uid)],
+      ['gi:imaginarium-theater', () => client.getGenshinImaginariumTheater(uid)],
+      ['gi:stygian-onslaught', () => client.getGenshinStygianOnslaught(uid)],
       ['gi:act-calendar', () => client.getGenshinActCalendar(uid)],
       [
         'gi:check-in',

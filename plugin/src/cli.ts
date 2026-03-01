@@ -12,14 +12,16 @@ const USAGE = `
 Usage: bun run cli <game> <endpoint> [uid] [options]
 
 Games:
-  genshin     Genshin Impact
-  starrail    Honkai: Star Rail
-  zzz         Zenless Zone Zero
+  genshin|gi      Genshin Impact
+  starrail|hsr    Honkai: Star Rail
+  zzz             Zenless Zone Zero
 
 Endpoints:
   genshin:
     daily-note <uid>          Resin, commissions, expeditions, teapot, transformer
     abyss <uid>               Spiral Abyss data (--schedule=1|2, default 1)
+    imaginarium-theater <uid> Imaginarium Theater data
+    stygian-onslaught <uid>   Stygian Onslaught data
     check-in-info             Daily check-in status
     check-in-rewards          Monthly check-in rewards list
     check-in-claim            Claim today's check-in reward
@@ -27,10 +29,16 @@ Endpoints:
 
   starrail:
     daily-note <uid>          Trailblaze power, assignments, etc.
+    memory-of-chaos <uid>     Memory of Chaos data
+    pure-fiction <uid>        Pure Fiction data
+    apocalyptic-shadow <uid>  Apocalyptic Shadow data
+    anomaly-arbitration <uid> Anomaly Arbitration data
     act-calendar <uid>        Active banners and events
 
   zzz:
     daily-note <uid>          Battery charge, scratch card, etc.
+    shiyu-defense <uid>       Shiyu Defense data
+    deadly-assault <uid>      Deadly Assault data
 
 Environment:
   HOYOLAB_COOKIE    Raw cookie string (ltoken_v2=xxx; ltuid_v2=yyy; ltmid_v2=zzz)
@@ -65,10 +73,21 @@ function parseArgs(argv: string[]) {
     process.exit(1);
   }
 
-  const validGames: GameId[] = ["gi", "hsr", "zzz"];
-  if (!validGames.includes(game as GameId)) {
+  // Map CLI game names to canonical GameId and ENDPOINTS key
+  const GAME_ALIASES: Record<string, { gameId: GameId; endpointsKey: string }> =
+    {
+      genshin: { gameId: "gi", endpointsKey: "genshin" },
+      gi: { gameId: "gi", endpointsKey: "genshin" },
+      starrail: { gameId: "hsr", endpointsKey: "starrail" },
+      hsr: { gameId: "hsr", endpointsKey: "starrail" },
+      zzz: { gameId: "zzz", endpointsKey: "zzz" },
+    };
+
+  const alias = GAME_ALIASES[game];
+  if (!alias) {
+    const validNames = Object.keys(GAME_ALIASES).join(", ");
     console.error(
-      `Error: Unknown game "${game}". Valid games: ${validGames.join(", ")}`,
+      `Error: Unknown game "${game}". Valid games: ${validNames}`,
     );
     process.exit(1);
   }
@@ -87,7 +106,13 @@ function parseArgs(argv: string[]) {
     }
   }
 
-  return { game: game as GameId, endpoint, uid, flags };
+  return {
+    game: alias.gameId,
+    endpointsKey: alias.endpointsKey,
+    endpoint,
+    uid,
+    flags,
+  };
 }
 
 // ============================================
@@ -164,6 +189,12 @@ const ENDPOINTS: Record<string, Record<string, EndpointHandler>> = {
         schedule as 1 | 2,
       );
     },
+    "imaginarium-theater": async (client, uid, _, game) => {
+      return client.getGenshinImaginariumTheater(requireUid(uid, game));
+    },
+    "stygian-onslaught": async (client, uid, _, game) => {
+      return client.getGenshinStygianOnslaught(requireUid(uid, game));
+    },
     "check-in-info": async (client) => {
       return client.getCheckInInfo('gi');
     },
@@ -180,6 +211,18 @@ const ENDPOINTS: Record<string, Record<string, EndpointHandler>> = {
   starrail: {
     "daily-note": async (client, uid, _, game) => {
       return client.getStarRailDailyNote(requireUid(uid, game));
+    },
+    "memory-of-chaos": async (client, uid, _, game) => {
+      return client.getStarRailMemoryOfChaos(requireUid(uid, game));
+    },
+    "pure-fiction": async (client, uid, _, game) => {
+      return client.getStarRailPureFiction(requireUid(uid, game));
+    },
+    "apocalyptic-shadow": async (client, uid, _, game) => {
+      return client.getStarRailApocalypticShadow(requireUid(uid, game));
+    },
+    "anomaly-arbitration": async (client, uid, _, game) => {
+      return client.getStarRailAnomalyArbitration(requireUid(uid, game));
     },
     "act-calendar": async (client, uid, _, game) => {
       return client.getStarRailActCalendar(requireUid(uid, game));
@@ -198,6 +241,12 @@ const ENDPOINTS: Record<string, Record<string, EndpointHandler>> = {
     "daily-note": async (client, uid, _, game) => {
       return client.getZZZDailyNote(requireUid(uid, game));
     },
+    "shiyu-defense": async (client, uid, _, game) => {
+      return client.getZZZShiyuDefense(requireUid(uid, game));
+    },
+    "deadly-assault": async (client, uid, _, game) => {
+      return client.getZZZDeadlyAssault(requireUid(uid, game));
+    },
     "check-in-info": async (client) => {
       return client.getCheckInInfo('zzz');
     },
@@ -215,13 +264,14 @@ const ENDPOINTS: Record<string, Record<string, EndpointHandler>> = {
 // ============================================
 
 async function main() {
-  const { game, endpoint, uid, flags } = parseArgs(process.argv);
+  const { game, endpointsKey, endpoint, uid, flags } =
+    parseArgs(process.argv);
   const auth = getAuthFromEnv();
   const client = new HoyolabClient(auth);
 
-  const gameEndpoints = ENDPOINTS[game];
+  const gameEndpoints = ENDPOINTS[endpointsKey];
   if (!gameEndpoints) {
-    console.error(`Error: No endpoints defined for game "${game}".`);
+    console.error(`Error: No endpoints defined for game "${endpointsKey}".`);
     process.exit(1);
   }
 
@@ -229,7 +279,7 @@ async function main() {
   if (!handler) {
     const available = Object.keys(gameEndpoints).join(", ");
     console.error(
-      `Error: Unknown endpoint "${endpoint}" for ${game}.\n` +
+      `Error: Unknown endpoint "${endpoint}" for ${endpointsKey}.\n` +
         `Available: ${available}`,
     );
     process.exit(1);
