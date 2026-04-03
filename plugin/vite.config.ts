@@ -75,7 +75,6 @@ export default defineConfig({
     ]),
     streamDeckReact({
       uuid: "com.fcannizzaro.hoyodeck",
-      targets,
       manifest: {
         uuid: "com.fcannizzaro.hoyodeck",
         name: "HoYo Deck",
