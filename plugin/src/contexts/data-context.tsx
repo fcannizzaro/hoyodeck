@@ -4,6 +4,7 @@ import type { GameId } from "@/types/settings";
 import type { HoyolabClient } from "@/api/hoyolab/client";
 import { dataController } from "@/services/data-controller";
 import { useAccount } from "./account-context";
+import { debug } from "@/utils/debug";
 import type {
   DataType,
   DataTypeMap,
@@ -56,16 +57,50 @@ export function DataProvider({ game, dataTypes, children }: DataProviderProps) {
   // Derive the accountId only when resolved (avoids accessing property on non-resolved union)
   const resolvedAccountId = account.status === "resolved" ? account.accountId : null;
 
+  // Track the resolved account's UID for this game. When the auth validator
+  // writes back UIDs after account creation, the accountId stays the same but
+  // the UID changes from undefined → "123456". Including this in the effect
+  // deps ensures re-registration + a fresh fetch once the UID is available.
+  const resolvedUid = account.status === "resolved" ? account.account.uids[game] : undefined;
+
   // Register / unregister with the singleton
   useEffect(() => {
     if (account.status !== "resolved") {
+      debug.log(
+        "[DataProvider]",
+        actionId,
+        "| account not resolved:",
+        account.status,
+        "| clearing entries",
+      );
       setEntries({});
       return;
     }
 
     const { accountId } = account;
 
+    debug.log(
+      "[DataProvider]",
+      actionId,
+      "| registering | account:",
+      accountId,
+      "| game:",
+      game,
+      "| uid:",
+      resolvedUid ?? "(none)",
+      "| types:",
+      dataTypes,
+    );
+
     const listener = (update: DataUpdate) => {
+      debug.log(
+        "[DataProvider]",
+        actionId,
+        "| data update:",
+        update.dataType,
+        "| status:",
+        update.entry.status,
+      );
       setEntries((prev) => ({
         ...prev,
         [update.dataType]: update.entry,
@@ -78,6 +113,7 @@ export function DataProvider({ game, dataTypes, children }: DataProviderProps) {
       dataTypes,
       listener,
       onAccountRemoved: () => {
+        debug.log("[DataProvider]", actionId, "| account removed, clearing entries");
         setEntries({});
       },
     });
@@ -89,9 +125,10 @@ export function DataProvider({ game, dataTypes, children }: DataProviderProps) {
     void dataController.requestUpdate(accountId, game);
 
     return () => {
+      debug.log("[DataProvider]", actionId, "| unregistering");
       dataController.unregister(actionId);
     };
-  }, [actionId, resolvedAccountId, dataTypesKey]);
+  }, [actionId, resolvedAccountId, resolvedUid, dataTypesKey]);
 
   const requestUpdate = useCallback(async () => {
     if (!resolvedAccountId) return;

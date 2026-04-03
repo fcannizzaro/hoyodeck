@@ -266,19 +266,18 @@ Critical rules:
 
 ## Context Provider Tree
 
-Every action root is automatically wrapped:
+Every action root is wrapped with 4 context providers (stable outermost, volatile innermost):
 
 ```
-ActionProvider
-  DeviceProvider
-    CanvasProvider
-      EventBusProvider
-        StreamDeckProvider
-          GlobalSettingsProvider
-            SettingsProvider
-              PluginWrapper (if set)
-                ActionWrapper (if set)
-                  <YourComponent />
+RootContext.Provider          ← merged: action + device + canvas + streamDeck (immutable)
+  EventBusContext.Provider    ← per-root EventBus (new instance on resume)
+    GlobalSettingsContext.Provider  ← plugin-wide settings
+      SettingsContext.Provider      ← per-action settings
+        PluginWrapper (if set)
+          ActionWrapper (if set)
+            <YourComponent />
 ```
 
-All context values except settings are set once on mount and are immutable.
+`RootContext` merges `ActionInfo`, `DeviceInfo`, `CanvasInfo`, and `StreamDeckAccess` into a single provider, eliminating 3 fiber nodes per root. For 32 active roots, this saves 96 provider fiber nodes.
+
+All context values except settings are set once on mount and are immutable. On root resume (from recycling pool), all context values are replaced with the new action's data.

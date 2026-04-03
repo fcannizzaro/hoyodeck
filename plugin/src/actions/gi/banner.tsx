@@ -76,4 +76,10 @@ export const genshinBannerAction = defineAction<BannerSettings & JsonObject>({
   uuid: "com.fcannizzaro.hoyodeck.genshin.banner",
   key: GenshinBannerKey,
   wrapper: createActionWrapper("gi", ["gi:act-calendar"]),
+  info: {
+    name: "[GI] Banner",
+    icon: "imgs/actions/gi/banner-icon",
+    tooltip: "Display current wish banner countdown",
+    states: [{ image: "imgs/actions/gi/5-star", titleAlignment: "middle" }],
+  },
 });

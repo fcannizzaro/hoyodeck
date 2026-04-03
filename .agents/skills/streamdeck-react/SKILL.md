@@ -2,7 +2,7 @@
 name: streamdeck-react
 description: >-
   Build Stream Deck plugins with React using @fcannizzaro/streamdeck-react. Use for: creating
-  action components, wiring keys/dials/touch input to React, Rollup bundling for
+  action components, wiring keys/dials/touch input to React, Vite bundling for
   Stream Deck, settings sync, shared state, and Takumi image rendering.
 ---
 
@@ -18,7 +18,7 @@ Use when the user is:
 - Asking about rendering React components on Stream Deck keys or dials, or handling touch input
 - Working with `@elgato/streamdeck` SDK in a React-based plugin
 - Implementing a custom adapter for web simulation or testing
-- Setting up Rollup bundling for a Stream Deck plugin with native Takumi bindings
+- Setting up Vite bundling for a Stream Deck plugin with native Takumi bindings
 - Scaffolding a brand new plugin and needs a sensible project template or starter example
 
 ## Architecture (5-Stage Pipeline)
@@ -54,9 +54,31 @@ When multiple roots request flushes in the same tick, the FlushCoordinator batch
 - Priority 0 (animating) → 1 (interactive) → 2 (normal) → 3 (idle)
 - Sequential execution ensures higher-priority roots get first access to the USB bus.
 
+### Root Recycling Pool
+
+When actions disappear (profile switch, page navigation), the root is **suspended** rather than destroyed — the fiber tree stays alive. When the same action type reappears, the root is **resumed** with new context data, avoiding expensive fiber root creation.
+
+- Pool key: `${actionUUID}:${canvasType}` — ensures component and surface compatibility.
+- Reduces profile switch latency from ~160-480ms to ~32-96ms on a 32-key device.
+- LRU eviction with configurable max size (default 16 entries).
+
+### Context Provider Tree
+
+Every action root uses 4 context providers (stable outermost, volatile innermost):
+
+```
+RootContext.Provider          ← merged: action + device + canvas + streamDeck (immutable)
+  EventBusContext.Provider    ← per-root EventBus (new instance on resume)
+    GlobalSettingsContext.Provider  ← plugin-wide settings
+      SettingsContext.Provider      ← per-action settings
+        PluginWrapper / ActionWrapper / <UserComponent />
+```
+
+`RootContext` merges `ActionInfo`, `DeviceInfo`, `CanvasInfo`, and `StreamDeckAccess` into a single provider, eliminating 3 fiber nodes per root. For 32 active roots, this saves 96 provider fiber nodes.
+
 ### Code-First Manifest Generation
 
-The bundler plugins (Rollup and Vite) **auto-generate** `manifest.json` from code:
+The Vite bundler plugin **auto-generates** `manifest.json` from code:
 
 - **Action metadata** is defined in `defineAction({ info: { name, icon, ... } })` — the bundler plugin auto-extracts it from the module graph at build time via AST analysis.
 - **Plugin metadata** (uuid, name, author, description, icon, version) is provided via the `manifest` option in the bundler plugin config.
@@ -111,9 +133,9 @@ my-plugin/
     actions/
       my-action.tsx     # Action component + defineAction with info
   com.example.my-plugin.sdPlugin/
-    bin/                # Rollup output goes here
+    bin/                # Vite output goes here
     imgs/               # Action and plugin icons
-  rollup.config.mjs
+  vite.config.ts
   package.json
   tsconfig.json
 ```
@@ -127,11 +149,11 @@ npm install @fcannizzaro/streamdeck-react react
 # Runtime support used by the Stream Deck SDK
 npm install ws
 
-# Build tooling (default -- esbuild)
-npm install -D rollup @rollup/plugin-node-resolve @rollup/plugin-commonjs @rollup/plugin-json rollup-plugin-esbuild
+# Build tooling
+npm install -D vite@8.0.0 @vitejs/plugin-react@6.0.1
 
-# Build tooling (with React Compiler -- replaces esbuild)
-# npm install -D rollup @rollup/plugin-node-resolve @rollup/plugin-commonjs @rollup/plugin-json @rollup/plugin-babel @babel/core @babel/preset-typescript @babel/preset-react babel-plugin-react-compiler
+# Build tooling (with React Compiler -- add on top of base)
+# npm install -D @rolldown/plugin-babel @babel/core babel-plugin-react-compiler
 
 # Types (if using TypeScript)
 npm install -D @types/react
@@ -160,8 +182,8 @@ Must use `"type": "module"`. Example:
 {
   "type": "module",
   "scripts": {
-    "build": "rollup -c",
-    "dev": "rollup -c -w"
+    "build": "vite build",
+    "dev": "vite build --watch"
   }
 }
 ```
@@ -245,37 +267,30 @@ const plugin = createPlugin({
 await plugin.connect();
 ```
 
-### Step 3: Configure Rollup
+### Step 3: Configure Vite
 
-**Default setup (esbuild)**:
+**Default setup (Oxc transforms)**:
 
-```js
-// rollup.config.mjs
+```ts
+// vite.config.ts
 import { builtinModules } from "node:module";
-import resolve from "@rollup/plugin-node-resolve";
-import commonjs from "@rollup/plugin-commonjs";
-import json from "@rollup/plugin-json";
-import esbuild from "rollup-plugin-esbuild";
-import { streamDeckReact } from "@fcannizzaro/streamdeck-react/rollup";
+import { resolve } from "node:path";
+import { defineConfig, esmExternalRequirePlugin } from "vite";
+import react from "@vitejs/plugin-react";
+import { streamDeckReact } from "@fcannizzaro/streamdeck-react/vite";
 
 const PLUGIN_DIR = "com.example.my-plugin.sdPlugin";
-const builtins = new Set(builtinModules.flatMap((m) => [m, `node:${m}`]));
+const builtins = builtinModules.flatMap((m) => [m, `node:${m}`]);
 
-export default {
-  input: "src/plugin.ts",
-  output: {
-    file: `${PLUGIN_DIR}/bin/plugin.mjs`,
-    format: "es",
-    sourcemap: true,
-    inlineDynamicImports: true,
+export default defineConfig({
+  resolve: {
+    conditions: ["node"],
   },
-  external: (id) => builtins.has(id),
   plugins: [
-    resolve({ preferBuiltins: true }),
-    commonjs(),
-    json(),
-    esbuild({ target: "node20", jsx: "automatic" }),
+    esmExternalRequirePlugin({ external: builtins }),
+    react(),
     streamDeckReact({
+      uuid: "com.example.my-plugin",
       targets: [{ platform: "darwin", arch: "arm64" }],
       manifest: {
         uuid: "com.example.my-plugin",
@@ -287,44 +302,53 @@ export default {
       },
     }),
   ],
-};
+  build: {
+    target: "node20",
+    outDir: resolve(PLUGIN_DIR, "bin"),
+    emptyOutDir: false,
+    sourcemap: true,
+    minify: false,
+    lib: {
+      entry: resolve("src/plugin.ts"),
+      formats: ["es"],
+      fileName: () => "plugin.mjs",
+    },
+    rolldownOptions: {
+      output: {
+        codeSplitting: false,
+      },
+    },
+  },
+});
 ```
 
-**With React Compiler** (replaces esbuild with Babel):
+**With React Compiler** (add Babel on top):
 
-```js
-// rollup.config.mjs
+```ts
+// vite.config.ts
 import { builtinModules } from "node:module";
-import { babel } from "@rollup/plugin-babel";
-import resolve from "@rollup/plugin-node-resolve";
-import commonjs from "@rollup/plugin-commonjs";
-import json from "@rollup/plugin-json";
-import { streamDeckReact } from "@fcannizzaro/streamdeck-react/rollup";
+import { resolve } from "node:path";
+import { defineConfig, esmExternalRequirePlugin } from "vite";
+import react, { reactCompilerPreset } from "@vitejs/plugin-react";
+import babel from "@rolldown/plugin-babel";
+import { streamDeckReact } from "@fcannizzaro/streamdeck-react/vite";
 
 const PLUGIN_DIR = "com.example.my-plugin.sdPlugin";
-const builtins = new Set(builtinModules.flatMap((m) => [m, `node:${m}`]));
+const builtins = builtinModules.flatMap((m) => [m, `node:${m}`]);
 
-export default {
-  input: "src/plugin.ts",
-  output: {
-    file: `${PLUGIN_DIR}/bin/plugin.mjs`,
-    format: "es",
-    sourcemap: true,
-    inlineDynamicImports: true,
+export default defineConfig({
+  resolve: {
+    conditions: ["node"],
   },
-  external: (id) => builtins.has(id),
   plugins: [
-    resolve({ preferBuiltins: true }),
-    commonjs(),
-    json(),
-    babel({
-      babelHelpers: "bundled",
-      extensions: [".js", ".jsx", ".ts", ".tsx"],
-      exclude: "**/node_modules/**",
-      plugins: ["babel-plugin-react-compiler"],
-      presets: ["@babel/preset-typescript", ["@babel/preset-react", { runtime: "automatic" }]],
+    esmExternalRequirePlugin({ external: builtins }),
+    react(),
+    // @ts-expect-error — @rolldown/plugin-babel types incorrectly mark inherited babel fields as required
+    await babel({
+      presets: [reactCompilerPreset()],
     }),
     streamDeckReact({
+      uuid: "com.example.my-plugin",
       targets: [{ platform: "darwin", arch: "arm64" }],
       manifest: {
         uuid: "com.example.my-plugin",
@@ -336,7 +360,24 @@ export default {
       },
     }),
   ],
-};
+  build: {
+    target: "node20",
+    outDir: resolve(PLUGIN_DIR, "bin"),
+    emptyOutDir: false,
+    sourcemap: true,
+    minify: false,
+    lib: {
+      entry: resolve("src/plugin.ts"),
+      formats: ["es"],
+      fileName: () => "plugin.mjs",
+    },
+    rolldownOptions: {
+      output: {
+        codeSplitting: false,
+      },
+    },
+  },
+});
 ```
 
 For production builds, pass explicit `targets`. In watch mode, `streamDeckReact()` can infer the current supported host target.
@@ -352,7 +393,7 @@ The `manifest.json` is **auto-generated** during the build. Action metadata come
 ### Step 5: Dev
 
 ```bash
-npx rollup -c -w
+npx vite build --watch
 ```
 
 Install the `.sdPlugin` folder in the Stream Deck app.
@@ -483,11 +524,11 @@ When scaffolding or modifying a @fcannizzaro/streamdeck-react plugin, verify:
 - [ ] At least one font is loaded via `googleFont()` or manual `readFile` and passed to `createPlugin()`
 - [ ] Every `defineAction()` has `info: { name, icon }` for manifest generation
 - [ ] Every `defineAction()` UUID starts with the plugin UUID prefix
-- [ ] `rollup.config.mjs` or `vite.config.ts` includes `streamDeckReact({ manifest: { uuid, name, author, ... } })`
+- [ ] `vite.config.ts` includes `streamDeckReact({ manifest: { uuid, name, author, ... } })`
 - [ ] `streamDeckReact({ targets })` is set for production builds
 - [ ] Encoder actions have `info.encoder` with layout and triggerDescription
 - [ ] `plugin.connect()` is called after `createPlugin()`
-- [ ] Build completes without errors: `npx rollup -c`
+- [ ] Build completes without errors: `npx vite build`
 - [ ] `manifest.json` is auto-generated in the `.sdPlugin` directory after build
 - [ ] If React Compiler is enabled: output bundle contains `react.memo_cache_sentinel` (proof compiler is active)
 
@@ -538,6 +579,6 @@ const plugin = createPlugin({
 - [references/plugin-setup.md](references/plugin-setup.md) -- `createPlugin` and `defineAction` details
 - [references/hooks.md](references/hooks.md) -- All hooks with signatures and payloads
 - [references/components.md](references/components.md) -- Component props tables
-- [references/bundling.md](references/bundling.md) -- Rollup/Rolldown config and native binding details
+- [references/bundling.md](references/bundling.md) -- Vite config and native binding details
 - [references/device-sizes.md](references/device-sizes.md) -- Key/encoder/touch dimensions per device
 - [references/limitations.md](references/limitations.md) -- Styling constraints and known limitations

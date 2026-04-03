@@ -5,6 +5,9 @@ import { registerAuthValidator } from "@/services/auth-validator";
 import { registerLoginHandler } from "@/services/hoyolab-login";
 import { dataController } from "@/services/data-controller";
 
+// Import plugin-level wrapper (provides QueryClientProvider to all action roots)
+import { PluginWrapper } from "@/contexts/plugin-wrapper.tsx";
+
 // Import React actions — Genshin Impact
 import { genshinBannerAction } from "./actions/gi/banner.tsx";
 import { resinAction } from "./actions/gi/resin.tsx";
@@ -43,6 +46,7 @@ dataController.init();
 // Create plugin with React renderer
 const plugin = createPlugin({
   devtools: true,
+  wrapper: PluginWrapper,
   fonts: [
     {
       name: "Inter",

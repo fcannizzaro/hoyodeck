@@ -10,7 +10,7 @@ interface CacheEntry<T> {
  * Simple in-memory cache with TTL support
  * Used to reduce API rate limiting by caching responses
  */
-export class CacheService {
+class CacheService {
   private readonly cache = new Map<string, CacheEntry<unknown>>();
 
   /**

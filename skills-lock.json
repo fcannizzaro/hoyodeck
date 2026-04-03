@@ -6,10 +6,15 @@
       "sourceType": "github",
       "computedHash": "063a0e6448123cd359ad0044cc46b0e490cc7964d45ef4bb9fd842bd2ffbca67"
     },
+    "lazy-load-bindings": {
+      "source": "fcannizzaro/streamdeck-skills",
+      "sourceType": "github",
+      "computedHash": "b84588286643cb4029852479306612dfdc70311af311ecd9a4737b5da2a7a973"
+    },
     "streamdeck-react": {
       "source": "fcannizzaro/streamdeck-react",
       "sourceType": "github",
-      "computedHash": "fdfb4f3c4a6ba75af435278b16be9da1b126b4aa82c4d7726db37345767e1fa9"
+      "computedHash": "0ad389dd1273594e671c1207f1783cbf63bd8e237f816e7b145de71b6b1a8978"
     }
   }
 }

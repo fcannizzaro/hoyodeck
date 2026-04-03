@@ -40,6 +40,7 @@ Each action instance gets its own isolated React root:
 
 - **Cost**: memory scales linearly with visible action count; no shared React state between roots by default.
 - **Benefit**: complete isolation, no cross-instance bugs, clean lifecycle.
+- **Recycling**: when actions disappear (profile switch, page navigation), roots are suspended and pooled rather than destroyed. Reappearing actions reuse suspended roots, reducing mount cost from ~5-15ms to ~1-3ms per key.
 
 Use external state managers (Zustand, Jotai) or the wrapper API to share state across roots.
 

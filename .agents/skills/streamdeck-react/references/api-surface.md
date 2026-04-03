@@ -126,26 +126,11 @@ Complete public API exported from `@fcannizzaro/streamdeck-react`.
 | ------ | ----------------------------------------------------------------------- | ----------------------------------------- |
 | `tw`   | `(...args: Array<string \| false \| null \| undefined \| 0>) => string` | Class string concatenation (like `clsx`). |
 
-## Rollup Helpers (from `@fcannizzaro/streamdeck-react/rollup`)
-
-| Export                      | Description                                                                                                 |
-| --------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| `streamDeckReact(options?)` | Rollup plugin that copies the selected `@takumi-rs/core` native `.node` binaries into the output directory. |
-
-### Rollup Types
-
-| Export                    | Description                                   |
-| ------------------------- | --------------------------------------------- |
-| `StreamDeckTargetOptions` | Rollup helper options with a `targets` array and optional `takumi` backend. |
-| `StreamDeckTarget`        | One native copy target: `{ platform, arch }`. |
-| `StreamDeckPlatform`      | `'darwin' \| 'win32'`.                        |
-| `StreamDeckArch`          | `'arm64' \| 'x64'`.                           |
-
 ## Vite Helpers (from `@fcannizzaro/streamdeck-react/vite`)
 
 | Export                      | Description                                                                                                                                |
 | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| `streamDeckReact(options?)` | Vite plugin. Same native binary copying as Rollup, plus optional `uuid` for auto-restart via `streamdeck restart <uuid>` after each build. |
+| `streamDeckReact(options?)` | Vite plugin. Handles native binary copying, manifest generation, and optional plugin restart via `streamdeck restart <uuid>` after each build. |
 
 ### Vite Types
 

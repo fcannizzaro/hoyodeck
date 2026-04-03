@@ -63,4 +63,10 @@ export const batteryChargeAction = defineAction<ZZZActionSettings & JsonObject>(
   uuid: "com.fcannizzaro.hoyodeck.zzz.battery-charge",
   key: BatteryChargeKey,
   wrapper: createActionWrapper(GAME, ["zzz:daily-note"]),
+  info: {
+    name: "[ZZZ] Battery Charge",
+    icon: "imgs/actions/zzz/battery-recharge-icon",
+    tooltip: "Display and refresh Battery Charge",
+    states: [{ image: "imgs/actions/zzz/battery-recharge-state", titleAlignment: "middle" }],
+  },
 });

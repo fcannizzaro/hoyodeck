@@ -1,9 +1,9 @@
-import { builtinModules, createRequire } from "node:module";
-import { copyFileSync, existsSync } from "node:fs";
-import { dirname, join, resolve } from "node:path";
-import { defineConfig, esmExternalRequirePlugin, type Plugin } from "vite";
+import { builtinModules } from "node:module";
+import { resolve } from "node:path";
+import { defineConfig, esmExternalRequirePlugin } from "vite";
 import react from "@vitejs/plugin-react";
 import { streamDeckReact } from "@fcannizzaro/streamdeck-react/vite";
+import { lazyLoadBindings } from "./vite-plugin-lazy-load-bindings";
 
 const PLUGIN_DIR = "com.fcannizzaro.hoyodeck.sdPlugin";
 const builtins = builtinModules.flatMap((m) => [m, `node:${m}`]);
@@ -15,113 +15,6 @@ const targets: { platform: "darwin" | "win32"; arch: "arm64" | "x64" }[] = [
   { platform: "darwin", arch: "arm64" },
   { platform: "win32", arch: "x64" },
 ];
-
-// ─── @nativewindow/webview native binding support ─────────────────
-
-/** Maps each build target to the @nativewindow platform package + .node filename. */
-const NATIVEWINDOW_BINDINGS: Record<string, { pkg: string; file: string }> = {
-  "darwin-arm64": { pkg: "@nativewindow/webview-darwin-arm64", file: "native-window.darwin-arm64.node" },
-  "darwin-x64": { pkg: "@nativewindow/webview-darwin-x64", file: "native-window.darwin-x64.node" },
-  "win32-x64": { pkg: "@nativewindow/webview-win32-x64-msvc", file: "native-window.win32-x64-msvc.node" },
-  "win32-arm64": { pkg: "@nativewindow/webview-win32-arm64-msvc", file: "native-window.win32-arm64-msvc.node" },
-};
-
-const NATIVEWINDOW_LOADER_ID = "\0nativewindow:native-loader";
-
-/** Virtual module that replaces @nativewindow/webview's native-window.js loader at bundle time. */
-const NATIVEWINDOW_LOADER_CODE = `
-import { createRequire } from "node:module";
-const require = createRequire(import.meta.url);
-let binding = null;
-if (process.platform === "darwin") {
-  if (process.arch === "arm64") {
-    try { binding = require("./native-window.darwin-arm64.node"); } catch {}
-  } else if (process.arch === "x64") {
-    try { binding = require("./native-window.darwin-x64.node"); } catch {}
-  }
-} else if (process.platform === "win32") {
-  if (process.arch === "x64") {
-    try { binding = require("./native-window.win32-x64-msvc.node"); } catch {}
-  } else if (process.arch === "arm64") {
-    try { binding = require("./native-window.win32-arm64-msvc.node"); } catch {}
-  }
-}
-if (!binding) {
-  throw new Error(
-    "[@nativewindow/webview] Failed to load native binding for " +
-    process.platform + "-" + process.arch
-  );
-}
-export const { NativeWindow, init, pumpEvents, checkRuntime, ensureRuntime, loadHtmlOrigin } = binding;
-`.trim();
-
-/**
- * Vite plugin that handles @nativewindow/webview native bindings.
- *
- * - Replaces the native-window.js loader with a virtual module that
- *   loads .node files relative to the bundle output (same pattern as
- *   @takumi-rs/core in streamdeck-react).
- * - Copies platform-specific .node files to the output directory
- *   for each entry in {@link targets}.
- */
-function nativewindowPlugin(): Plugin {
-  let outDir = "";
-
-  return {
-    name: "nativewindow-bindings",
-    apply: "build",
-    enforce: "pre",
-
-    configResolved(config) {
-      outDir = resolve(config.root, config.build.outDir);
-    },
-
-    resolveId(source, importer) {
-      // Intercept the native-window.js import from @nativewindow/webview/dist/index.js
-      if (source === "../native-window.js" && importer?.includes("@nativewindow/webview")) {
-        return NATIVEWINDOW_LOADER_ID;
-      }
-    },
-
-    load(id) {
-      if (id === NATIVEWINDOW_LOADER_ID) {
-        return NATIVEWINDOW_LOADER_CODE;
-      }
-    },
-
-    writeBundle() {
-      const require = createRequire(import.meta.url);
-      const copied: string[] = [];
-      const missing: string[] = [];
-
-      for (const { platform, arch } of targets) {
-        const binding = NATIVEWINDOW_BINDINGS[`${platform}-${arch}`];
-        if (!binding) continue;
-
-        try {
-          const pkgEntry = require.resolve(`${binding.pkg}/package.json`);
-          const src = join(dirname(pkgEntry), binding.file);
-          if (!existsSync(src)) {
-            missing.push(binding.file);
-            continue;
-          }
-          copyFileSync(src, join(outDir, binding.file));
-          copied.push(binding.file);
-        } catch {
-          missing.push(binding.file);
-        }
-      }
-
-      if (missing.length > 0) {
-        console.warn(`[nativewindow] Missing native bindings: ${missing.join(", ")}`);
-      }
-
-      if (copied.length > 0) {
-        console.log(`[nativewindow] Copied ${copied.join(", ")} -> ${outDir}`);
-      }
-    },
-  };
-}
 
 // ─── Vite config ──────────────────────────────────────────────────
 
@@ -137,10 +30,64 @@ export default defineConfig({
   plugins: [
     esmExternalRequirePlugin({ external: builtins }),
     react(),
-    nativewindowPlugin(),
+    ...lazyLoadBindings([
+      {
+        source: "@takumi-rs/core",
+        package: "@takumi-rs/core",
+        scope: "@takumi-rs",
+        bindings: {
+          "darwin-arm64": { pkg: "core-darwin-arm64", file: "core.darwin-arm64.node" },
+          "darwin-x64": { pkg: "core-darwin-x64", file: "core.darwin-x64.node" },
+          "win32-x64": { pkg: "core-win32-x64-msvc", file: "core.win32-x64-msvc.node" },
+          "win32-arm64": { pkg: "core-win32-arm64-msvc", file: "core.win32-arm64-msvc.node" },
+        },
+        exports: [
+          "Renderer",
+          "OutputFormat",
+          "DitheringAlgorithm",
+          "AnimationOutputFormat",
+          "extractResourceUrls",
+        ],
+      },
+      {
+        source: "../native-window.js",
+        importer: "@nativewindow/webview",
+        package: "@nativewindow/webview",
+        scope: "@nativewindow",
+        bindings: {
+          "darwin-arm64": { pkg: "webview-darwin-arm64", file: "native-window.darwin-arm64.node" },
+          "darwin-x64": { pkg: "webview-darwin-x64", file: "native-window.darwin-x64.node" },
+          "win32-x64": { pkg: "webview-win32-x64-msvc", file: "native-window.win32-x64-msvc.node" },
+          "win32-arm64": {
+            pkg: "webview-win32-arm64-msvc",
+            file: "native-window.win32-arm64-msvc.node",
+          },
+        },
+        exports: [
+          "NativeWindow",
+          "init",
+          "pumpEvents",
+          "checkRuntime",
+          "ensureRuntime",
+          "loadHtmlOrigin",
+        ],
+      },
+    ]),
     streamDeckReact({
       uuid: "com.fcannizzaro.hoyodeck",
       targets,
+      manifest: {
+        uuid: "com.fcannizzaro.hoyodeck",
+        name: "HoYo Deck",
+        author: "fcannizzaro",
+        description:
+          "HoYoverse games utilities for Stream Deck (Genshin Impact, Honkai: Star Rail and Zenless Zone Zero)",
+        icon: "imgs/plugin/icon",
+        version: "1.0.0.0",
+        category: "HoYo Deck",
+        categoryIcon: "imgs/plugin/category",
+        propertyInspectorPath: "ui/index.html",
+      },
     }),
   ],
   build: {

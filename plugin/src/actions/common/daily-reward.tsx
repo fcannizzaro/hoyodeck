@@ -1,18 +1,14 @@
 import { useState, useEffect } from "react";
 import { defineAction, useKeyDown, useSettings } from "@fcannizzaro/streamdeck-react";
-import { QueryClientProvider } from "@tanstack/react-query";
 import type { JsonObject } from "@elgato/utils";
 import type { DailyRewardSettings, GameId } from "@/types/settings";
-import { useAccount } from "@/contexts/account-context";
-import { useData } from "@/contexts/data-context";
+import { useAccount, AccountProvider } from "@/contexts/account-context";
+import { useData, DataProvider } from "@/contexts/data-context";
 import { HoyolabApiError } from "@/api/types/common";
 import { fetchImageAsDataUri, readLocalImageAsDataUri } from "@/utils/image";
 import { PlaceholderKey } from "@/components/placeholder-key";
 import { Badge } from "@/components/badge";
 import type { DataType, CheckInData } from "@/services/data-controller.types";
-import { AccountProvider } from "@/contexts/account-context";
-import { DataProvider } from "@/contexts/data-context";
-import { queryClient } from "@/services/query-client";
 
 const GAME_BACKGROUNDS: Record<GameId, string> = {
   gi: "imgs/actions/gi/daily.png",
@@ -137,7 +133,9 @@ function DailyRewardKey() {
 
 /**
  * Custom wrapper for Daily Reward — supports multi-game via settings.game.
+ *
  * The game used for account resolution is dynamic based on per-action settings.
+ * QueryClientProvider is provided at the plugin level.
  */
 function DailyRewardWrapper({ children }: { children?: React.ReactNode }) {
   const [settings] = useSettings<DailyRewardSettings & JsonObject>();
@@ -145,13 +143,11 @@ function DailyRewardWrapper({ children }: { children?: React.ReactNode }) {
   const dataType = `${game}:check-in` as DataType;
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <AccountProvider game={game}>
-        <DataProvider game={game} dataTypes={[dataType]}>
-          {children}
-        </DataProvider>
-      </AccountProvider>
-    </QueryClientProvider>
+    <AccountProvider game={game}>
+      <DataProvider game={game} dataTypes={[dataType]}>
+        {children}
+      </DataProvider>
+    </AccountProvider>
   );
 }
 
@@ -159,4 +155,10 @@ export const dailyRewardAction = defineAction<DailyRewardSettings & JsonObject>(
   uuid: "com.fcannizzaro.hoyodeck.genshin.daily-reward",
   key: DailyRewardKey,
   wrapper: DailyRewardWrapper,
+  info: {
+    name: "Daily Reward",
+    icon: "imgs/actions/gi/reward-icon",
+    tooltip: "View and claim HoYoLAB daily check-in reward",
+    states: [{ image: "imgs/actions/gi/reward-state", titleAlignment: "middle" }],
+  },
 });

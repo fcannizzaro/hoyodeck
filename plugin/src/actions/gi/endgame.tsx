@@ -99,4 +99,10 @@ export const genshinEndgameAction = defineAction<GenshinEndgameSettings & JsonOb
     "gi:imaginarium-theater",
     "gi:stygian-onslaught",
   ]),
+  info: {
+    name: "[GI] Endgame",
+    icon: "imgs/actions/common/endgame-icon",
+    tooltip: "Display Spiral Abyss, Imaginarium Theater, or Stygian Onslaught progress",
+    states: [{ image: "imgs/actions/gi/5-star", titleAlignment: "middle" }],
+  },
 });

@@ -63,4 +63,10 @@ export const resinAction = defineAction<GenshinActionSettings & JsonObject>({
   uuid: "com.fcannizzaro.hoyodeck.genshin.resin",
   key: ResinKey,
   wrapper: createActionWrapper(GAME, ["gi:daily-note"]),
+  info: {
+    name: "[GI] Resin",
+    icon: "imgs/actions/gi/resin-icon",
+    tooltip: "Display and refresh Original Resin",
+    states: [{ image: "imgs/actions/gi/3-star", titleAlignment: "middle" }],
+  },
 });

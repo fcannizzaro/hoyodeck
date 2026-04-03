@@ -1,13 +1,14 @@
-import { QueryClientProvider } from "@tanstack/react-query";
 import type { GameId } from "@/types/settings";
 import type { DataType } from "@/services/data-controller.types";
-import { queryClient } from "@/services/query-client";
 import { AccountProvider } from "./account-context";
 import { DataProvider } from "./data-context";
 
 /**
- * Creates a per-action wrapper that provides QueryClientProvider +
- * AccountProvider + DataProvider configured for a specific game and data types.
+ * Creates a per-action wrapper that provides AccountProvider + DataProvider
+ * configured for a specific game and data types.
+ *
+ * QueryClientProvider is provided at the plugin level (see plugin-wrapper.tsx),
+ * so individual actions don't need to compose it.
  *
  * Used with `defineAction({ wrapper })` so each action root gets the
  * correct context tree without manual provider composition.
@@ -24,13 +25,11 @@ import { DataProvider } from "./data-context";
 export function createActionWrapper(game: GameId, dataTypes: DataType[]) {
   return function ActionWrapper({ children }: { children?: React.ReactNode }) {
     return (
-      <QueryClientProvider client={queryClient}>
-        <AccountProvider game={game}>
-          <DataProvider game={game} dataTypes={dataTypes}>
-            {children}
-          </DataProvider>
-        </AccountProvider>
-      </QueryClientProvider>
+      <AccountProvider game={game}>
+        <DataProvider game={game} dataTypes={dataTypes}>
+          {children}
+        </DataProvider>
+      </AccountProvider>
     );
   };
 }

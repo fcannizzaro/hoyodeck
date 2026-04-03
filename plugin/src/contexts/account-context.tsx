@@ -1,20 +1,66 @@
 import { createContext, useContext, useMemo, useRef } from "react";
-import { useSettings, useGlobalSettings } from "@fcannizzaro/streamdeck-react";
+import { useSettings, useGlobalSettings, useAction } from "@fcannizzaro/streamdeck-react";
 import type { JsonObject } from "@elgato/utils";
 import type { AccountId, GlobalSettings, HoyoAccount, GameId } from "@/types/settings";
-import { pickAccountFromGlobal } from "@/services/account-picker";
+import { debug } from "@/utils/debug";
 
-// ─── Context Value ────────────────────────────────────────────────
+// ─── Account Pick ─────────────────────────────────────────────────
 
 /**
  * Discriminated union representing the current account resolution state.
- * Mirrors `AccountPickResult` but uses `status` for consistency with `DataEntry`.
+ *
+ * - `resolved`    -- account found and ready to use
+ * - `no-accounts` -- no accounts configured at all
+ * - `no-uid`      -- accounts exist but none has a UID for this game
+ * - `ambiguous`   -- 2+ accounts match, user must choose
  */
 export type AccountContextValue =
   | { status: "resolved"; account: HoyoAccount; accountId: AccountId }
   | { status: "no-accounts" }
   | { status: "no-uid" }
   | { status: "ambiguous" };
+
+/**
+ * Deterministic account pick (pure function).
+ *
+ * 1. 0 accounts total -> `no-accounts`
+ * 2. `accountId` provided + account exists -> `resolved`
+ * 3. 1 account with game UID -> `resolved` (auto-select)
+ * 4. 2+ accounts with game UID -> `ambiguous`
+ * 5. Accounts exist but none has this game's UID -> `no-uid`
+ */
+function pickAccount(
+  accountId: AccountId | undefined,
+  globalSettings: GlobalSettings,
+  game: GameId,
+): AccountContextValue {
+  const accounts = globalSettings.accounts ?? {};
+  const allAccounts = Object.values(accounts);
+
+  if (allAccounts.length === 0) {
+    return { status: "no-accounts" };
+  }
+
+  if (accountId) {
+    const account = accounts[accountId];
+    if (account) {
+      return { status: "resolved", account, accountId };
+    }
+  }
+
+  const candidates = allAccounts.filter((a) => a.uids[game] !== undefined);
+
+  if (candidates.length === 0) {
+    return { status: "no-uid" };
+  }
+
+  if (candidates.length === 1) {
+    const account = candidates[0]!;
+    return { status: "resolved", account, accountId: account.id };
+  }
+
+  return { status: "ambiguous" };
+}
 
 // ─── Context ──────────────────────────────────────────────────────
 
@@ -39,31 +85,76 @@ interface AccountProviderProps {
  * GlobalSettingsProvider (which the plugin wrapper position guarantees).
  */
 export function AccountProvider({ game, children }: AccountProviderProps) {
+  const { id: actionId } = useAction();
   const [settings, setSettings] = useSettings<{ accountId?: AccountId } & JsonObject>();
   const [globalSettings] = useGlobalSettings<GlobalSettings & JsonObject>();
 
   // Track whether we already auto-persisted to avoid repeated writes
   const autoPersistedRef = useRef<AccountId | undefined>(undefined);
+  const prevStatusRef = useRef<string | undefined>(undefined);
 
   const value = useMemo<AccountContextValue>(() => {
-    const result = pickAccountFromGlobal(settings.accountId, globalSettings, game);
+    const accounts = globalSettings.accounts ?? {};
+    const accountCount = Object.keys(accounts).length;
+    const result = pickAccount(settings.accountId, globalSettings, game);
 
-    if (result.kind !== "resolved") {
+    debug.log(
+      "[AccountProvider]",
+      actionId,
+      "| game:",
+      game,
+      "| pick:",
+      result.status,
+      "| accountId in settings:",
+      settings.accountId ?? "(none)",
+      "| accounts:",
+      accountCount,
+      "| uids:",
+      Object.fromEntries(Object.entries(accounts).map(([id, a]) => [id, Object.keys(a.uids)])),
+    );
+
+    if (result.status !== "resolved") {
       // Reset auto-persist tracking when account is no longer resolved
       autoPersistedRef.current = undefined;
-      return { status: result.kind };
+
+      if (prevStatusRef.current !== result.status) {
+        debug.log(
+          "[AccountProvider]",
+          actionId,
+          "| status changed:",
+          prevStatusRef.current,
+          "→",
+          result.status,
+        );
+        prevStatusRef.current = result.status;
+      }
+
+      return result;
     }
 
     const { account } = result;
 
     // Auto-persist accountId when auto-selected (single candidate, no stored id)
     if (!settings.accountId && account.id && autoPersistedRef.current !== account.id) {
+      debug.log("[AccountProvider]", actionId, "| auto-persisting accountId:", account.id);
       autoPersistedRef.current = account.id;
       setSettings({ accountId: account.id });
     }
 
-    return { status: "resolved", account, accountId: account.id };
-  }, [settings.accountId, globalSettings.accounts, game]);
+    if (prevStatusRef.current !== "resolved") {
+      debug.log(
+        "[AccountProvider]",
+        actionId,
+        "| status changed:",
+        prevStatusRef.current,
+        "→ resolved | account:",
+        account.id,
+      );
+      prevStatusRef.current = "resolved";
+    }
+
+    return result;
+  }, [settings.accountId, globalSettings, game]);
 
   return <AccountContext.Provider value={value}>{children}</AccountContext.Provider>;
 }

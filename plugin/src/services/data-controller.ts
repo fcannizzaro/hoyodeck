@@ -73,6 +73,14 @@ class DataControllerImpl {
   /** In-flight fetch promises for request deduplication, keyed by `${accountId}:${game}` */
   private readonly inflight = new Map<string, Promise<void>>();
 
+  // ─── React Global Settings Bridge ─────────────────────────────────
+  /**
+   * Writers registered by React roots (PluginWrapper) to bridge
+   * non-React global settings writes through the framework's hook setter.
+   * Any one writer is sufficient — the framework propagates to all roots.
+   */
+  private readonly globalSettingsWriters = new Set<(settings: GlobalSettings) => void>();
+
   // ─── Global Settings Diffing ────────────────────────────────────
   /** Previous accounts snapshot for diffing */
   private previousAccounts: Record<AccountId, HoyoAccount> | undefined;
@@ -109,6 +117,45 @@ class DataControllerImpl {
    */
   getCachedGlobalSettings(): GlobalSettings | null {
     return this.cachedSettings;
+  }
+
+  /**
+   * Register a React-side global settings writer.
+   *
+   * Called from PluginWrapper so that non-React code (auth-validator,
+   * login handler) can write global settings through the framework's
+   * `useGlobalSettings` setter, ensuring all action roots re-render.
+   *
+   * Returns an unsubscribe function for cleanup.
+   */
+  registerGlobalSettingsWriter(writer: (settings: GlobalSettings) => void): () => void {
+    this.globalSettingsWriters.add(writer);
+    return () => {
+      this.globalSettingsWriters.delete(writer);
+    };
+  }
+
+  /**
+   * Write global settings, routing through the framework when available.
+   *
+   * Non-React code (auth-validator, login handler, invalidateAuthIfNeeded)
+   * should call this instead of `streamDeck.settings.setGlobalSettings()`
+   * directly. When a React writer is registered, the write goes through
+   * the framework's hook setter so all action roots re-render. Falls
+   * back to the raw SDK call during early startup (before React mounts).
+   */
+  async writeGlobalSettings(settings: GlobalSettings): Promise<void> {
+    // Update the local cache immediately
+    this.cachedSettings = settings;
+
+    const writer = this.globalSettingsWriters.values().next().value;
+    if (writer) {
+      debug.log("[DataController] writeGlobalSettings | via React bridge");
+      writer(settings);
+    } else {
+      debug.log("[DataController] writeGlobalSettings | via raw SDK (no React bridge)");
+      await streamDeck.settings.setGlobalSettings(toJsonObject(settings));
+    }
   }
 
   /**
@@ -620,15 +667,13 @@ class DataControllerImpl {
     const account = globalSettings.accounts?.[accountId];
     if (!account || account.authStatus === "invalid") return;
 
-    await streamDeck.settings.setGlobalSettings(
-      toJsonObject({
-        ...globalSettings,
-        accounts: {
-          ...globalSettings.accounts,
-          [accountId]: { ...account, authStatus: "invalid" },
-        },
-      }),
-    );
+    await this.writeGlobalSettings({
+      ...globalSettings,
+      accounts: {
+        ...globalSettings.accounts,
+        [accountId]: { ...account, authStatus: "invalid" },
+      },
+    });
   }
 
   /**

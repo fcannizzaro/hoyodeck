@@ -84,7 +84,7 @@ export interface DataUpdate<T extends DataType = DataType> {
 }
 
 /** Callback signature for data subscribers */
-export type DataListener = (update: DataUpdate) => void;
+type DataListener = (update: DataUpdate) => void;
 
 /** Registration info tracked per visible action instance */
 export interface ActionRegistration {

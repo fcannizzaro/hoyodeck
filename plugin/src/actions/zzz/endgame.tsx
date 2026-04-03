@@ -67,4 +67,10 @@ export const zzzEndgameAction = defineAction<ZZZEndgameSettings & JsonObject>({
   uuid: "com.fcannizzaro.hoyodeck.zzz.endgame",
   key: ZZZEndgameKey,
   wrapper: createActionWrapper("zzz", ["zzz:shiyu-defense", "zzz:deadly-assault"]),
+  info: {
+    name: "[ZZZ] Endgame",
+    icon: "imgs/actions/common/endgame-icon",
+    tooltip: "Display Shiyu Defense or Deadly Assault progress",
+    states: [{ image: "imgs/actions/zzz/5-star", titleAlignment: "middle" }],
+  },
 });

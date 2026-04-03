@@ -3,9 +3,10 @@ import type { JsonObject } from "@elgato/utils";
 import { HoyolabClient } from "@/api/hoyolab/client";
 import { isValidAuth } from "@/api/hoyolab/auth";
 import type { GlobalSettings, HoyoAuth } from "@/types/settings";
-import { toJsonObject } from "@/types/settings";
 import type { GameId } from "@/types/games";
 import { HOYOLAB_GAME_IDS } from "@/api/types/game-record";
+import { dataController } from "@/services/data-controller";
+import { debug } from "@/utils/debug";
 
 /**
  * Listens for pendingValidation in global settings and validates auth.
@@ -15,6 +16,7 @@ export function registerAuthValidator(): void {
   streamDeck.settings.onDidReceiveGlobalSettings<JsonObject>((ev) => {
     const settings = ev.settings as unknown as GlobalSettings;
     if (!settings.pendingValidation) return;
+    debug.log("[AuthValidator] pendingValidation detected:", settings.pendingValidation);
     void validateAccount(settings);
   });
 }
@@ -28,9 +30,8 @@ async function validateAccount(settings: GlobalSettings): Promise<void> {
 
   if (!account) {
     // Account was deleted before validation ran — just clear the flag
-    await streamDeck.settings.setGlobalSettings(
-      toJsonObject({ ...settings, pendingValidation: undefined }),
-    );
+    debug.log("[AuthValidator] account not found, clearing pendingValidation");
+    await dataController.writeGlobalSettings({ ...settings, pendingValidation: undefined });
     return;
   }
 
@@ -40,18 +41,24 @@ async function validateAccount(settings: GlobalSettings): Promise<void> {
 
   if (isValidAuth(account.auth)) {
     try {
+      debug.log("[AuthValidator] validating auth for:", accountId);
       const client = new HoyolabClient(account.auth as HoyoAuth);
       // Lightweight call that requires valid auth but no UID
       await client.getCheckInInfo("gi");
       authStatus = "valid";
+      debug.log("[AuthValidator] auth valid, fetching game roles...");
 
       // Auto-fetch game UIDs and nicknames
       const roles = await fetchGameRoles(client, account.auth as HoyoAuth);
       uids = roles.uids;
       nicknames = roles.nicknames;
-    } catch {
+      debug.log("[AuthValidator] game roles fetched | uids:", uids, "| nicknames:", nicknames);
+    } catch (error) {
       authStatus = "invalid";
+      debug.log("[AuthValidator] auth validation failed:", error);
     }
+  } else {
+    debug.log("[AuthValidator] auth cookies incomplete for:", accountId);
   }
 
   // Write result back — update the account's status, UIDs, and clear pending flag
@@ -65,13 +72,22 @@ async function validateAccount(settings: GlobalSettings): Promise<void> {
     },
   };
 
-  await streamDeck.settings.setGlobalSettings(
-    toJsonObject({
-      ...settings,
-      accounts: updatedAccounts,
-      pendingValidation: undefined,
-    }),
+  debug.log(
+    "[AuthValidator] writing back | account:",
+    accountId,
+    "| authStatus:",
+    authStatus,
+    "| uids:",
+    uids,
   );
+
+  await dataController.writeGlobalSettings({
+    ...settings,
+    accounts: updatedAccounts,
+    pendingValidation: undefined,
+  });
+
+  debug.log("[AuthValidator] globalSettings written successfully");
 }
 
 /**

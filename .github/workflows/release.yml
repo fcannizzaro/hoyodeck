@@ -1,0 +1,49 @@
+name: Release Plugin
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24.x"
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Build
+        run: bun run build
+
+      - name: Pack Stream Deck plugin
+        working-directory: plugin
+        run: bun streamdeck pack com.fcannizzaro.hoyodeck.sdPlugin
+
+      - name: Verify plugin file
+        run: test -f plugin/com.fcannizzaro.hoyodeck.streamDeckPlugin
+
+      - name: Get version
+        id: version
+        run: echo "version=$(jq -r .Version com.fcannizzaro.hoyodeck.sdPlugin/manifest.json)" >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "v${{ steps.version.outputs.version }}" \
+            plugin/com.fcannizzaro.hoyodeck.streamDeckPlugin \
+            --title "v${{ steps.version.outputs.version }}" \
+            --latest \
+            --generate-notes

@@ -107,4 +107,10 @@ export const commissionAction = defineAction<GenshinActionSettings & JsonObject>
   uuid: "com.fcannizzaro.hoyodeck.genshin.commission",
   key: CommissionKey,
   wrapper: createActionWrapper(GAME, ["gi:daily-note"]),
+  info: {
+    name: "[GI] Commissions",
+    icon: "imgs/actions/gi/commissions-icon",
+    tooltip: "Display remaining daily commissions",
+    states: [{ image: "imgs/actions/gi/commissions-bg", titleAlignment: "middle" }],
+  },
 });

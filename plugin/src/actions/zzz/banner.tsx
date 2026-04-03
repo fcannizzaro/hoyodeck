@@ -77,4 +77,10 @@ export const zzzBannerAction = defineAction<ZZZBannerSettings & JsonObject>({
   uuid: "com.fcannizzaro.hoyodeck.zzz.banner",
   key: ZZZBannerKey,
   wrapper: createActionWrapper("zzz", ["zzz:gacha-calendar"]),
+  info: {
+    name: "[ZZZ] Banner",
+    icon: "imgs/actions/zzz/banner-icon",
+    tooltip: "Display current Signal Search banner countdown",
+    states: [{ image: "imgs/actions/zzz/5-star", titleAlignment: "middle" }],
+  },
 });

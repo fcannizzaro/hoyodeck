@@ -70,4 +70,13 @@ export const transformerAction = defineAction<TransformerSettings & JsonObject>(
   uuid: "com.fcannizzaro.hoyodeck.genshin.transformer",
   key: TransformerKey,
   wrapper: createActionWrapper(GAME, ["gi:daily-note"]),
+  info: {
+    name: "[GI] Transformer",
+    icon: "imgs/actions/gi/transformerIcon",
+    tooltip: "Display Parametric Transformer cooldown",
+    states: [
+      { image: "imgs/actions/gi/transformerState", titleAlignment: "middle" },
+      { image: "imgs/actions/gi/transformerReadyState", titleAlignment: "middle", name: "Ready" },
+    ],
+  },
 });

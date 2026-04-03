@@ -80,4 +80,10 @@ export const starRailBannerAction = defineAction<StarRailBannerSettings & JsonOb
   uuid: "com.fcannizzaro.hoyodeck.hsr.banner",
   key: StarRailBannerKey,
   wrapper: createActionWrapper("hsr", ["hsr:act-calendar"]),
+  info: {
+    name: "[HSR] Banner",
+    icon: "imgs/actions/hsr/banner-icon",
+    tooltip: "Display current warp banner countdown",
+    states: [{ image: "imgs/actions/hsr/5-star", titleAlignment: "middle" }],
+  },
 });

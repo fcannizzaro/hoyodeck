@@ -9,7 +9,6 @@ export type {
   GameId,
   BannerBadgeOptions,
   GlobalSettings,
-  GameActionSettings,
   GenshinActionSettings,
   GenshinEndgameSettings,
   BannerSettings,

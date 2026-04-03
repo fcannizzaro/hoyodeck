@@ -89,4 +89,10 @@ export const starRailEndgameAction = defineAction<StarRailEndgameSettings & Json
     "hsr:apocalyptic-shadow",
     "hsr:anomaly-arbitration",
   ]),
+  info: {
+    name: "[HSR] Endgame",
+    icon: "imgs/actions/common/endgame-icon",
+    tooltip: "Display Memory of Chaos, Pure Fiction, or Apocalyptic Shadow progress",
+    states: [{ image: "imgs/actions/hsr/5-star", titleAlignment: "middle" }],
+  },
 });

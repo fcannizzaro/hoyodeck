@@ -1,7 +1,6 @@
 import streamDeck from "@elgato/streamdeck";
 import type { JsonObject } from "@elgato/utils";
 import type { GlobalSettings } from "@/types/settings";
-import { toJsonObject } from "@/types/settings";
 import { extractAuthFromCookies, isValidAuth, type HoyoAuth } from "@/api/hoyolab/auth";
 import { dataController } from "@/services/data-controller";
 
@@ -134,7 +133,7 @@ async function updateGlobalSettings(
   current: GlobalSettings,
   updates: Partial<GlobalSettings>,
 ): Promise<void> {
-  await streamDeck.settings.setGlobalSettings(toJsonObject({ ...current, ...updates }));
+  await dataController.writeGlobalSettings({ ...current, ...updates });
 }
 
 async function readAndUpdate(

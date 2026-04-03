@@ -16,16 +16,11 @@
   "dependencies": {
     "@elgato/streamdeck": "^2.0.4",
     "@elgato/utils": "^0.4.4",
-    "@fcannizzaro/streamdeck-react": "^0.1.17",
+    "@fcannizzaro/streamdeck-react": "^0.2.1",
     "@fontsource/inter": "^5.2.8",
     "@hoyodeck/shared": "workspace:*",
     "@nativewindow/webview": "^1.0.1",
-    "@nativewindow/webview-darwin-arm64": "^1.0.1",
-    "@nativewindow/webview-win32-x64-msvc": "https://registry.npmjs.org/@nativewindow/webview-win32-x64-msvc/-/webview-win32-x64-msvc-1.0.1.tgz",
-
     "@takumi-rs/core": "latest",
-    "@takumi-rs/core-darwin-arm64": "^0.73.1",
-    "@takumi-rs/core-win32-x64-msvc": "https://registry.npmjs.org/@takumi-rs/core-win32-x64-msvc/-/core-win32-x64-msvc-0.73.1.tgz",
     "@tanstack/react-query": "^5.96.2",
     "react": "^19.1.0",
     "ws": "latest",

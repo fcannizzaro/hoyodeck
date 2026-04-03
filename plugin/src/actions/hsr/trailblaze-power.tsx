@@ -63,4 +63,10 @@ export const trailblazePowerAction = defineAction<StarRailActionSettings & JsonO
   uuid: "com.fcannizzaro.hoyodeck.hsr.trailblaze-power",
   key: TrailblazePowerKey,
   wrapper: createActionWrapper(GAME, ["hsr:daily-note"]),
+  info: {
+    name: "[HSR] Trailblaze Power",
+    icon: "imgs/actions/hsr/trailblaze-power-icon",
+    tooltip: "Display and refresh Trailblaze Power",
+    states: [{ image: "imgs/actions/hsr/trailblaze-power-state", titleAlignment: "middle" }],
+  },
 });
