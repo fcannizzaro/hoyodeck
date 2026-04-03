@@ -1,0 +1,55 @@
+---
+const steps = [
+  {
+    title: "Install from the Marketplace",
+    description:
+      "Download Hoyo Deck from the Elgato Marketplace. It's free and installs in seconds.",
+  },
+  {
+    title: "Log in with HoYoLAB",
+    description:
+      "Open any action's settings and log in through the built-in HoYoLAB webview. Your credentials stay local on your machine.",
+  },
+  {
+    title: "Add actions to your deck",
+    description:
+      "Drag and drop actions onto your Stream Deck layout. Configure each action to your account and preferred game. Data refreshes automatically.",
+  },
+];
+---
+
+<section id="setup" class="px-6 py-24 lg:py-32">
+  <div class="mx-auto max-w-4xl">
+    <!-- Section header -->
+    <div class="mb-16 text-center" data-animate="fade-up">
+      <p class="mb-3 text-xs font-semibold tracking-[0.2em] uppercase text-muted-foreground/60">
+        Getting Started
+      </p>
+      <h2 class="mb-4 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+        Set Up in Minutes
+      </h2>
+      <p class="mx-auto max-w-lg text-sm leading-relaxed text-muted-foreground/70">
+        Three steps and you're live. No manual cookie extraction — the plugin handles authentication through a secure login window.
+      </p>
+    </div>
+
+    <!-- Steps -->
+    <div class="flex flex-col gap-8">
+      {
+        steps.map((step, i) => (
+          <div
+            class="flex items-start gap-5"
+            data-animate="fade-up"
+            style={`--stagger-delay: ${i * 0.1}s`}
+          >
+            <div class="step-number">{i + 1}</div>
+            <div class="pt-1">
+              <h3 class="mb-1.5 text-base font-semibold text-foreground">{step.title}</h3>
+              <p class="text-sm leading-relaxed text-muted-foreground/70">{step.description}</p>
+            </div>
+          </div>
+        ))
+      }
+    </div>
+  </div>
+</section>

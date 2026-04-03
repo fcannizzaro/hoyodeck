@@ -1,0 +1,315 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-border: var(--border);
+  --color-ring: var(--ring);
+
+  /* Game accent colors */
+  --color-gi: oklch(0.72 0.16 170);
+  --color-hsr: oklch(0.68 0.18 280);
+  --color-zzz: oklch(0.75 0.17 55);
+}
+
+:root {
+  --radius: 0.625rem;
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --border: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+}
+
+.dark {
+  --background: oklch(0.1 0.008 260);
+  --foreground: oklch(0.95 0.005 260);
+  --card: oklch(0.14 0.01 260);
+  --card-foreground: oklch(0.95 0.005 260);
+  --secondary: oklch(0.18 0.01 260);
+  --secondary-foreground: oklch(0.95 0.005 260);
+  --muted: oklch(0.22 0.01 260);
+  --muted-foreground: oklch(0.65 0 0);
+  --accent: oklch(0.22 0.01 260);
+  --accent-foreground: oklch(0.95 0.005 260);
+  --border: oklch(1 0 0 / 8%);
+  --ring: oklch(0.5 0 0);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Typography                                                          */
+/* ------------------------------------------------------------------ */
+
+body {
+  font-family: "Outfit", system-ui, sans-serif;
+  font-optical-sizing: auto;
+}
+
+/* ------------------------------------------------------------------ */
+/* Film grain overlay                                                  */
+/* ------------------------------------------------------------------ */
+
+.grain {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 50;
+  opacity: 0.025;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ------------------------------------------------------------------ */
+/* Game section gradients                                              */
+/* ------------------------------------------------------------------ */
+
+.gradient-hero {
+  background:
+    radial-gradient(ellipse at 50% 30%, oklch(0.16 0.025 260) 0%, transparent 60%),
+    oklch(0.1 0.008 260);
+}
+
+.gradient-genshin {
+  background:
+    radial-gradient(ellipse at 20% 50%, oklch(0.2 0.08 170 / 40%) 0%, transparent 55%),
+    radial-gradient(ellipse at 80% 20%, oklch(0.15 0.06 190 / 30%) 0%, transparent 50%),
+    oklch(0.1 0.008 260);
+}
+
+.gradient-hsr {
+  background:
+    radial-gradient(ellipse at 80% 50%, oklch(0.2 0.08 280 / 40%) 0%, transparent 55%),
+    radial-gradient(ellipse at 20% 20%, oklch(0.15 0.06 300 / 30%) 0%, transparent 50%),
+    oklch(0.1 0.008 260);
+}
+
+.gradient-zzz {
+  background:
+    radial-gradient(ellipse at 20% 40%, oklch(0.22 0.1 45 / 40%) 0%, transparent 55%),
+    radial-gradient(ellipse at 80% 70%, oklch(0.18 0.08 35 / 30%) 0%, transparent 50%),
+    oklch(0.1 0.008 260);
+}
+
+/* Game accent borders */
+.accent-gi {
+  --game-accent: oklch(0.72 0.16 170);
+}
+
+.accent-hsr {
+  --game-accent: oklch(0.68 0.18 280);
+}
+
+.accent-zzz {
+  --game-accent: oklch(0.75 0.17 55);
+}
+
+/* Anchor scroll offset for fixed navbar */
+section[id] {
+  scroll-margin-top: 5rem;
+}
+
+/* ------------------------------------------------------------------ */
+/* Animations                                                          */
+/* ------------------------------------------------------------------ */
+
+/* Hero floating animation */
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.animate-float {
+  animation: float 4s ease-in-out infinite;
+}
+
+/* Subtle glow pulse */
+@keyframes glow-pulse {
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.animate-glow {
+  animation: glow-pulse 3s ease-in-out infinite;
+}
+
+/* Scroll-driven entrance animations (IntersectionObserver-triggered) */
+
+/* All animated elements start hidden */
+[data-animate] {
+  opacity: 0;
+  transition:
+    opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  transition-delay: var(--stagger-delay, 0s);
+}
+
+[data-animate="fade-up"] {
+  transform: translateY(32px);
+}
+
+[data-animate="fade-in"] {
+  transform: none;
+}
+
+[data-animate="slide-left"] {
+  transform: translateX(-48px);
+}
+
+[data-animate="slide-right"] {
+  transform: translateX(48px);
+}
+
+[data-animate="scale-in"] {
+  transform: scale(0.92);
+}
+
+/* Visible state — added by IntersectionObserver */
+[data-animate].is-visible {
+  opacity: 1;
+  transform: translate(0, 0) scale(1);
+}
+
+/* ------------------------------------------------------------------ */
+/* Sprite frame animation                                              */
+/* ------------------------------------------------------------------ */
+
+@keyframes sprite-frame {
+  0% {
+    opacity: 1;
+  }
+  25% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Utility effects                                                     */
+/* ------------------------------------------------------------------ */
+
+/* Glass card */
+.glass {
+  background: oklch(1 0 0 / 4%);
+  backdrop-filter: blur(12px);
+  border: 1px solid oklch(1 0 0 / 8%);
+}
+
+/* Feature pill */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  color: oklch(0.8 0 0);
+  background: oklch(1 0 0 / 5%);
+  border: 1px solid oklch(1 0 0 / 8%);
+  white-space: nowrap;
+}
+
+.pill-gi {
+  color: oklch(0.78 0.1 170);
+  background: oklch(0.72 0.16 170 / 8%);
+  border-color: oklch(0.72 0.16 170 / 15%);
+}
+
+.pill-hsr {
+  color: oklch(0.78 0.1 280);
+  background: oklch(0.68 0.18 280 / 8%);
+  border-color: oklch(0.68 0.18 280 / 15%);
+}
+
+.pill-zzz {
+  color: oklch(0.82 0.1 55);
+  background: oklch(0.75 0.17 55 / 8%);
+  border-color: oklch(0.75 0.17 55 / 15%);
+}
+
+/* Action card hover glow */
+.action-card {
+  transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
+}
+
+.action-card:hover {
+  border-color: oklch(1 0 0 / 12%);
+  transform: translateY(-2px);
+}
+
+.accent-gi .action-card:hover {
+  box-shadow: 0 4px 24px oklch(0.72 0.16 170 / 8%);
+}
+
+.accent-hsr .action-card:hover {
+  box-shadow: 0 4px 24px oklch(0.68 0.18 280 / 8%);
+}
+
+.accent-zzz .action-card:hover {
+  box-shadow: 0 4px 24px oklch(0.75 0.17 55 / 8%);
+}
+
+/* Step counter */
+.step-number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: oklch(0.95 0 0);
+  background: oklch(1 0 0 / 6%);
+  border: 1px solid oklch(1 0 0 / 12%);
+  flex-shrink: 0;
+}

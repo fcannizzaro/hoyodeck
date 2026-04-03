@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "skills": {
+    "frontend-design": {
+      "source": "anthropics/skills",
+      "sourceType": "github",
+      "computedHash": "063a0e6448123cd359ad0044cc46b0e490cc7964d45ef4bb9fd842bd2ffbca67"
+    },
+    "streamdeck-react": {
+      "source": "fcannizzaro/streamdeck-react",
+      "sourceType": "github",
+      "computedHash": "fdfb4f3c4a6ba75af435278b16be9da1b126b4aa82c4d7726db37345767e1fa9"
+    }
+  }
+}

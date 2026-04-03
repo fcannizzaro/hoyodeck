@@ -1,0 +1,3 @@
+[submodule "server"]
+	path = server
+	url = git@github.com:fcannizzaro/hoyodeck-server.git

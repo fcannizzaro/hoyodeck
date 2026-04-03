@@ -1,0 +1,44 @@
+{
+  "name": "com.fcannizzaro.hoyodeck",
+  "version": "1.0.0",
+  "description": "HoYoverse game utilities for Stream Deck",
+  "license": "GPL-3.0",
+  "author": "fcannizzaro",
+  "type": "module",
+  "scripts": {
+    "dev": "DEBUG=1 vite build --watch",
+    "build": "tsc --noEmit && vite build",
+    "package": "streamdeck pack --force-update-check  -f ./com.fcannizzaro.hoyodeck.sdPlugin",
+    "link": "streamdeck link com.fcannizzaro.hoyodeck.sdPlugin",
+    "typecheck": "tsc --noEmit",
+    "cli": "bfr --env -- bun run src/cli.ts"
+  },
+  "dependencies": {
+    "@elgato/streamdeck": "^2.0.4",
+    "@elgato/utils": "^0.4.4",
+    "@fcannizzaro/streamdeck-react": "^0.1.17",
+    "@fontsource/inter": "^5.2.8",
+    "@hoyodeck/shared": "workspace:*",
+    "@nativewindow/webview": "^1.0.1",
+    "@nativewindow/webview-darwin-arm64": "^1.0.1",
+    "@nativewindow/webview-win32-x64-msvc": "https://registry.npmjs.org/@nativewindow/webview-win32-x64-msvc/-/webview-win32-x64-msvc-1.0.1.tgz",
+
+    "@takumi-rs/core": "latest",
+    "@takumi-rs/core-darwin-arm64": "^0.73.1",
+    "@takumi-rs/core-win32-x64-msvc": "https://registry.npmjs.org/@takumi-rs/core-win32-x64-msvc/-/core-win32-x64-msvc-0.73.1.tgz",
+    "@tanstack/react-query": "^5.96.2",
+    "react": "^19.1.0",
+    "ws": "latest",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@elgato/cli": "^1.7.3",
+    "@types/node": "^25.5.2",
+    "@types/react": "^19.1.0",
+    "@vitejs/plugin-react": "^6.0.1",
+    "vite": "^8.0.3"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

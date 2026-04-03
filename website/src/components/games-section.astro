@@ -1,0 +1,106 @@
+---
+import { games } from "../data/actions";
+
+const gameGradients: Record<string, string> = {
+  gi: "gradient-genshin",
+  hsr: "gradient-hsr",
+  zzz: "gradient-zzz",
+};
+
+const gameAccents: Record<string, string> = {
+  gi: "accent-gi",
+  hsr: "accent-hsr",
+  zzz: "accent-zzz",
+};
+
+const pillClasses: Record<string, string> = {
+  gi: "pill pill-gi",
+  hsr: "pill pill-hsr",
+  zzz: "pill pill-zzz",
+};
+---
+
+<section id="games" class="relative px-6 py-24 lg:py-32">
+  <div class="mx-auto max-w-6xl">
+    <!-- Section header -->
+    <div class="mb-20 text-center" data-animate="fade-up">
+      <p class="mb-3 text-xs font-semibold tracking-[0.2em] uppercase text-muted-foreground/60">
+        Actions
+      </p>
+      <h2 class="mb-4 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+        Supported Games
+      </h2>
+      <p class="mx-auto max-w-lg text-sm leading-relaxed text-muted-foreground/70">
+        Each game has dedicated actions tailored to its unique mechanics.
+        Configure them per account and track everything in real time.
+      </p>
+    </div>
+
+    <!-- Game sections -->
+    <div class="flex flex-col gap-28">
+      {
+        games.map((game, gameIndex) => (
+          <div class={`relative ${gameAccents[game.id]}`}>
+            {/* Game banner header */}
+            <div
+              class={`relative mb-10 overflow-hidden rounded-2xl ${gameGradients[game.id]}`}
+              data-animate="fade-up"
+              style={`--stagger-delay: ${gameIndex * 0.1}s`}
+            >
+              {/* Banner background image */}
+              <div
+                class="absolute inset-0 bg-cover bg-center opacity-25"
+                style={`background-image: url('/banners/${game.id}.webp'); mask-image: linear-gradient(to right, transparent 0%, black 30%, black 70%, transparent 100%);`}
+              />
+
+              {/* Content overlay */}
+              <div class="relative flex items-center gap-5 px-8 py-10 sm:px-10 sm:py-12">
+                <img
+                  src={`/icons/${game.id}.webp`}
+                  alt={game.name}
+                  class="size-14 shrink-0 rounded-lg object-contain sm:size-16"
+                />
+                <div>
+                  <h3 class="mb-1 text-2xl font-bold text-foreground sm:text-3xl">
+                    {game.name}
+                  </h3>
+                  <p class="max-w-lg text-sm leading-relaxed text-muted-foreground/80">
+                    {game.description}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Actions grid */}
+            <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {game.actions.map((action, actionIndex) => (
+                <div
+                  class="action-card flex flex-col gap-4 rounded-xl border border-white/6 bg-white/[0.02] p-6"
+                  data-animate="fade-up"
+                  style={`--stagger-delay: ${gameIndex * 0.05 + actionIndex * 0.06}s`}
+                >
+                  {/* Action header */}
+                  <h4 class="text-base font-semibold tracking-tight text-foreground">
+                    {action.name}
+                  </h4>
+
+                  {/* Description */}
+                  <p class="text-sm leading-relaxed text-muted-foreground/70">
+                    {action.description}
+                  </p>
+
+                  {/* Feature pills */}
+                  <div class="mt-auto flex flex-wrap gap-2 pt-1">
+                    {action.features.map((feature) => (
+                      <span class={pillClasses[game.id]}>{feature}</span>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))
+      }
+    </div>
+  </div>
+</section>

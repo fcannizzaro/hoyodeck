@@ -1,0 +1,56 @@
+---
+const links = [
+  { href: "#games", label: "Games" },
+  { href: "#features", label: "Features" },
+  { href: "#setup", label: "Setup" },
+];
+---
+
+<nav
+  class="fixed top-0 right-0 left-0 z-40 border-b border-transparent transition-all duration-300"
+  id="navbar"
+>
+  <div class="mx-auto flex h-14 max-w-6xl items-center justify-between px-6">
+    <!-- Logo -->
+    <a href="#" class="flex items-center gap-2 text-lg tracking-tight text-foreground">
+      <span class="font-bold">Hoyo</span>
+      <span class="font-light opacity-60">Deck</span>
+    </a>
+
+    <!-- Nav links -->
+    <div class="hidden items-center gap-8 md:flex">
+      {
+        links.map((link) => (
+          <a
+            href={link.href}
+            class="text-[13px] font-medium tracking-wide uppercase text-muted-foreground transition-colors hover:text-foreground"
+          >
+            {link.label}
+          </a>
+        ))
+      }
+    </div>
+  </div>
+</nav>
+
+<script>
+  const navbar = document.getElementById("navbar");
+  if (navbar) {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) {
+          navbar.style.backgroundColor = "oklch(0.1 0.008 260 / 85%)";
+          navbar.style.backdropFilter = "blur(16px)";
+          navbar.style.borderColor = "oklch(1 0 0 / 6%)";
+        } else {
+          navbar.style.backgroundColor = "transparent";
+          navbar.style.backdropFilter = "none";
+          navbar.style.borderColor = "transparent";
+        }
+      },
+      { threshold: 0, rootMargin: "-56px 0px 0px 0px" },
+    );
+    const hero = document.querySelector("section");
+    if (hero) observer.observe(hero);
+  }
+</script>
