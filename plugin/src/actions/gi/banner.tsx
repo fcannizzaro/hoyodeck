@@ -1,6 +1,6 @@
 import { defineAction, useSettings } from "@fcannizzaro/streamdeck-react";
 import type { JsonObject } from "@elgato/utils";
-import type { BannerSettings } from "@/types/settings";
+import type { BannerSettings } from "@hoyodeck/shared/types";
 import type { GenshinActCalendar, GenshinBannerPool } from "@/api/types/genshin";
 import { useGameData } from "@/hooks/use-game-data";
 import { createActionWrapper } from "@/contexts/create-action-wrapper";

@@ -1,6 +1,6 @@
 import streamDeck from "@elgato/streamdeck";
 import type { HoyolabClient } from "@/api/hoyolab/client";
-import type { GameId } from "@/types/games";
+import type { GameId } from "@hoyodeck/shared/types";
 import type { DataType, DataEntry } from "../data-controller.types";
 import { debug } from "@/utils/debug";
 

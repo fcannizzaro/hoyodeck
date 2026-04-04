@@ -1,13 +1,12 @@
 import streamDeck from "@elgato/streamdeck";
 import type { JsonObject } from "@elgato/utils";
-import type { AccountId, GlobalSettings, HoyoAccount } from "@/types/settings";
-import type { GameId } from "@/types/games";
+import type { AccountId, GlobalSettings, HoyoAccount, GameId } from "@hoyodeck/shared/types";
 import { HoyolabClient } from "@/api/hoyolab/client";
 import { isValidAuth } from "@/api/hoyolab/auth";
 import type { HoyoAuth } from "@/api/hoyolab/auth";
 import { isAuthError } from "@/api/types/common";
 import { debug } from "@/utils/debug";
-import { toJsonObject } from "@/types/settings";
+import { toJsonObject } from "@/utils/json";
 import { cache } from "./cache";
 import type {
   DataType,

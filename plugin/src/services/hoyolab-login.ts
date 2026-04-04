@@ -1,6 +1,6 @@
 import streamDeck from "@elgato/streamdeck";
 import type { JsonObject } from "@elgato/utils";
-import type { GlobalSettings } from "@/types/settings";
+import type { GlobalSettings } from "@hoyodeck/shared/types";
 import { extractAuthFromCookies, isValidAuth, type HoyoAuth } from "@/api/hoyolab/auth";
 import { dataController } from "@/services/data-controller";
 

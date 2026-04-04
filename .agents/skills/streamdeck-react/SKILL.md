@@ -92,6 +92,55 @@ No hand-written `manifest.json` is needed.
 
 Each visible action instance on the hardware gets its own isolated React root. No shared state between roots unless you use an external store (Zustand, Jotai) or the wrapper API.
 
+### Native Module Lazy Loading
+
+Native `.node` binaries (Takumi and any user-registered `nativeModules`) are **lazy-loaded by default** — downloaded from npm on first plugin startup and cached on disk.
+
+#### Build-Time Pipeline
+
+1. The `streamDeckReact()` Vite plugin resolves the installed version of each native module from its `package.json`.
+2. A self-contained virtual ESM module is generated for each, embedding the version, npm scope, and platform-to-binding map.
+3. The bundler's `resolveId` hook replaces all imports of the native module with the virtual loader. No user code changes needed.
+
+Version resolution uses three strategies in order: `createRequire` from project root, from library location (hoisted packages), and direct `node_modules` walk (for packages with restricted `exports` maps). If all fail, that module falls back to copy mode with a build-time warning.
+
+#### Runtime Flow
+
+```
+Read .native-versions.json manifest
+  ↓
+existsSync(nodePath) && cachedVersion === VERSION?
+  ├── YES → require() cached .node file (fast path, ~1ms)
+  └── NO  → fetch npm tarball → gunzipSync → inline tar parse
+            → writeFileSync .node to disk
+            → update .native-versions.json
+            → require()
+```
+
+The `.node` file is written next to the bundle output (`import.meta.url`-relative) and persists across restarts.
+
+#### Version Manifest (`.native-versions.json`)
+
+Tracks cached binary versions for cache invalidation on dependency upgrades:
+
+```json
+{ "core.darwin-arm64.node": "0.73.1" }
+```
+
+When the baked-in VERSION (from build time) differs from the manifest entry, the binary is re-downloaded. Each native module only reads/writes its own key — concurrent module evaluation is safe.
+
+#### Tarball Extraction
+
+The loader includes a minimal inline tar parser (no external dependency). npm tarballs use 512-byte headers (filename at offset 0, size at offset 124 in octal). The parser scans sequentially until it finds the target `.node` file.
+
+#### Copy Mode Alternative
+
+Set `nativeBindings: "copy"` for air-gapped/offline environments. Requires platform packages installed and `targets` specified. `.node` files are copied from `node_modules` during `writeBundle`. Missing bindings are warnings in dev, errors in production.
+
+#### Custom Native Modules
+
+Register additional NAPI-RS packages via `nativeModules` on `streamDeckReact()`. Each entry gets the same lazy/copy treatment. Validation at build time catches empty exports/bindings, duplicate specifiers, filename collisions, and Takumi conflicts. See [references/bundling.md](references/bundling.md) for configuration details.
+
 ## Adapter Layer
 
 The adapter layer abstracts the `@elgato/streamdeck` SDK behind a pluggable `StreamDeckAdapter` interface. This makes the SDK an optional peer dependency and enables alternative backends (web simulator, test harness).
@@ -159,20 +208,9 @@ npm install -D vite@8.0.0 @vitejs/plugin-react@6.0.1
 npm install -D @types/react
 ```
 
-Also install the platform-specific Takumi native binding packages that match the targets you pass to `streamDeckReact({ targets })`, for example:
+Native Takumi bindings are **lazy-loaded by default** — they are downloaded from npm on first plugin startup and cached on disk. No platform-specific `@takumi-rs/core-*` packages need to be installed. Only the main `@takumi-rs/core` package is required (included as a dependency of `@fcannizzaro/streamdeck-react`).
 
-```bash
-# macOS Apple Silicon
-npm install @takumi-rs/core-darwin-arm64
-
-# macOS Intel
-npm install @takumi-rs/core-darwin-x64
-
-# Windows x64
-npm install @takumi-rs/core-win32-x64-msvc
-```
-
-See [references/bundling.md](references/bundling.md) for the full platform matrix.
+To opt out of lazy loading and copy binaries from `node_modules` at build time instead, set `nativeBindings: "copy"` on `streamDeckReact()` and install the matching `@takumi-rs/core-*` packages. See [references/bundling.md](references/bundling.md) for the full platform matrix.
 
 ### package.json
 
@@ -291,7 +329,6 @@ export default defineConfig({
     react(),
     streamDeckReact({
       uuid: "com.example.my-plugin",
-      targets: [{ platform: "darwin", arch: "arm64" }],
       manifest: {
         uuid: "com.example.my-plugin",
         name: "My Plugin",
@@ -349,7 +386,6 @@ export default defineConfig({
     }),
     streamDeckReact({
       uuid: "com.example.my-plugin",
-      targets: [{ platform: "darwin", arch: "arm64" }],
       manifest: {
         uuid: "com.example.my-plugin",
         name: "My Plugin",
@@ -380,7 +416,7 @@ export default defineConfig({
 });
 ```
 
-For production builds, pass explicit `targets`. In watch mode, `streamDeckReact()` can infer the current supported host target.
+Native bindings are lazy-loaded by default — they are downloaded from npm on first plugin startup and cached on disk. No `targets` option is needed.
 
 > **manifest.json is auto-generated.** You do not need to write or maintain it by hand. Action metadata is extracted from `defineAction({ info })` calls at build time.
 
@@ -504,13 +540,13 @@ For touch interaction on Stream Deck+, use `useTouchTap()` inside the mounted ac
 1. **Fonts are mandatory** -- the renderer cannot access system fonts. Use `googleFont("Inter")` to download TTF fonts from Google Fonts (cached to `.google-fonts/` on disk). Alternatively, load font files manually via `readFile`. Supported formats depend on the backend: native-binding supports `.ttf`, `.otf`, `.woff`, `.woff2`; WASM mode only supports `.ttf` and `.otf`.
 2. **`plugin.connect()` must be called last** -- after `createPlugin()` and all setup.
 3. **UUID prefix** -- every action `uuid` in `defineAction()` must start with the plugin UUID prefix (e.g., `"com.example.my-plugin."`). The manifest is auto-generated from these.
-4. **`streamDeckReact({ targets })` is required for production builds** -- it copies the Takumi `.node` binaries into output. Without them, the plugin crashes on startup.
-5. **Install `ws` and matching `@takumi-rs/core-*` packages** -- they must line up with the targets passed to `streamDeckReact({ targets })`. When using the WASM backend (`takumi: "wasm"`), install `@takumi-rs/wasm` instead and native binding packages are not needed.
+4. **Native bindings are lazy-loaded by default** -- the plugin downloads the platform-specific `.node` binary from npm on first startup and caches it on disk. No `targets` option or `@takumi-rs/core-*` platform packages are needed. Set `nativeBindings: "copy"` to revert to the old behavior of copying from `node_modules`. Additional native modules can be registered via the `nativeModules` option on `streamDeckReact()` — each entry gets the same lazy/copy treatment as the built-in Takumi binding. See [references/bundling.md](references/bundling.md) for configuration details.
+5. **Install `ws`** -- required by the Stream Deck SDK runtime. When using the WASM backend (`takumi: "wasm"`), install `@takumi-rs/wasm` instead and native binding packages are not needed.
 6. **No animated images** -- each `setImage` call is a static frame. Use `useTick` for manual animation loops, or the higher-level `useSpring` and `useTween` hooks for physics-based and easing-based animation.
 7. **WASM backend limitations** -- `takumi: "wasm"` is available for environments where native addons can't load (WebContainers, browsers). It force-disables worker threads and does not support WOFF/WOFF2 fonts (use TTF/OTF only). Pass `takumi: "wasm"` to both `createPlugin()` and `streamDeckReact()` to skip native binary copying at build time.
-7. **Design for 72x72 minimum** -- smallest key size. Use `useCanvas()` to adapt to larger devices.
-8. **Use simple layouts** -- this is not a browser DOM. Stick to flex layouts, fixed sizes, and simple elements (`div`, `span`, `img`, `svg`, `p`).
-9. **Animation FPS** -- Stream Deck hardware refreshes at max 30Hz. The `useTick`, `useSpring`, and `useTween` hooks default to 30fps (clamped). Design animations accordingly.
+8. **Design for 72x72 minimum** -- smallest key size. Use `useCanvas()` to adapt to larger devices.
+9. **Use simple layouts** -- this is not a browser DOM. Stick to flex layouts, fixed sizes, and simple elements (`div`, `span`, `img`, `svg`, `p`).
+10. **Animation FPS** -- Stream Deck hardware refreshes at max 30Hz. The `useTick`, `useSpring`, and `useTween` hooks default to 30fps (clamped). Design animations accordingly.
 
 ## Verification Checklist
 
@@ -518,14 +554,12 @@ When scaffolding or modifying a @fcannizzaro/streamdeck-react plugin, verify:
 
 - [ ] `@fcannizzaro/streamdeck-react` and `react` are in dependencies
 - [ ] `ws` is installed for the Stream Deck SDK runtime
-- [ ] Matching `@takumi-rs/core-*` packages are installed for every `streamDeckReact({ targets })` entry
 - [ ] `package.json` has `"type": "module"`
 - [ ] `tsconfig.json` has `"jsx": "react-jsx"`
 - [ ] At least one font is loaded via `googleFont()` or manual `readFile` and passed to `createPlugin()`
 - [ ] Every `defineAction()` has `info: { name, icon }` for manifest generation
 - [ ] Every `defineAction()` UUID starts with the plugin UUID prefix
 - [ ] `vite.config.ts` includes `streamDeckReact({ manifest: { uuid, name, author, ... } })`
-- [ ] `streamDeckReact({ targets })` is set for production builds
 - [ ] Encoder actions have `info.encoder` with layout and triggerDescription
 - [ ] `plugin.connect()` is called after `createPlugin()`
 - [ ] Build completes without errors: `npx vite build`

@@ -1,4 +1,4 @@
-import type { GameId } from "@/types/settings";
+import type { GameId } from "@hoyodeck/shared/types";
 import type { DataType } from "@/services/data-controller.types";
 import { AccountProvider } from "./account-context";
 import { DataProvider } from "./data-context";

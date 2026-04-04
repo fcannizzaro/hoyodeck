@@ -1,6 +1,6 @@
 import { defineAction, useSettings } from "@fcannizzaro/streamdeck-react";
 import type { JsonObject } from "@elgato/utils";
-import type { StarRailBannerSettings } from "@/types/settings";
+import type { StarRailBannerSettings } from "@hoyodeck/shared/types";
 import type { StarRailActCalendar, StarRailBannerPool } from "@/api/types/hsr";
 import { useGameData } from "@/hooks/use-game-data";
 import { createActionWrapper } from "@/contexts/create-action-wrapper";

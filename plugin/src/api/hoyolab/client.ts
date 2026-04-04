@@ -25,7 +25,8 @@ import type {
 } from "../types/zzz";
 import type { GameRecordCardResponse } from "../types/game-record";
 import { getRegionFromUid } from "@/utils/region";
-import { type GameId, getGameConfig } from "@/types/games";
+import type { GameId } from "@hoyodeck/shared/types";
+import { getGameConfig } from "@hoyodeck/shared/games";
 
 /**
  * HoYoLAB API client with V2 authentication

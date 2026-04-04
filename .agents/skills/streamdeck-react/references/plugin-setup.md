@@ -38,21 +38,21 @@ interface PluginConfig {
 }
 ```
 
-| Field                     | Required | Description                                                                                            |
-| ------------------------- | -------- | ------------------------------------------------------------------------------------------------------ |
-| `adapter`                 | No       | Stream Deck adapter. Defaults to `physicalDevice()` (Elgato SDK). See [adapter reference](adapter.md). |
-| `fonts`                   | Yes      | At least one font file. See FontConfig below.                                                          |
-| `actions`                 | Yes      | Array of action definitions from `defineAction()`.                                                     |
-| `wrapper`                 | No       | Component that wraps ALL action roots. Use for global providers.                                       |
-| `takumi`                  | No       | Renderer backend: `"native-binding"` (default) or `"wasm"`. WASM mode disables workers and WOFF fonts.|
-| `imageFormat`             | No       | Output format. PNG is default and most compatible.                                                     |
-| `caching`                 | No       | Output hash caching (xxHash-wasm) to skip duplicate `setImage()` calls.                                |
-| `devicePixelRatio`        | No       | Device pixel ratio used by the Takumi renderer. Default: `1`.                                          |
-| `onActionError`           | No       | Called when a component throws in any action root.                                                     |
-| `devtools`                | No       | Enable the devtools server. Port derived from plugin UUID (39400-39499).                               |
-| `debug`                   | No       | Enable render counters, duplicate detection, and depth warnings. Defaults to non-production.           |
-| `imageCacheMaxBytes`      | No       | Max bytes for the key/dial image cache (LRU). Set to 0 to disable. Default: 16 MB.                     |
-| `touchStripCacheMaxBytes` | No       | Max bytes for the TouchStrip raw buffer cache (LRU). Set to 0 to disable. Default: 8 MB.               |
+| Field                     | Required | Description                                                                                                                  |
+| ------------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `adapter`                 | No       | Stream Deck adapter. Defaults to `physicalDevice()` (Elgato SDK). See [adapter reference](adapter.md).                       |
+| `fonts`                   | Yes      | At least one font file. See FontConfig below.                                                                                |
+| `actions`                 | Yes      | Array of action definitions from `defineAction()`.                                                                           |
+| `wrapper`                 | No       | Component that wraps ALL action roots. Use for global providers.                                                             |
+| `takumi`                  | No       | Renderer backend: `"native-binding"` (default) or `"wasm"`. WASM mode disables workers and WOFF fonts.                       |
+| `imageFormat`             | No       | Output format. PNG is default and most compatible.                                                                           |
+| `caching`                 | No       | Output hash caching (xxHash-wasm) to skip duplicate `setImage()` calls.                                                      |
+| `devicePixelRatio`        | No       | Device pixel ratio used by the Takumi renderer. Default: `1`.                                                                |
+| `onActionError`           | No       | Called when a component throws in any action root.                                                                           |
+| `devtools`                | No       | Enable the devtools server. Port derived from plugin UUID (39400-39499).                                                     |
+| `debug`                   | No       | Enable render counters, duplicate detection, and depth warnings. Defaults to non-production.                                 |
+| `imageCacheMaxBytes`      | No       | Max bytes for the key/dial image cache (LRU). Set to 0 to disable. Default: 16 MB.                                           |
+| `touchStripCacheMaxBytes` | No       | Max bytes for the TouchStrip raw buffer cache (LRU). Set to 0 to disable. Default: 8 MB.                                     |
 | `useWorker`               | No       | Offload Takumi rendering to a worker thread. Transparent fallback if worker fails. Force-disabled when `takumi` is `"wasm"`. |
 
 ### Plugin-Level Wrapper
@@ -107,26 +107,26 @@ interface ActionConfig<S extends JsonObject = JsonObject> {
 
 | Field             | Required | Description                                                                                                                   |
 | ----------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| `uuid`            | Yes      | Must start with the plugin UUID prefix (e.g., `"com.example.plugin."`).                                                      |
+| `uuid`            | Yes      | Must start with the plugin UUID prefix (e.g., `"com.example.plugin."`).                                                       |
 | `key`             | No       | Component for key (Keypad controller).                                                                                        |
 | `dial`            | No       | Component for encoder display (Stream Deck+). Falls back to `key` if not provided.                                            |
 | `touchStrip`      | No       | Full-strip TouchStrip component. Replaces per-encoder `dial` with a single shared React tree spanning the entire touch strip. |
 | `dialLayout`      | No       | Encoder feedback layout. Defaults to a full-width canvas `pixmap` layout keyed as `canvas`.                                   |
 | `wrapper`         | No       | Component that wraps this action's root (nested inside plugin wrapper).                                                       |
 | `defaultSettings` | No       | Default settings shallow-merged with stored settings.                                                                         |
-| `info`            | No*      | Action manifest metadata. Required for manifest generation. See ActionManifestInfo below.                                     |
+| `info`            | No\*     | Action manifest metadata. Required for manifest generation. See ActionManifestInfo below.                                     |
 
-*`info` is optional at the type level but required if you want the action included in the auto-generated `manifest.json`.
+\*`info` is optional at the type level but required if you want the action included in the auto-generated `manifest.json`.
 
 ### ActionManifestInfo
 
 ```ts
 interface ActionManifestInfo {
-  name: string;         // Action display name in Stream Deck's action list
-  icon: string;         // Path to action icon (extension omitted)
-  disabled?: boolean;   // Skip this action from manifest generation
-  tooltip?: string;     // Hover tooltip in the actions list
-  states?: ManifestStateInfo[];  // Custom states (defaults to [{ image: icon }])
+  name: string; // Action display name in Stream Deck's action list
+  icon: string; // Path to action icon (extension omitted)
+  disabled?: boolean; // Skip this action from manifest generation
+  tooltip?: string; // Hover tooltip in the actions list
+  states?: ManifestStateInfo[]; // Custom states (defaults to [{ image: icon }])
   encoder?: ManifestEncoderInfo; // Encoder config (layout, triggerDescription)
   disableAutomaticStates?: boolean;
   disableCaching?: boolean;
@@ -164,6 +164,7 @@ export const volumeAction = defineAction({
 ```
 
 Controllers are auto-derived from the action's components:
+
 - `key` present → includes `"Keypad"`
 - `dial` or `touchStrip` present → includes `"Encoder"`
 - Both → `["Keypad", "Encoder"]`
@@ -217,10 +218,7 @@ const plugin = createPlugin({
 For multiple weights:
 
 ```ts
-const fonts = await googleFont("Inter", [
-  { weight: 400 },
-  { weight: 700 },
-]);
+const fonts = await googleFont("Inter", [{ weight: 400 }, { weight: 700 }]);
 ```
 
 You can also load fonts manually via `readFile` if needed:

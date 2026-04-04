@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { defineAction, useKeyDown, useSettings } from "@fcannizzaro/streamdeck-react";
 import type { JsonObject } from "@elgato/utils";
-import type { DailyRewardSettings, GameId } from "@/types/settings";
+import type { DailyRewardSettings, GameId } from "@hoyodeck/shared/types";
 import { useAccount, AccountProvider } from "@/contexts/account-context";
 import { useData, DataProvider } from "@/contexts/data-context";
 import { HoyolabApiError } from "@/api/types/common";

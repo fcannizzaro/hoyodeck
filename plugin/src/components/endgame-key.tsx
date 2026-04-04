@@ -6,8 +6,7 @@ import {
   useInterval,
 } from "@fcannizzaro/streamdeck-react";
 import type { JsonObject } from "@elgato/utils";
-import type { GlobalSettings } from "@/types/settings";
-import type { GameId } from "@/types/games";
+import type { GlobalSettings, GameId } from "@hoyodeck/shared/types";
 import type { DataType } from "@/services/data-controller.types";
 import { useAccount } from "@/contexts/account-context";
 import { useData } from "@/contexts/data-context";

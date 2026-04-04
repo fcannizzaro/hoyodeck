@@ -6,8 +6,7 @@ import {
   useInterval,
 } from "@fcannizzaro/streamdeck-react";
 import type { JsonObject } from "@elgato/utils";
-import type { GlobalSettings, BannerBadgeOptions } from "@/types/settings";
-import type { GameId } from "@/types/games";
+import type { GlobalSettings, BannerBadgeOptions, GameId } from "@hoyodeck/shared/types";
 import type { AccountContextValue } from "@/contexts/account-context";
 import { readLocalImageAsDataUri } from "@/utils/image";
 import { useImageDataUri } from "@/hooks/use-image-data-uri";

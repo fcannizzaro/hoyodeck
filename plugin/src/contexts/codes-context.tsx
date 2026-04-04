@@ -14,8 +14,8 @@ import {
   useInterval,
 } from "@fcannizzaro/streamdeck-react";
 import type { JsonObject } from "@elgato/utils";
-import type { RedeemCodeSettings, GlobalSettings, GameId, AccountId } from "@/types/settings";
-import { toJsonObject } from "@/types/settings";
+import type { RedeemCodeSettings, GlobalSettings, GameId, AccountId } from "@hoyodeck/shared/types";
+import { toJsonObject } from "@/utils/json";
 import type { GameCodeWithStatus } from "@hoyodeck/shared/types";
 import { codesClient } from "@/api/manager/client";
 import { openRedeemWindow } from "@/services/redeem-window";

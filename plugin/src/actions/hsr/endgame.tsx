@@ -1,6 +1,6 @@
 import { defineAction } from "@fcannizzaro/streamdeck-react";
 import type { JsonObject } from "@elgato/utils";
-import type { StarRailEndgameSettings } from "@/types/settings";
+import type { StarRailEndgameSettings } from "@hoyodeck/shared/types";
 import type {
   StarRailChallenge,
   StarRailChallengePeak,

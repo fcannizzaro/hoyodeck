@@ -1,4 +1,4 @@
-import type { GameId } from "@/types/games";
+import type { GameId } from "@hoyodeck/shared/types";
 
 /** Maps HoYoLAB numeric game IDs to our internal GameId */
 export const HOYOLAB_GAME_IDS: Record<number, GameId> = {

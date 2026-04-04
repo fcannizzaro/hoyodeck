@@ -2,8 +2,8 @@ import { useEffect } from "react";
 import { useGlobalSettings } from "@fcannizzaro/streamdeck-react";
 import { QueryClientProvider } from "@tanstack/react-query";
 import type { JsonObject } from "@elgato/utils";
-import type { GlobalSettings } from "@/types/settings";
-import { toJsonObject } from "@/types/settings";
+import type { GlobalSettings } from "@hoyodeck/shared/types";
+import { toJsonObject } from "@/utils/json";
 import { queryClient } from "@/services/query-client";
 import { dataController } from "@/services/data-controller";
 

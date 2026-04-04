@@ -1,6 +1,5 @@
 import streamDeck from "@elgato/streamdeck";
-import type { AccountId } from "@/types/settings";
-import type { GameId } from "@/types/games";
+import type { AccountId, GameId } from "@hoyodeck/shared/types";
 import type { DataType } from "./data-controller.types";
 import { debug } from "@/utils/debug";
 

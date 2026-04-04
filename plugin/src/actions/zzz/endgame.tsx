@@ -1,6 +1,6 @@
 import { defineAction } from "@fcannizzaro/streamdeck-react";
 import type { JsonObject } from "@elgato/utils";
-import type { ZZZEndgameSettings } from "@/types/settings";
+import type { ZZZEndgameSettings } from "@hoyodeck/shared/types";
 import type { ZZZShiyuDefense, ZZZDeadlyAssault, ZZZDateComponents } from "@/api/types/zzz";
 import { createActionWrapper } from "@/contexts/create-action-wrapper";
 import { formatDaysRemaining } from "@/utils/time";

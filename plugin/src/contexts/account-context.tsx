@@ -1,7 +1,7 @@
 import { createContext, useContext, useMemo, useRef } from "react";
 import { useSettings, useGlobalSettings, useAction } from "@fcannizzaro/streamdeck-react";
 import type { JsonObject } from "@elgato/utils";
-import type { AccountId, GlobalSettings, HoyoAccount, GameId } from "@/types/settings";
+import type { AccountId, GlobalSettings, HoyoAccount, GameId } from "@hoyodeck/shared/types";
 import { debug } from "@/utils/debug";
 
 // ─── Account Pick ─────────────────────────────────────────────────

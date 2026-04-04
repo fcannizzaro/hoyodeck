@@ -1,6 +1,6 @@
 import { defineAction } from "@fcannizzaro/streamdeck-react";
 import type { JsonObject } from "@elgato/utils";
-import type { GenshinEndgameSettings } from "@/types/settings";
+import type { GenshinEndgameSettings } from "@hoyodeck/shared/types";
 import type {
   GenshinSpiralAbyss,
   GenshinImaginariumTheater,

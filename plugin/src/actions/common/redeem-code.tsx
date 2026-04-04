@@ -1,6 +1,6 @@
 import { defineAction, useKeyDown, useSettings } from "@fcannizzaro/streamdeck-react";
 import type { JsonObject } from "@elgato/utils";
-import type { RedeemCodeSettings, GameId } from "@/types/settings";
+import type { RedeemCodeSettings, GameId } from "@hoyodeck/shared/types";
 import { useAccount } from "@/contexts/account-context";
 import { AccountProvider } from "@/contexts/account-context";
 import { DataProvider } from "@/contexts/data-context";

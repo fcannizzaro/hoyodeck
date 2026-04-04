@@ -1,4 +1,4 @@
-import type { BannerBadgeOptions } from "@/types/settings";
+import type { BannerBadgeOptions } from "@hoyodeck/shared/types";
 
 /**
  * Configurable banner countdown badge.

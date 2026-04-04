@@ -1,6 +1,6 @@
 import { defineAction, useSettings } from "@fcannizzaro/streamdeck-react";
 import type { JsonObject } from "@elgato/utils";
-import type { ZZZBannerSettings } from "@/types/settings";
+import type { ZZZBannerSettings } from "@hoyodeck/shared/types";
 import type {
   ZZZGachaCalendar,
   ZZZCharacterGachaEvent,

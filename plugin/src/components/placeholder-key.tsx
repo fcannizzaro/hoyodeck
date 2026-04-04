@@ -1,6 +1,6 @@
 import type { AccountContextValue } from "@/contexts/account-context";
 import { readLocalImageAsDataUri } from "@/utils/image";
-import type { GameId } from "@/types/games";
+import type { GameId } from "@hoyodeck/shared/types";
 
 const GAME_BACKGROUNDS: Record<GameId, string> = {
   gi: "imgs/actions/gi/5-star.png",

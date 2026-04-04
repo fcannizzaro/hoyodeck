@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react";
 import { useAction } from "@fcannizzaro/streamdeck-react";
-import type { GameId } from "@/types/settings";
+import type { GameId } from "@hoyodeck/shared/types";
 import type { HoyolabClient } from "@/api/hoyolab/client";
 import { dataController } from "@/services/data-controller";
 import { useAccount } from "./account-context";

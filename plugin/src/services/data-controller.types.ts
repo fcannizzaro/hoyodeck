@@ -1,4 +1,4 @@
-import type { AccountId } from "@/types/settings";
+import type { AccountId } from "@hoyodeck/shared/types";
 import type {
   GenshinDailyNote,
   GenshinSpiralAbyss,

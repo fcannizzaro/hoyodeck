@@ -1,6 +1,6 @@
 import { defineAction, useKeyDown, useGlobalSettings } from "@fcannizzaro/streamdeck-react";
 import type { JsonObject } from "@elgato/utils";
-import type { GenshinActionSettings, GlobalSettings } from "@/types/settings";
+import type { GenshinActionSettings, GlobalSettings } from "@hoyodeck/shared/types";
 import { useGameData } from "@/hooks/use-game-data";
 import { createActionWrapper } from "@/contexts/create-action-wrapper";
 import { readLocalImageAsDataUri } from "@/utils/image";

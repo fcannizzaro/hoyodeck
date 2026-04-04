@@ -1,7 +1,7 @@
 import { defineAction, useKeyDown } from "@fcannizzaro/streamdeck-react";
 import type { JsonObject } from "@elgato/utils";
-import type { StarRailActionSettings } from "@/types/settings";
-import { GAMES } from "@/types/games";
+import type { StarRailActionSettings } from "@hoyodeck/shared/types";
+import { GAMES } from "@hoyodeck/shared/games";
 import { useGameData } from "@/hooks/use-game-data";
 import { createActionWrapper } from "@/contexts/create-action-wrapper";
 import { readLocalImageAsDataUri } from "@/utils/image";
