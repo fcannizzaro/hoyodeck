@@ -1,8 +1,8 @@
 {
   "name": "com.fcannizzaro.hoyodeck",
+  "private": true,
   "version": "1.0.0",
   "description": "HoYoverse game utilities for Stream Deck",
-  "license": "GPL-3.0",
   "author": "fcannizzaro",
   "type": "module",
   "scripts": {
