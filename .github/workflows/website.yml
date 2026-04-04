@@ -31,6 +31,8 @@ jobs:
 
       - name: Build website
         run: cd website && bun run build
+        env:
+          PUBLIC_DISCORD_URL: ${{ secrets.PUBLIC_DISCORD_URL }}
 
       - name: Setup Pages
         uses: actions/configure-pages@v6
