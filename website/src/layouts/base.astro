@@ -8,7 +8,7 @@ interface Props {
 }
 
 const {
-  title = "Hoyo Deck — Stream Deck Plugin for HoYoverse Games",
+  title = "HoYo Deck — Stream Deck Plugin for HoYoverse Games",
   description = "Track your Genshin Impact, Honkai: Star Rail, and Zenless Zone Zero stats directly on your Stream Deck. Monitor stamina, banners, endgame progress, and more.",
 } = Astro.props;
 ---
@@ -23,6 +23,7 @@ const {
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:type" content="website" />
+    <meta property="og:image" content="/og.webp" />
     <meta name="theme-color" content="#191b2a" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />

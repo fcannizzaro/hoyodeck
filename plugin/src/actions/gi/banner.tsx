@@ -4,7 +4,7 @@ import type { BannerSettings } from "@hoyodeck/shared/types";
 import type { GenshinActCalendar, GenshinBannerPool } from "@/api/types/genshin";
 import { useGameData } from "@/hooks/use-game-data";
 import { createActionWrapper } from "@/contexts/create-action-wrapper";
-import { BannerKey, type BannerItem } from "@/components/banner-key";
+import { BannerKey, BannerDial, type BannerItem } from "@/components/banner-key";
 
 // ─── Icon style (GI icons fit 1:1 in the key) ────────────────────
 
@@ -44,9 +44,9 @@ function getWeaponItems(calendar: GenshinActCalendar): BannerItem[] {
   );
 }
 
-// ─── Key Component ────────────────────────────────────────────────
+// ─── Shared data hook ─────────────────────────────────────────────
 
-function GenshinBannerKey() {
+function useGenshinBannerData() {
   const [settings] = useSettings<BannerSettings & JsonObject>();
   const { account, data: calendarEntry, requestUpdate } = useGameData("gi:act-calendar");
 
@@ -59,15 +59,21 @@ function GenshinBannerKey() {
       : getWeaponItems(calendar)
     : [];
 
-  return (
-    <BannerKey
-      game="gi"
-      account={account}
-      items={items}
-      requestUpdate={requestUpdate}
-      iconStyle={ICON_STYLE}
-    />
-  );
+  return { account, items, requestUpdate };
+}
+
+// ─── Key Component ────────────────────────────────────────────────
+
+function GenshinBannerKey() {
+  const data = useGenshinBannerData();
+  return <BannerKey game="gi" iconStyle={ICON_STYLE} {...data} />;
+}
+
+// ─── Dial Component ───────────────────────────────────────────────
+
+function GenshinBannerDial() {
+  const data = useGenshinBannerData();
+  return <BannerDial game="gi" iconStyle={ICON_STYLE} {...data} />;
 }
 
 // ─── Action Definition ────────────────────────────────────────────
@@ -75,11 +81,19 @@ function GenshinBannerKey() {
 export const genshinBannerAction = defineAction<BannerSettings & JsonObject>({
   uuid: "com.fcannizzaro.hoyodeck.genshin.banner",
   key: GenshinBannerKey,
+  dial: GenshinBannerDial,
   wrapper: createActionWrapper("gi", ["gi:act-calendar"]),
   info: {
     name: "[GI] Banner",
     icon: "imgs/actions/gi/banner-icon",
     tooltip: "Display current wish banner countdown",
     states: [{ image: "imgs/actions/gi/5-star", titleAlignment: "middle" }],
+    encoder: {
+      layout: "$A0",
+      triggerDescription: {
+        rotate: "Cycle banner",
+        touch: "Cycle banner",
+      },
+    },
   },
 });

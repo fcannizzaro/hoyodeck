@@ -1,4 +1,4 @@
-# Hoyo Deck
+# HoYo Deck
 
 A Stream Deck plugin for HoYoverse games. Track your Genshin Impact, Honkai: Star Rail, and Zenless Zone Zero stats directly on your Stream Deck.
 
@@ -70,7 +70,7 @@ The plugin requires HoYoLAB authentication to access your game data.
    - Copy the entire `Cookie` header value
 
 3. **Configure Plugin**
-   - Add any Hoyo Deck action to your Stream Deck
+   - Add any HoYo Deck action to your Stream Deck
    - Click on the action to open Property Inspector
    - Paste the cookie string in the "Cookie String" field
    - Click "Parse Cookies"

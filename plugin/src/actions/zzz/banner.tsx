@@ -8,7 +8,7 @@ import type {
 } from "@/api/types/zzz";
 import { useGameData } from "@/hooks/use-game-data";
 import { createActionWrapper } from "@/contexts/create-action-wrapper";
-import { BannerKey, type BannerItem } from "@/components/banner-key";
+import { BannerKey, BannerDial, type BannerItem } from "@/components/banner-key";
 
 // ─── Icon style (ZZZ portraits are taller, offset upward) ────────
 
@@ -45,9 +45,9 @@ function getWeaponItems(calendar: ZZZGachaCalendar): BannerItem[] {
   );
 }
 
-// ─── Key Component ────────────────────────────────────────────────
+// ─── Shared data hook ─────────────────────────────────────────────
 
-function ZZZBannerKey() {
+function useZZZBannerData() {
   const [settings] = useSettings<ZZZBannerSettings & JsonObject>();
   const { account, data: calendarEntry, requestUpdate } = useGameData("zzz:gacha-calendar");
 
@@ -60,15 +60,21 @@ function ZZZBannerKey() {
       : getWeaponItems(calendar)
     : [];
 
-  return (
-    <BannerKey
-      game="zzz"
-      account={account}
-      items={items}
-      requestUpdate={requestUpdate}
-      iconStyle={ICON_STYLE}
-    />
-  );
+  return { account, items, requestUpdate };
+}
+
+// ─── Key Component ────────────────────────────────────────────────
+
+function ZZZBannerKey() {
+  const data = useZZZBannerData();
+  return <BannerKey game="zzz" iconStyle={ICON_STYLE} {...data} />;
+}
+
+// ─── Dial Component ───────────────────────────────────────────────
+
+function ZZZBannerDial() {
+  const data = useZZZBannerData();
+  return <BannerDial game="zzz" iconStyle={ICON_STYLE} {...data} />;
 }
 
 // ─── Action Definition ────────────────────────────────────────────
@@ -76,11 +82,19 @@ function ZZZBannerKey() {
 export const zzzBannerAction = defineAction<ZZZBannerSettings & JsonObject>({
   uuid: "com.fcannizzaro.hoyodeck.zzz.banner",
   key: ZZZBannerKey,
+  dial: ZZZBannerDial,
   wrapper: createActionWrapper("zzz", ["zzz:gacha-calendar"]),
   info: {
     name: "[ZZZ] Banner",
     icon: "imgs/actions/zzz/banner-icon",
     tooltip: "Display current Signal Search banner countdown",
     states: [{ image: "imgs/actions/zzz/5-star", titleAlignment: "middle" }],
+    encoder: {
+      layout: "$A0",
+      triggerDescription: {
+        rotate: "Cycle banner",
+        touch: "Cycle banner",
+      },
+    },
   },
 });

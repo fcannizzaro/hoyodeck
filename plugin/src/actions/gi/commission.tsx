@@ -8,6 +8,7 @@ import {
 import type { JsonObject } from "@elgato/utils";
 import type { GenshinActionSettings, GlobalSettings } from "@hoyodeck/shared/types";
 import { useGameData } from "@/hooks/use-game-data";
+import { useBlink } from "@/hooks/use-blink";
 import { createActionWrapper } from "@/contexts/create-action-wrapper";
 import { readLocalImageAsDataUri } from "@/utils/image";
 import { PlaceholderKey } from "@/components/placeholder-key";
@@ -31,20 +32,15 @@ const STATE_IMAGES = {
   },
 } as const;
 
-// Animation constants
-const TOTAL_FRAMES = 30;
+// Float animation constants (blink is handled by the global coordinator)
+const FLOAT_FRAMES = 30;
 const AMPLITUDE_X = 2;
-const BLINK_START = 12;
-const BLINK_END = 15;
 
-const FLOATS: ReadonlyArray<{ x: number; blink: boolean }> = Array.from(
-  { length: TOTAL_FRAMES },
+const FLOAT_X: ReadonlyArray<number> = Array.from(
+  { length: FLOAT_FRAMES },
   (_, i) => {
-    const t = (i / TOTAL_FRAMES) * Math.PI * 2;
-    return {
-      x: Math.round(Math.sin(t) * AMPLITUDE_X * 10) / 10,
-      blink: i >= BLINK_START && i <= BLINK_END,
-    };
+    const t = (i / FLOAT_FRAMES) * Math.PI * 2;
+    return Math.round(Math.sin(t) * AMPLITUDE_X * 10) / 10;
   },
 );
 
@@ -55,7 +51,8 @@ function CommissionKey() {
 
   const [frameIndex, setFrameIndex] = useState(0);
 
-  useInterval(() => setFrameIndex((i) => (i + 1) % TOTAL_FRAMES), animationsDisabled ? null : 100);
+  useInterval(() => setFrameIndex((i) => (i + 1) % FLOAT_FRAMES), animationsDisabled ? null : 100);
+  const blink = useBlink(!animationsDisabled);
 
   useKeyDown(() => {
     void requestUpdate();
@@ -89,13 +86,13 @@ function CommissionKey() {
 
   const text = allDone ? undefined : `${dailyNote.finished_task_num}/${dailyNote.total_task_num}`;
 
-  const float = FLOATS[frameIndex % FLOATS.length]!;
-  const charSrc = float.blink ? images.closed : images.open;
+  const floatX = FLOAT_X[frameIndex % FLOAT_X.length]!;
+  const charSrc = blink ? images.closed : images.open;
 
   return (
     <div className="relative w-full h-full">
       <img src={BACKGROUND} width={144} height={144} />
-      <div className="absolute" style={{ top: 0, left: float.x }}>
+      <div className="absolute" style={{ top: 0, left: floatX }}>
         <img src={charSrc} width={144} height={144} />
       </div>
       {text && <Badge text={text} />}

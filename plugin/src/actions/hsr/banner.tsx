@@ -4,7 +4,7 @@ import type { StarRailBannerSettings } from "@hoyodeck/shared/types";
 import type { StarRailActCalendar, StarRailBannerPool } from "@/api/types/hsr";
 import { useGameData } from "@/hooks/use-game-data";
 import { createActionWrapper } from "@/contexts/create-action-wrapper";
-import { BannerKey, type BannerItem } from "@/components/banner-key";
+import { BannerKey, BannerDial, type BannerItem } from "@/components/banner-key";
 
 // ─── Icon style (HSR portraits are taller, offset upward) ────────
 
@@ -48,9 +48,9 @@ function getWeaponItems(calendar: StarRailActCalendar): BannerItem[] {
   );
 }
 
-// ─── Key Component ────────────────────────────────────────────────
+// ─── Shared data hook ─────────────────────────────────────────────
 
-function StarRailBannerKey() {
+function useStarRailBannerData() {
   const [settings] = useSettings<StarRailBannerSettings & JsonObject>();
   const { account, data: calendarEntry, requestUpdate } = useGameData("hsr:act-calendar");
 
@@ -63,15 +63,21 @@ function StarRailBannerKey() {
       : getWeaponItems(calendar)
     : [];
 
-  return (
-    <BannerKey
-      game="hsr"
-      account={account}
-      items={items}
-      requestUpdate={requestUpdate}
-      iconStyle={ICON_STYLE}
-    />
-  );
+  return { account, items, requestUpdate };
+}
+
+// ─── Key Component ────────────────────────────────────────────────
+
+function StarRailBannerKey() {
+  const data = useStarRailBannerData();
+  return <BannerKey game="hsr" iconStyle={ICON_STYLE} {...data} />;
+}
+
+// ─── Dial Component ───────────────────────────────────────────────
+
+function StarRailBannerDial() {
+  const data = useStarRailBannerData();
+  return <BannerDial game="hsr" iconStyle={ICON_STYLE} {...data} />;
 }
 
 // ─── Action Definition ────────────────────────────────────────────
@@ -79,11 +85,19 @@ function StarRailBannerKey() {
 export const starRailBannerAction = defineAction<StarRailBannerSettings & JsonObject>({
   uuid: "com.fcannizzaro.hoyodeck.hsr.banner",
   key: StarRailBannerKey,
+  dial: StarRailBannerDial,
   wrapper: createActionWrapper("hsr", ["hsr:act-calendar"]),
   info: {
     name: "[HSR] Banner",
     icon: "imgs/actions/hsr/banner-icon",
     tooltip: "Display current warp banner countdown",
     states: [{ image: "imgs/actions/hsr/5-star", titleAlignment: "middle" }],
+    encoder: {
+      layout: "$A0",
+      triggerDescription: {
+        rotate: "Cycle banner",
+        touch: "Cycle banner",
+      },
+    },
   },
 });

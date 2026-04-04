@@ -1,6 +1,6 @@
 # AGENTS.md - TypeScript Coding Guidelines
 
-This document defines the TypeScript coding standards for the Hoyo Deck Stream Deck plugin. Follow these guidelines to ensure simplicity, reusability, and maintainability.
+This document defines the TypeScript coding standards for the HoYo Deck Stream Deck plugin. Follow these guidelines to ensure simplicity, reusability, and maintainability.
 
 ## Core Principles
 

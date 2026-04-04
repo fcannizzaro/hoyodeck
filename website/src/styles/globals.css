@@ -163,6 +163,52 @@ section[id] {
   animation: float 4s ease-in-out infinite;
 }
 
+/* ------------------------------------------------------------------ */
+/* Hero device (Stream Deck Plus)                                      */
+/* ------------------------------------------------------------------ */
+
+@keyframes hero-float {
+  0%, 100% {
+    transform: perspective(1200px) rotateX(6deg) translateY(0px);
+  }
+  50% {
+    transform: perspective(1200px) rotateX(6deg) translateY(-12px);
+  }
+}
+
+.hero-device-wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.hero-device {
+  position: relative;
+  animation: hero-float 5s ease-in-out infinite;
+  filter: drop-shadow(0 20px 40px oklch(0 0 0 / 50%)) drop-shadow(0 4px 12px oklch(0.3 0.12 270 / 25%));
+}
+
+.hero-device-img {
+  width: 240px;
+  height: auto;
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+}
+
+@media (min-width: 640px) {
+  .hero-device-img {
+    width: 300px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .hero-device-img {
+    width: 360px;
+  }
+}
+
 /* Subtle glow pulse */
 @keyframes glow-pulse {
   0%,
