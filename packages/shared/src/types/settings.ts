@@ -271,6 +271,27 @@ export interface WishTrackerSettings extends GameActionSettings {
   bannerType?: WishTrackerBannerType;
 }
 
+// ─── Patch Countdown Action Settings ──────────────────────────────
+
+/**
+ * A single slot in the patch countdown action.
+ * Pairs a game with the account to fetch calendar data from.
+ * Index signature required for JsonObject compatibility (stored in Stream Deck settings).
+ */
+export interface PatchCountdownSlot {
+  game: GameId;
+  accountId: AccountId;
+  [key: string]: JsonValue;
+}
+
+/**
+ * Patch countdown action settings (key + encoder, multi-game).
+ */
+export interface PatchCountdownSettings extends GameActionSettings {
+  /** Configured game+account slots (up to 3) */
+  slots?: PatchCountdownSlot[];
+}
+
 // ─── Redeem Code Action Settings ──────────────────────────────────
 
 /**
