@@ -75,6 +75,12 @@ export interface GlobalSettings {
    * without relying on the codes-server for per-user state.
    */
   claimedCodes?: Record<string, string[]>;
+
+  /**
+   * Wish/pity tracker data stored globally so it persists across action instances.
+   * Key format: "{game}:{bannerType}" (e.g. "gi:character", "hsr:lightcone").
+   */
+  wishTrackers?: Record<string, WishPityData>;
 }
 
 // ─── Per-Action Settings ──────────────────────────────────────────
@@ -223,6 +229,46 @@ export interface StaminaOverviewSettings extends GameActionSettings {
   slots?: StaminaSlot[];
   /** Currently focused slot index (-1 = no selection) */
   focusIndex?: number;
+}
+
+// ─── Wish Tracker Action Settings ─────────────────────────────────
+
+/** Banner type per game for wish/pity tracking */
+export type WishTrackerBannerType = "character" | "weapon" | "lightcone" | "w-engine";
+
+/**
+ * Persisted pity data for a single game+banner combination.
+ * Stored in GlobalSettings so the count survives across action instances.
+ */
+export interface WishPityData {
+  /** Current pity count (wishes since last 5-star) */
+  pity: number;
+  /** Whether next 5-star is guaranteed featured (won/lost 50/50 state) */
+  guaranteed: boolean;
+  [key: string]: JsonValue;
+}
+
+/**
+ * A configured game+account slot in the wish tracker.
+ * Determines which games appear in the top tab bar.
+ */
+export interface WishTrackerSlot {
+  game: GameId;
+  accountId: AccountId;
+  [key: string]: JsonValue;
+}
+
+/**
+ * Wish tracker dial action settings (encoder-only).
+ * Pity data is stored in GlobalSettings.wishTrackers, not here.
+ */
+export interface WishTrackerSettings extends GameActionSettings {
+  /** Configured game+account slots (up to 3) */
+  slots?: WishTrackerSlot[];
+  /** Index of the currently displayed slot */
+  activeSlot?: number;
+  /** Banner type for the active game */
+  bannerType?: WishTrackerBannerType;
 }
 
 // ─── Redeem Code Action Settings ──────────────────────────────────

@@ -31,9 +31,7 @@
       "UUID": "com.fcannizzaro.hoyodeck.genshin.resin",
       "Name": "[GI] Resin",
       "Icon": "imgs/actions/gi/resin-icon",
-      "Controllers": [
-        "Keypad"
-      ],
+      "Controllers": ["Keypad"],
       "States": [
         {
           "Image": "imgs/actions/gi/3-star",
@@ -46,9 +44,7 @@
       "UUID": "com.fcannizzaro.hoyodeck.genshin.commission",
       "Name": "[GI] Commissions",
       "Icon": "imgs/actions/gi/commissions-icon",
-      "Controllers": [
-        "Keypad"
-      ],
+      "Controllers": ["Keypad"],
       "States": [
         {
           "Image": "imgs/actions/gi/commissions-bg",
@@ -61,9 +57,7 @@
       "UUID": "com.fcannizzaro.hoyodeck.genshin.expedition",
       "Name": "[GI] Expeditions",
       "Icon": "imgs/actions/gi/expeditions-icon",
-      "Controllers": [
-        "Keypad"
-      ],
+      "Controllers": ["Keypad"],
       "States": [
         {
           "Image": "imgs/actions/gi/expeditions-state",
@@ -76,9 +70,7 @@
       "UUID": "com.fcannizzaro.hoyodeck.genshin.teapot",
       "Name": "[GI] Teapot",
       "Icon": "imgs/actions/gi/teapot-icon",
-      "Controllers": [
-        "Keypad"
-      ],
+      "Controllers": ["Keypad"],
       "States": [
         {
           "Image": "imgs/actions/gi/teapot-state",
@@ -91,9 +83,7 @@
       "UUID": "com.fcannizzaro.hoyodeck.genshin.transformer",
       "Name": "[GI] Transformer",
       "Icon": "imgs/actions/gi/transformerIcon",
-      "Controllers": [
-        "Keypad"
-      ],
+      "Controllers": ["Keypad"],
       "States": [
         {
           "Image": "imgs/actions/gi/transformerState",
@@ -111,9 +101,7 @@
       "UUID": "com.fcannizzaro.hoyodeck.genshin.abyss",
       "Name": "[GI] Endgame",
       "Icon": "imgs/actions/common/endgame-icon",
-      "Controllers": [
-        "Keypad"
-      ],
+      "Controllers": ["Keypad"],
       "States": [
         {
           "Image": "imgs/actions/gi/5-star",
@@ -126,10 +114,7 @@
       "UUID": "com.fcannizzaro.hoyodeck.genshin.banner",
       "Name": "[GI] Banner",
       "Icon": "imgs/actions/gi/banner-icon",
-      "Controllers": [
-        "Keypad",
-        "Encoder"
-      ],
+      "Controllers": ["Keypad", "Encoder"],
       "States": [
         {
           "Image": "imgs/actions/gi/5-star",
@@ -149,9 +134,7 @@
       "UUID": "com.fcannizzaro.hoyodeck.hsr.trailblaze-power",
       "Name": "[HSR] Trailblaze Power",
       "Icon": "imgs/actions/hsr/trailblaze-power-icon",
-      "Controllers": [
-        "Keypad"
-      ],
+      "Controllers": ["Keypad"],
       "States": [
         {
           "Image": "imgs/actions/hsr/trailblaze-power-state",
@@ -164,10 +147,7 @@
       "UUID": "com.fcannizzaro.hoyodeck.hsr.banner",
       "Name": "[HSR] Banner",
       "Icon": "imgs/actions/hsr/banner-icon",
-      "Controllers": [
-        "Keypad",
-        "Encoder"
-      ],
+      "Controllers": ["Keypad", "Encoder"],
       "States": [
         {
           "Image": "imgs/actions/hsr/5-star",
@@ -187,9 +167,7 @@
       "UUID": "com.fcannizzaro.hoyodeck.hsr.endgame",
       "Name": "[HSR] Endgame",
       "Icon": "imgs/actions/common/endgame-icon",
-      "Controllers": [
-        "Keypad"
-      ],
+      "Controllers": ["Keypad"],
       "States": [
         {
           "Image": "imgs/actions/hsr/5-star",
@@ -202,9 +180,7 @@
       "UUID": "com.fcannizzaro.hoyodeck.zzz.battery-charge",
       "Name": "[ZZZ] Battery Charge",
       "Icon": "imgs/actions/zzz/battery-recharge-icon",
-      "Controllers": [
-        "Keypad"
-      ],
+      "Controllers": ["Keypad"],
       "States": [
         {
           "Image": "imgs/actions/zzz/battery-recharge-state",
@@ -217,10 +193,7 @@
       "UUID": "com.fcannizzaro.hoyodeck.zzz.banner",
       "Name": "[ZZZ] Banner",
       "Icon": "imgs/actions/zzz/banner-icon",
-      "Controllers": [
-        "Keypad",
-        "Encoder"
-      ],
+      "Controllers": ["Keypad", "Encoder"],
       "States": [
         {
           "Image": "imgs/actions/zzz/5-star",
@@ -240,9 +213,7 @@
       "UUID": "com.fcannizzaro.hoyodeck.zzz.endgame",
       "Name": "[ZZZ] Endgame",
       "Icon": "imgs/actions/common/endgame-icon",
-      "Controllers": [
-        "Keypad"
-      ],
+      "Controllers": ["Keypad"],
       "States": [
         {
           "Image": "imgs/actions/zzz/5-star",
@@ -255,9 +226,7 @@
       "UUID": "com.fcannizzaro.hoyodeck.genshin.daily-reward",
       "Name": "Daily Reward",
       "Icon": "imgs/actions/gi/reward-icon",
-      "Controllers": [
-        "Keypad"
-      ],
+      "Controllers": ["Keypad"],
       "States": [
         {
           "Image": "imgs/actions/gi/reward-state",
@@ -270,9 +239,7 @@
       "UUID": "com.fcannizzaro.hoyodeck.redeem-code",
       "Name": "Redeem Code",
       "Icon": "imgs/actions/common/redeem-icon",
-      "Controllers": [
-        "Keypad"
-      ],
+      "Controllers": ["Keypad"],
       "States": [
         {
           "Image": "imgs/actions/common/redeem-state",
@@ -284,13 +251,12 @@
     {
       "UUID": "com.fcannizzaro.hoyodeck.stamina-overview",
       "Name": "Stamina Overview",
-      "Icon": "imgs/actions/stamina-overview-icon",
-      "Controllers": [
-        "Encoder"
-      ],
+      "Icon": "imgs/actions/common/stamina-overview-icon",
+      "Controllers": ["Encoder"],
       "States": [
         {
-          "Image": "imgs/actions/stamina-overview-icon"
+          "Image": "imgs/actions/gi/5-star",
+          "TitleAlignment": "middle"
         }
       ],
       "Tooltip": "Multi-game stamina overview for the Stream Deck+ encoder",
@@ -299,6 +265,28 @@
         "TriggerDescription": {
           "Rotate": "Cycle focus",
           "Touch": "Refresh all"
+        }
+      }
+    },
+    {
+      "UUID": "com.fcannizzaro.hoyodeck.wish-tracker",
+      "Name": "Wish Tracker",
+      "Icon": "imgs/actions/common/wish-tracker-icon",
+      "Controllers": ["Encoder"],
+      "States": [
+        {
+          "Image": "imgs/actions/gi/5-star",
+          "TitleAlignment": "middle"
+        }
+      ],
+      "Tooltip": "Manual banner wish/pity counter for all HoYoverse games",
+      "Encoder": {
+        "layout": "$A0",
+        "TriggerDescription": {
+          "Rotate": "+1 pity",
+          "Push": "+10 pity",
+          "Touch": "Change game",
+          "LongTouch": "Reset pity"
         }
       }
     }

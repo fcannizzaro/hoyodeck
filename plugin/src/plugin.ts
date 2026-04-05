@@ -31,6 +31,7 @@ import { zzzEndgameAction } from "./actions/zzz/endgame.tsx";
 import { dailyRewardAction } from "./actions/common/daily-reward.tsx";
 import { redeemCodeAction } from "./actions/common/redeem-code.tsx";
 import { staminaOverviewAction } from "./actions/common/stamina-overview.tsx";
+import { wishTrackerAction } from "./actions/common/wish-tracker.tsx";
 
 // Import font
 import Inter from "@fontsource/inter/files/inter-latin-400-normal.woff";
@@ -77,6 +78,7 @@ const plugin = createPlugin({
     dailyRewardAction,
     redeemCodeAction,
     staminaOverviewAction,
+    wishTrackerAction,
   ],
 });
 
