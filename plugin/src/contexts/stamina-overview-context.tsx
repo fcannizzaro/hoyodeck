@@ -24,7 +24,7 @@ import type { DataType, DataEntry, DataUpdate } from "@/services/data-controller
 // ─── Resolved Slot Data ───────────────────────────────────────────
 
 /** Resolved data for a single stamina slot */
-export type ResolvedSlotData =
+type ResolvedSlotData =
   | { status: "loading" }
   | { status: "unconfigured" }
   | { status: "error"; message: string }
@@ -43,7 +43,7 @@ const NO_FOCUS = -1;
 
 // ─── Context Value ────────────────────────────────────────────────
 
-export interface StaminaOverviewContextValue {
+interface StaminaOverviewContextValue {
   /** Resolved data for each configured slot */
   slots: SlotState[];
   /** Currently focused slot index (null = no selection) */

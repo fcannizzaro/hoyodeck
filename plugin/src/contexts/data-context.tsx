@@ -14,7 +14,7 @@ import type {
 
 // ─── Context Value ────────────────────────────────────────────────
 
-export interface DataContextValue {
+interface DataContextValue {
   /** Current data entries keyed by DataType */
   entries: Partial<Record<DataType, DataEntry<unknown>>>;
   /** Request an immediate data refresh for the resolved account + game */

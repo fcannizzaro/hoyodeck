@@ -34,7 +34,7 @@ import { getGameConfig } from "@hoyodeck/shared/games";
 export class HoyolabClient {
   private readonly cookieString: string;
 
-  constructor(private readonly auth: HoyoAuth) {
+  constructor(readonly auth: HoyoAuth) {
     this.cookieString = buildCookieString(auth);
   }
 

@@ -5,7 +5,7 @@ import type { DataType, DataTypeMap, DataEntry } from "@/services/data-controlle
 
 // ─── Result Type ──────────────────────────────────────────────────
 
-export interface UseGameDataResult<T extends DataType> {
+interface UseGameDataResult<T extends DataType> {
   /** Account resolution status */
   account: AccountContextValue;
   /** Typed data entry, undefined if not yet fetched */

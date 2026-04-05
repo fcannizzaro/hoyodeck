@@ -20,7 +20,7 @@ const CODE_ICON = "imgs/actions/common/code-redeem.png";
 function RedeemCodeKey() {
   const [settings] = useSettings<RedeemCodeSettings & JsonObject>();
   const account = useAccount();
-  const { codes, availableCount, redeemAll } = useRedeemCodes();
+  const { availableCount, redeemAll } = useRedeemCodes();
 
   const game = (settings.game ?? "gi") as GameId;
 

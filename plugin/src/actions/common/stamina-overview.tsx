@@ -43,7 +43,6 @@ interface SlotProps {
   width: number;
   /** Animated vertical offset (0 = centered, negative = shifted up) */
   offsetY: number;
-  focused: boolean;
   /** Another slot is focused — dim this one */
   dimmed: boolean;
 }
@@ -53,7 +52,7 @@ interface SlotProps {
  * Renders the game's themed background with icon + value overlaid.
  * A colored bottom border appears when focused.
  */
-function StaminaSlotView({ slot, width, offsetY, focused, dimmed }: SlotProps) {
+function StaminaSlotView({ slot, width, offsetY, dimmed }: SlotProps) {
   const icon = STAMINA_ICONS[slot.game];
   const bg = SLOT_BACKGROUNDS[slot.game];
   const okData = slot.data.status === "ok" ? slot.data : null;
@@ -304,7 +303,6 @@ function StaminaOverviewDialInner() {
             slot={slot}
             width={slotWidth}
             offsetY={slotsOffsetY}
-            focused={focusIndex === i}
             dimmed={focusIndex !== null && focusIndex !== i}
           />
         ))}

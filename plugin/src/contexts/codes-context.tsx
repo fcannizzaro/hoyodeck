@@ -14,7 +14,7 @@ import {
   useInterval,
 } from "@fcannizzaro/streamdeck-react";
 import type { JsonObject } from "@elgato/utils";
-import type { RedeemCodeSettings, GlobalSettings, GameId, AccountId } from "@hoyodeck/shared/types";
+import type { RedeemCodeSettings, GlobalSettings, GameId } from "@hoyodeck/shared/types";
 import { toJsonObject } from "@/utils/json";
 import type { GameCodeWithStatus } from "@hoyodeck/shared/types";
 import { codesClient } from "@/api/manager/client";
@@ -28,7 +28,7 @@ const REFRESH_INTERVAL_MS = 5 * 60 * 1000;
 
 // ─── Context Value ────────────────────────────────────────────────
 
-export interface CodesContextValue {
+interface CodesContextValue {
   /** Current codes list (merged with local claim status) */
   codes: GameCodeWithStatus[];
   /** Number of available (unclaimed, active) codes */

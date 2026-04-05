@@ -10,9 +10,3 @@ export const GAME_ICONS: Record<GameId, string> = {
   hsr: hsrIcon,
   zzz: zzzIcon,
 };
-
-export const GAME_LABELS: Record<GameId, string> = {
-  gi: "GI",
-  hsr: "HSR",
-  zzz: "ZZZ",
-};

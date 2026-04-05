@@ -137,11 +137,6 @@ export function AccountForm({ account, onSave, onCancel }: AccountFormProps) {
     });
   }, [name, cookies, loginAuth, account, onSave]);
 
-  // ─── Derived state ─────────────────────────────────────────────
-
-  /** Whether auth has been obtained (via webview or existing account) */
-  const hasAuth = loginAuth !== null || account?.auth !== undefined;
-
   // ─── Render ────────────────────────────────────────────────────
 
   return (

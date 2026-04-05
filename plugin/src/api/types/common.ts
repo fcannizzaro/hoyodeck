@@ -10,7 +10,7 @@ export interface ApiResponse<T> {
 /**
  * API error codes
  */
-export const API_ERRORS = {
+const API_ERRORS = {
   SUCCESS: 0,
   INVALID_REQUEST: -100,
   NOT_LOGGED_IN: -101,

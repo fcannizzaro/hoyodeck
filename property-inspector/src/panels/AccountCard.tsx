@@ -1,6 +1,6 @@
 import { Button } from "../components/Button";
 import { GameIcon } from "../components/GameIcon";
-import { GAME_LABELS } from "../constants/games";
+import { GAME_LABELS } from "@hoyodeck/shared/games";
 import type { GameId, HoyoAccountInfo } from "@hoyodeck/shared/types";
 
 /** All game IDs for skeleton placeholders */

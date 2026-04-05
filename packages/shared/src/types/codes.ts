@@ -1,10 +1,10 @@
 import type { GameId } from "./game";
 
 /** Status of a code relative to a specific account */
-export type CodeStatus = "available" | "claimed" | "dismissed" | "expired";
+type CodeStatus = "available" | "claimed" | "dismissed" | "expired";
 
 /** A redeemable game code from the crawler */
-export interface GameCode {
+interface GameCode {
   /** The code string itself (e.g. "GENSHINGIFT") */
   code: string;
   /** Which game this code belongs to */

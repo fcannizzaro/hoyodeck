@@ -40,13 +40,6 @@ const BANNER_TYPE_OPTIONS: Record<GameId, { value: string; label: string }[]> = 
   ],
 };
 
-/** Default banner type when switching games */
-const DEFAULT_BANNER_TYPE: Record<GameId, WishTrackerBannerType> = {
-  gi: "character",
-  hsr: "character",
-  zzz: "character",
-};
-
 /** Hard pity values for display reference */
 const HARD_PITY: Record<GameId, Record<string, number>> = {
   gi: { character: 90, weapon: 80 },

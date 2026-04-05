@@ -8,7 +8,7 @@ export const HOYOLAB_GAME_IDS: Record<number, GameId> = {
 };
 
 /** A single game entry from the game record card API */
-export interface GameRecordCard {
+interface GameRecordCard {
   has_role: boolean;
   game_id: number;
   /** The in-game UID */

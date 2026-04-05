@@ -5,7 +5,7 @@
   "Author": "fcannizzaro",
   "Description": "HoYoverse games utilities for Stream Deck (Genshin Impact, Honkai: Star Rail and Zenless Zone Zero)",
   "Icon": "imgs/plugin/icon",
-  "Version": "1.0.0.1",
+  "Version": "1.0.0.0",
   "CodePath": "bin/plugin.mjs",
   "OS": [
     {
