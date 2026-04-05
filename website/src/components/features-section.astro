@@ -1,5 +1,19 @@
 ---
 import { crossGameActions } from "../data/actions";
+import type { InputType } from "../data/actions";
+
+const inputBadges: Record<InputType, { label: string; icon: string }[]> = {
+  key: [
+    { label: "Key", icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="3"/><circle cx="12" cy="14" r="2.5"/></svg>` },
+  ],
+  dial: [
+    { label: "Dial", icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>` },
+  ],
+  "key+dial": [
+    { label: "Key", icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="3"/><circle cx="12" cy="14" r="2.5"/></svg>` },
+    { label: "Dial", icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>` },
+  ],
+};
 ---
 
 <section id="features" class="px-6 py-16 lg:py-20">
@@ -19,7 +33,7 @@ import { crossGameActions } from "../data/actions";
     </div>
 
     <!-- Cross-game action cards -->
-    <div class="mx-auto grid max-w-4xl gap-6 md:grid-cols-2">
+    <div class="mx-auto grid max-w-5xl gap-6 sm:grid-cols-2">
       {
         crossGameActions.map((action, i) => (
           <div
@@ -42,10 +56,20 @@ import { crossGameActions } from "../data/actions";
                 <img src="/icons/zzz.webp" alt="ZZZ" class="size-6 rounded object-contain opacity-60" />
               </div>
 
-              {/* Action name */}
-              <h3 class="mb-2 text-lg font-bold tracking-tight text-foreground">
-                {action.name}
-              </h3>
+              {/* Action name + input badges */}
+              <div class="mb-2 flex items-center gap-2">
+                <h3 class="text-lg font-bold tracking-tight text-foreground">
+                  {action.name}
+                </h3>
+                <div class="flex items-center gap-1">
+                  {inputBadges[action.inputType].map(({ label, icon }) => (
+                    <span class="input-badge">
+                      <Fragment set:html={icon} />
+                      {label}
+                    </span>
+                  ))}
+                </div>
+              </div>
 
               {/* Description */}
               <p class="mb-5 text-sm leading-relaxed text-muted-foreground/70">
