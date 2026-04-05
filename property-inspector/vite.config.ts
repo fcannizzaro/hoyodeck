@@ -10,6 +10,7 @@ export default defineConfig({
   envPrefix: ["VITE_", "PUBLIC_"],
   plugins: [react(), tailwindcss(), viteSingleFile()],
   build: {
+    minify: true,
     outDir: "../plugin/com.fcannizzaro.hoyodeck.sdPlugin/ui",
     emptyOutDir: false,
   },

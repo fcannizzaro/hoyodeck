@@ -69,6 +69,7 @@ export default defineConfig({
     },
     rolldownOptions: {
       output: {
+        minify: true,
         codeSplitting: false,
       },
     },
