@@ -45,6 +45,8 @@ export default defineConfig({
       manifest: {
         uuid: "com.fcannizzaro.hoyodeck",
         name: "HoYo Deck",
+        url: "https://hoyodeck.fcannizzaro.com",
+        supportUrl: process.env.PUBLIC_DISCORD_URL,
         author: "fcannizzaro",
         description:
           "HoYoverse games utilities for Stream Deck (Genshin Impact, Honkai: Star Rail and Zenless Zone Zero)",

@@ -34,3 +34,4 @@ Thumbs.db
 **/bin/
 plugin/**/ui/index.html
 plugin/**/imgs/banner
+plugin/**/manifest.json
