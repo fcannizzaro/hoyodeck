@@ -2,24 +2,24 @@
   "name": "hoyodeck-monorepo",
   "private": true,
   "author": "fcannizzaro",
+  "workspaces": [
+    "packages/*",
+    "plugin",
+    "property-inspector"
+  ],
   "scripts": {
     "dev": "turbo run dev",
     "build": "turbo run build",
     "format": "oxfmt",
     "typecheck": "turbo run typecheck"
   },
-  "workspaces": [
-    "packages/*",
-    "plugin",
-    "property-inspector"
-  ],
   "devDependencies": {
     "oxfmt": "^0.43.0",
     "turbo": "^2.9.3",
     "typescript": "^6.0.2"
   },
-  "packageManager": "bun@1.3.9",
   "engines": {
     "node": ">=24"
-  }
+  },
+  "packageManager": "bun@1.3.9"
 }

@@ -36,13 +36,10 @@ const STATE_IMAGES = {
 const FLOAT_FRAMES = 30;
 const AMPLITUDE_X = 2;
 
-const FLOAT_X: ReadonlyArray<number> = Array.from(
-  { length: FLOAT_FRAMES },
-  (_, i) => {
-    const t = (i / FLOAT_FRAMES) * Math.PI * 2;
-    return Math.round(Math.sin(t) * AMPLITUDE_X * 10) / 10;
-  },
-);
+const FLOAT_X: ReadonlyArray<number> = Array.from({ length: FLOAT_FRAMES }, (_, i) => {
+  const t = (i / FLOAT_FRAMES) * Math.PI * 2;
+  return Math.round(Math.sin(t) * AMPLITUDE_X * 10) / 10;
+});
 
 function CommissionKey() {
   const [globalSettings] = useGlobalSettings<GlobalSettings & JsonObject>();

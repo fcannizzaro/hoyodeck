@@ -168,7 +168,8 @@ section[id] {
 /* ------------------------------------------------------------------ */
 
 @keyframes hero-float {
-  0%, 100% {
+  0%,
+  100% {
     transform: perspective(1200px) rotateX(6deg) translateY(0px);
   }
   50% {
@@ -186,7 +187,8 @@ section[id] {
 .hero-device {
   position: relative;
   animation: hero-float 5s ease-in-out infinite;
-  filter: drop-shadow(0 20px 40px oklch(0 0 0 / 50%)) drop-shadow(0 4px 12px oklch(0.3 0.12 270 / 25%));
+  filter: drop-shadow(0 20px 40px oklch(0 0 0 / 50%))
+    drop-shadow(0 4px 12px oklch(0.3 0.12 270 / 25%));
 }
 
 .hero-device-img {
@@ -324,7 +326,10 @@ section[id] {
 
 /* Action card hover glow */
 .action-card {
-  transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
+  transition:
+    border-color 0.3s ease,
+    box-shadow 0.3s ease,
+    transform 0.3s ease;
 }
 
 .action-card:hover {

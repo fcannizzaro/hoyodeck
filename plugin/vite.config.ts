@@ -25,7 +25,10 @@ export default defineConfig({
         {
           importSpecifier: "@nativewindow/webview",
           bindings: {
-            "darwin-arm64": { pkg: "webview-darwin-arm64", file: "native-window.darwin-arm64.node" },
+            "darwin-arm64": {
+              pkg: "webview-darwin-arm64",
+              file: "native-window.darwin-arm64.node",
+            },
             "darwin-x64": { pkg: "webview-darwin-x64", file: "native-window.darwin-x64.node" },
             "win32-x64": {
               pkg: "webview-win32-x64-msvc",
@@ -36,12 +39,7 @@ export default defineConfig({
               file: "native-window.win32-arm64-msvc.node",
             },
           },
-          exports: [
-            "NativeWindow",
-            "checkRuntime",
-            "ensureRuntime",
-            "loadHtmlOrigin",
-          ],
+          exports: ["NativeWindow", "checkRuntime", "ensureRuntime", "loadHtmlOrigin"],
         },
       ],
       manifest: {

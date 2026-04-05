@@ -90,37 +90,37 @@ The plugin supports **multiple accounts** — each action can be bound to a diff
 
 ### Genshin Impact (7 actions)
 
-| Action | Description |
-|--------|-------------|
-| **Resin** | Current / max Original Resin (e.g. `45/200`) with fill gauge. Press to refresh. |
-| **Commissions** | Daily commission progress (e.g. `2/4`) with animated character. |
-| **Expeditions** | Completed / total expeditions with character avatar circles (auto-layout for 1–5). |
-| **Teapot** | Realm currency fill %. Shows alert when capped. |
-| **Transformer** | Parametric Transformer cooldown — icon mode or text countdown. |
-| **Endgame** | Spiral Abyss ★ / Imaginarium Theater 🏅 / Stygian Onslaught — with reset timer. Supports "ending soonest" auto-selection. |
-| **Banner** | Active wish banner countdown with featured art. Encoder dial cycles banners. |
+| Action          | Description                                                                                                               |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| **Resin**       | Current / max Original Resin (e.g. `45/200`) with fill gauge. Press to refresh.                                           |
+| **Commissions** | Daily commission progress (e.g. `2/4`) with animated character.                                                           |
+| **Expeditions** | Completed / total expeditions with character avatar circles (auto-layout for 1–5).                                        |
+| **Teapot**      | Realm currency fill %. Shows alert when capped.                                                                           |
+| **Transformer** | Parametric Transformer cooldown — icon mode or text countdown.                                                            |
+| **Endgame**     | Spiral Abyss ★ / Imaginarium Theater 🏅 / Stygian Onslaught — with reset timer. Supports "ending soonest" auto-selection. |
+| **Banner**      | Active wish banner countdown with featured art. Encoder dial cycles banners.                                              |
 
 ### Honkai: Star Rail (3 actions)
 
-| Action | Description |
-|--------|-------------|
-| **Trailblaze Power** | Current / max Trailblaze Power (e.g. `150/300`) with fill gauge. Press to refresh. |
-| **Endgame** | Memory of Chaos / Pure Fiction / Apocalyptic Shadow / Anomaly Arbitration — with reset timer. |
-| **Banner** | Active warp banner countdown with featured art. Encoder dial cycles banners. |
+| Action               | Description                                                                                   |
+| -------------------- | --------------------------------------------------------------------------------------------- |
+| **Trailblaze Power** | Current / max Trailblaze Power (e.g. `150/300`) with fill gauge. Press to refresh.            |
+| **Endgame**          | Memory of Chaos / Pure Fiction / Apocalyptic Shadow / Anomaly Arbitration — with reset timer. |
+| **Banner**           | Active warp banner countdown with featured art. Encoder dial cycles banners.                  |
 
 ### Zenless Zone Zero (3 actions)
 
-| Action | Description |
-|--------|-------------|
-| **Battery Charge** | Current / max Battery Charge (e.g. `120/240`) with fill gauge. Press to refresh. |
-| **Endgame** | Shiyu Defense / Deadly Assault — with reset timer. |
-| **Banner** | Active Signal Search banner countdown with featured art. Encoder dial cycles banners. |
+| Action             | Description                                                                           |
+| ------------------ | ------------------------------------------------------------------------------------- |
+| **Battery Charge** | Current / max Battery Charge (e.g. `120/240`) with fill gauge. Press to refresh.      |
+| **Endgame**        | Shiyu Defense / Deadly Assault — with reset timer.                                    |
+| **Banner**         | Active Signal Search banner countdown with featured art. Encoder dial cycles banners. |
 
 ### Cross-Game (2 actions)
 
-| Action | Description |
-|--------|-------------|
-| **Daily Reward** | Today's HoYoLAB check-in reward for GI, HSR, or ZZZ. Press to claim. |
+| Action           | Description                                                                  |
+| ---------------- | ---------------------------------------------------------------------------- |
+| **Daily Reward** | Today's HoYoLAB check-in reward for GI, HSR, or ZZZ. Press to claim.         |
 | **Redeem Codes** | Shows available code count. Press to redeem all codes for the selected game. |
 
 ## Requirements
@@ -131,17 +131,17 @@ The plugin supports **multiple accounts** — each action can be bound to a diff
 
 ## Tech Stack
 
-| Layer | Technology |
-|-------|------------|
-| Runtime | Node.js 24 via Stream Deck SDK 2 |
-| Language | TypeScript 6 (strict mode) |
-| Plugin Rendering | React 19 → image via [Takumi](https://github.com/nicholasgasior/takumi-rs) (Rust-based renderer) |
-| Property Inspector | React 19 + Tailwind CSS 4 (single-file HTML) |
-| Data Fetching | TanStack Query 5 |
-| Validation | Zod 4 |
-| Bundler | Vite 8 (Rolldown) |
-| Monorepo | Turborepo + Bun workspaces |
-| Package Manager | Bun |
+| Layer              | Technology                                                                                       |
+| ------------------ | ------------------------------------------------------------------------------------------------ |
+| Runtime            | Node.js 24 via Stream Deck SDK 2                                                                 |
+| Language           | TypeScript 6 (strict mode)                                                                       |
+| Plugin Rendering   | React 19 → image via [Takumi](https://github.com/nicholasgasior/takumi-rs) (Rust-based renderer) |
+| Property Inspector | React 19 + Tailwind CSS 4 (single-file HTML)                                                     |
+| Data Fetching      | TanStack Query 5                                                                                 |
+| Validation         | Zod 4                                                                                            |
+| Bundler            | Vite 8 (Rolldown)                                                                                |
+| Monorepo           | Turborepo + Bun workspaces                                                                       |
+| Package Manager    | Bun                                                                                              |
 
 ## Development
 
@@ -198,11 +198,11 @@ The plugin uses a **React-on-Stream-Deck** architecture via [`@fcannizzaro/strea
 
 ### Scripts
 
-| Script | Description |
-|--------|-------------|
-| `bun run dev` | Start all workspaces in watch mode |
-| `bun run build` | Type-check and build all workspaces |
-| `bun run typecheck` | Type-check all workspaces |
+| Script              | Description                         |
+| ------------------- | ----------------------------------- |
+| `bun run dev`       | Start all workspaces in watch mode  |
+| `bun run build`     | Type-check and build all workspaces |
+| `bun run typecheck` | Type-check all workspaces           |
 
 ## Contributing
 

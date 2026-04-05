@@ -54,17 +54,14 @@ function findBestOffset(): number {
     return Math.floor(Math.random() * CYCLE_LENGTH);
   }
 
-  const offsets = [...subscribers.values()]
-    .map((s) => s.offset)
-    .sort((a, b) => a - b);
+  const offsets = [...subscribers.values()].map((s) => s.offset).sort((a, b) => a - b);
 
   let bestGap = 0;
   let bestMid = 0;
 
   for (let i = 0; i < offsets.length; i++) {
     const current = offsets[i]!;
-    const next =
-      i + 1 < offsets.length ? offsets[i + 1]! : offsets[0]! + CYCLE_LENGTH;
+    const next = i + 1 < offsets.length ? offsets[i + 1]! : offsets[0]! + CYCLE_LENGTH;
     const gap = next - current;
 
     if (gap > bestGap) {

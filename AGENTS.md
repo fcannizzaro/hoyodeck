@@ -14,10 +14,12 @@ This document defines the TypeScript coding standards for the HoYo Deck Stream D
 ## 0. Project Script
 
 You can use
+
 - `bun run typecheck` to check types across all workspace packages (`@hoyodeck/shared`, `plugin`, `property-inspector`)
 - `bun run build` to build the plugin and property inspector
 
 The monorepo has three workspace packages:
+
 - **`packages/shared/`** (`@hoyodeck/shared`) -- shared types, Zod schemas, cookie utilities, and game constants
 - **`plugin/`** -- Stream Deck plugin backend (Rollup + SWC)
 - **`property-inspector/`** -- Stream Deck UI panel (Vite + React)
@@ -125,11 +127,11 @@ export abstract class StaminaAction<TSettings> extends SingletonAction<TSettings
 }
 
 // actions/genshin/resin.ts
-@action({ UUID: 'com.fcannizzaro.hoyodeck.genshin.resin' })
+@action({ UUID: "com.fcannizzaro.hoyodeck.genshin.resin" })
 export class ResinAction extends StaminaAction<ResinSettings> {
-  protected readonly game = 'gi';
+  protected readonly game = "gi";
   protected readonly maxStamina = 200;
-  protected readonly staminaField = 'current_resin';
+  protected readonly staminaField = "current_resin";
 }
 ```
 
@@ -138,7 +140,7 @@ export class ResinAction extends StaminaAction<ResinSettings> {
 ```typescript
 // utils/time.ts
 export const formatTimeRemaining = (seconds: number): string => {
-  if (seconds <= 0) return 'Ready';
+  if (seconds <= 0) return "Ready";
   const hours = Math.floor(seconds / 3600);
   const minutes = Math.floor((seconds % 3600) / 60);
   return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
@@ -146,7 +148,7 @@ export const formatTimeRemaining = (seconds: number): string => {
 
 export const formatDaysRemaining = (date: Date): string => {
   const days = Math.ceil((date.getTime() - Date.now()) / 86400000);
-  return days === 1 ? '1 day' : `${days} days`;
+  return days === 1 ? "1 day" : `${days} days`;
 };
 ```
 
@@ -156,12 +158,12 @@ Shared types live in `@hoyodeck/shared` and are imported via subpath exports:
 
 ```typescript
 // Import types from the shared package
-import type { GameId, GameConfig, HoyoAccount } from '@hoyodeck/shared/types';
-import { GAMES, getGameConfig } from '@hoyodeck/shared/games';
-import { parseCookies, isValidAuth } from '@hoyodeck/shared/cookies';
+import type { GameId, GameConfig, HoyoAccount } from "@hoyodeck/shared/types";
+import { GAMES, getGameConfig } from "@hoyodeck/shared/games";
+import { parseCookies, isValidAuth } from "@hoyodeck/shared/cookies";
 
 // Use in both plugin and property-inspector
-const config = getGameConfig('gi');
+const config = getGameConfig("gi");
 console.log(config.name); // "Genshin Impact"
 ```
 
@@ -221,13 +223,13 @@ export type DailyNoteResponse = { ... }
 
 ```typescript
 // actions/genshin/index.ts
-export { ResinAction } from './resin';
-export { CommissionAction } from './commission';
-export { ExpeditionAction } from './expedition';
+export { ResinAction } from "./resin";
+export { CommissionAction } from "./commission";
+export { ExpeditionAction } from "./expedition";
 // ...
 
 // plugin.ts
-import * as genshin from './actions/genshin';
+import * as genshin from "./actions/genshin";
 streamDeck.actions.registerAction(new genshin.ResinAction());
 ```
 
@@ -239,11 +241,11 @@ The shared package contains types, validation, and constants used by both `plugi
 
 ### What goes in `@hoyodeck/shared`
 
-| Subpath | Contents |
-|---------|----------|
-| `@hoyodeck/shared/types` | `GameId`, `GameConfig`, `HoyoAuth`, `HoyoAccount`, all settings types, Zod schemas |
-| `@hoyodeck/shared/cookies` | `parseCookies`, `extractAuthFromCookies`, `isValidAuth`, `buildCookieString` |
-| `@hoyodeck/shared/games` | `GAMES` registry, `GAME_LABELS`, `getGameConfig` |
+| Subpath                    | Contents                                                                           |
+| -------------------------- | ---------------------------------------------------------------------------------- |
+| `@hoyodeck/shared/types`   | `GameId`, `GameConfig`, `HoyoAuth`, `HoyoAccount`, all settings types, Zod schemas |
+| `@hoyodeck/shared/cookies` | `parseCookies`, `extractAuthFromCookies`, `isValidAuth`, `buildCookieString`       |
+| `@hoyodeck/shared/games`   | `GAMES` registry, `GAME_LABELS`, `getGameConfig`                                   |
 
 ### What stays package-specific
 
@@ -254,13 +256,13 @@ The shared package contains types, validation, and constants used by both `plugi
 
 ```typescript
 // In plugin — import directly from shared
-import type { GameId, HoyoAccount } from '@hoyodeck/shared/types';
-import { GAMES } from '@hoyodeck/shared/games';
-import { isValidAuth } from '@hoyodeck/shared/cookies';
+import type { GameId, HoyoAccount } from "@hoyodeck/shared/types";
+import { GAMES } from "@hoyodeck/shared/games";
+import { isValidAuth } from "@hoyodeck/shared/cookies";
 
 // In property-inspector — same imports
-import type { GameId, HoyoAccountInfo } from '@hoyodeck/shared/types';
-import { parseCookies, extractAuthFromCookies } from '@hoyodeck/shared/cookies';
+import type { GameId, HoyoAccountInfo } from "@hoyodeck/shared/types";
+import { parseCookies, extractAuthFromCookies } from "@hoyodeck/shared/cookies";
 ```
 
 ---
@@ -289,7 +291,7 @@ const handleResponse = <T>(response: ApiResponse<T>): T => {
 ### Use Zod for Runtime Validation
 
 ```typescript
-import { z } from 'zod';
+import { z } from "zod";
 
 const AuthSchema = z.object({
   ltoken_v2: z.string().min(1),
@@ -318,18 +320,18 @@ interface ActionState {
 
 // Good
 type ActionState =
-  | { status: 'idle' }
-  | { status: 'loading' }
-  | { status: 'error'; error: Error }
-  | { status: 'success'; data: DailyNote };
+  | { status: "idle" }
+  | { status: "loading" }
+  | { status: "error"; error: Error }
+  | { status: "success"; data: DailyNote };
 
 // Usage
 switch (state.status) {
-  case 'loading':
+  case "loading":
     return showLoading();
-  case 'error':
+  case "error":
     return showError(state.error);
-  case 'success':
+  case "success":
     return showData(state.data);
 }
 ```
@@ -341,9 +343,7 @@ switch (state.status) {
 ### Use Result Types
 
 ```typescript
-type Result<T, E = Error> =
-  | { ok: true; value: T }
-  | { ok: false; error: E };
+type Result<T, E = Error> = { ok: true; value: T } | { ok: false; error: E };
 
 async function fetchWithResult<T>(url: string): Promise<Result<T>> {
   try {
@@ -372,8 +372,8 @@ async function refreshResin(action: Action) {
     const data = await fetchDailyNote();
     await action.setTitle(formatResin(data.current_resin));
   } catch (error) {
-    streamDeck.logger.error('Failed to fetch resin:', error);
-    await action.setTitle('--');
+    streamDeck.logger.error("Failed to fetch resin:", error);
+    await action.setTitle("--");
     await action.showAlert();
   }
 }
@@ -391,10 +391,7 @@ const resin = await fetchResin();
 const abyss = await fetchAbyss();
 
 // Good - parallel
-const [resin, abyss] = await Promise.all([
-  fetchResin(),
-  fetchAbyss(),
-]);
+const [resin, abyss] = await Promise.all([fetchResin(), fetchAbyss()]);
 ```
 
 ### Use Promise.allSettled for Non-Critical
@@ -407,7 +404,7 @@ const results = await Promise.allSettled([
 ]);
 
 results.forEach((result, index) => {
-  if (result.status === 'rejected') {
+  if (result.status === "rejected") {
     streamDeck.logger.warn(`Action ${index} failed:`, result.reason);
   }
 });
@@ -417,15 +414,15 @@ results.forEach((result, index) => {
 
 ## 7. Naming Conventions
 
-| Type | Convention | Example |
-|------|------------|---------|
-| Files | kebab-case | `daily-reward.ts` |
-| Classes | PascalCase | `ResinAction` |
-| Interfaces | PascalCase | `DailyNoteResponse` |
-| Types | PascalCase | `GameId` |
-| Functions | camelCase | `fetchDailyNote` |
-| Constants | SCREAMING_SNAKE | `MAX_RESIN` |
-| Private fields | prefix `#` or `_` | `#client` |
+| Type           | Convention        | Example             |
+| -------------- | ----------------- | ------------------- |
+| Files          | kebab-case        | `daily-reward.ts`   |
+| Classes        | PascalCase        | `ResinAction`       |
+| Interfaces     | PascalCase        | `DailyNoteResponse` |
+| Types          | PascalCase        | `GameId`            |
+| Functions      | camelCase         | `fetchDailyNote`    |
+| Constants      | SCREAMING_SNAKE   | `MAX_RESIN`         |
+| Private fields | prefix `#` or `_` | `#client`           |
 
 ---
 

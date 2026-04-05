@@ -180,14 +180,10 @@ export const crossGameActions: CrossGameActionDef[] = [
     name: "Redeem Code",
     description:
       "Automatically detects and redeems all available promo codes for your account with live progress tracking.",
-    features: [
-      "Auto-detect new codes",
-      "Batch redeem",
-      "Live progress",
-      "Per-account tracking",
-    ],
+    features: ["Auto-detect new codes", "Batch redeem", "Live progress", "Per-account tracking"],
   },
 ];
 
 /** Total action count: 7 (GI) + 3 (HSR) + 3 (ZZZ) + 2 (cross-game) = 15 */
-export const TOTAL_ACTIONS = games.reduce((sum, g) => sum + g.actions.length, 0) + crossGameActions.length;
+export const TOTAL_ACTIONS =
+  games.reduce((sum, g) => sum + g.actions.length, 0) + crossGameActions.length;

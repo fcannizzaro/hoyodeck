@@ -130,7 +130,16 @@ function useBannerState(game: GameId, items: BannerItem[]) {
   const charSrc = blink ? closedDataUri! : iconDataUri;
   const countdown = currentItem ? formatCountdownFromSeconds(currentItem.countdownSeconds) : null;
 
-  return { bgDataUri, bannerIndex, currentItem, iconDataUri, charSrc, countdown, badge, setSettings };
+  return {
+    bgDataUri,
+    bannerIndex,
+    currentItem,
+    iconDataUri,
+    charSrc,
+    countdown,
+    badge,
+    setSettings,
+  };
 }
 
 // ─── Key Component ────────────────────────────────────────────────
@@ -144,8 +153,16 @@ function useBannerState(game: GameId, items: BannerItem[]) {
  * - the icon overlay style (position + dimensions differ per game)
  */
 export function BannerKey({ game, account, items, requestUpdate, iconStyle }: BannerKeyProps) {
-  const { bgDataUri, bannerIndex, currentItem, iconDataUri, charSrc, countdown, badge, setSettings } =
-    useBannerState(game, items);
+  const {
+    bgDataUri,
+    bannerIndex,
+    currentItem,
+    iconDataUri,
+    charSrc,
+    countdown,
+    badge,
+    setSettings,
+  } = useBannerState(game, items);
 
   // Cycle banner on key press
   useKeyDown(() => {
@@ -284,7 +301,7 @@ export function BannerDial({ game, account, items, requestUpdate, iconStyle }: B
   useDialRotate(({ ticks }) => {
     if (items.length === 0) return;
     const len = items.length;
-    setSettings({ bannerIndex: ((bannerIndex + ticks) % len + len) % len });
+    setSettings({ bannerIndex: (((bannerIndex + ticks) % len) + len) % len });
   });
 
   // ─── Placeholder ────────────────────────────────────────────
