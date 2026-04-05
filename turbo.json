@@ -10,7 +10,7 @@
       "dependsOn": ["^build"],
       "outputs": ["dist"],
       "cache": false,
-      "env": ["DEBUG"]
+      "env": ["DEBUG", "CODE_SERVER_URL", "PUBLIC_DISCORD_URL"]
     },
     "typecheck": {
       "cache": false
