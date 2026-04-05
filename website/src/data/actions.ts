@@ -217,8 +217,16 @@ export const crossGameActions: CrossGameActionDef[] = [
     features: ["Pity counter", "Rotate / press", "Multi-game", "Tap to reset"],
     inputType: "dial",
   },
+  {
+    id: "patch-countdown",
+    name: "Patch Countdown",
+    description:
+      "Multi-game version countdown showing time remaining until each game's next patch. Configure up to three game slots with color-coded badges.",
+    features: ["Up to 3 games", "Days & hours", "Color-coded badges", "Tap to refresh"],
+    inputType: "key+dial",
+  },
 ];
 
-/** Total action count: 7 (GI) + 3 (HSR) + 3 (ZZZ) + 4 (cross-game) = 17 */
+/** Total action count: 7 (GI) + 3 (HSR) + 3 (ZZZ) + 5 (cross-game) = 18 */
 export const TOTAL_ACTIONS =
   games.reduce((sum, g) => sum + g.actions.length, 0) + crossGameActions.length;
