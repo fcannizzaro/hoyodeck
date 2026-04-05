@@ -30,6 +30,7 @@ import { zzzEndgameAction } from "./actions/zzz/endgame.tsx";
 // Import React actions — Common
 import { dailyRewardAction } from "./actions/common/daily-reward.tsx";
 import { redeemCodeAction } from "./actions/common/redeem-code.tsx";
+import { staminaOverviewAction } from "./actions/common/stamina-overview.tsx";
 
 // Import font
 import Inter from "@fontsource/inter/files/inter-latin-400-normal.woff";
@@ -75,6 +76,7 @@ const plugin = createPlugin({
     // Common
     dailyRewardAction,
     redeemCodeAction,
+    staminaOverviewAction,
   ],
 });
 

@@ -202,6 +202,29 @@ export interface ZZZEndgameSettings extends ZZZActionSettings {
   showName?: boolean;
 }
 
+// ─── Stamina Overview Action Settings ─────────────────────────────
+
+/**
+ * A single slot in the stamina overview dial action.
+ * Pairs a game with the account to fetch stamina from.
+ * Index signature required for JsonObject compatibility (stored in Stream Deck settings).
+ */
+export interface StaminaSlot {
+  game: GameId;
+  accountId: AccountId;
+  [key: string]: JsonValue;
+}
+
+/**
+ * Stamina overview dial action settings (encoder-only, multi-game).
+ */
+export interface StaminaOverviewSettings extends GameActionSettings {
+  /** Configured game+account slots (up to 3) */
+  slots?: StaminaSlot[];
+  /** Currently focused slot index (-1 = no selection) */
+  focusIndex?: number;
+}
+
 // ─── Redeem Code Action Settings ──────────────────────────────────
 
 /**

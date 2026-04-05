@@ -8,6 +8,7 @@ import { DailyRewardPanel } from "./panels/DailyRewardPanel";
 import { RedeemCodePanel } from "./panels/RedeemCodePanel";
 import { TransformerPanel } from "./panels/TransformerPanel";
 import { GenshinEndgamePanel, StarRailEndgamePanel, ZZZEndgamePanel } from "./panels/EndgamePanel";
+import { StaminaOverviewPanel } from "./panels/StaminaOverviewPanel";
 import { PreferencesPanel } from "./panels/PreferencesPanel";
 import type { GameId, HoyoAccountInfo } from "@hoyodeck/shared/types";
 
@@ -22,6 +23,7 @@ const ACTION_PANELS: Record<string, React.ComponentType> = {
   "com.fcannizzaro.hoyodeck.zzz.banner": ZZZBannerPanel,
   "com.fcannizzaro.hoyodeck.zzz.endgame": ZZZEndgamePanel,
   "com.fcannizzaro.hoyodeck.redeem-code": RedeemCodePanel,
+  "com.fcannizzaro.hoyodeck.stamina-overview": StaminaOverviewPanel,
 };
 
 /** Actions without a custom panel — show a default AccountPicker with game filter */

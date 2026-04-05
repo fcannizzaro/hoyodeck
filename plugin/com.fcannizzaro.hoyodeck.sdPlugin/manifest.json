@@ -280,6 +280,27 @@
         }
       ],
       "Tooltip": "Redeem HoYoverse gift codes via the manager"
+    },
+    {
+      "UUID": "com.fcannizzaro.hoyodeck.stamina-overview",
+      "Name": "Stamina Overview",
+      "Icon": "imgs/actions/stamina-overview-icon",
+      "Controllers": [
+        "Encoder"
+      ],
+      "States": [
+        {
+          "Image": "imgs/actions/stamina-overview-icon"
+        }
+      ],
+      "Tooltip": "Multi-game stamina overview for the Stream Deck+ encoder",
+      "Encoder": {
+        "layout": "$A0",
+        "TriggerDescription": {
+          "Rotate": "Cycle focus",
+          "Touch": "Refresh all"
+        }
+      }
     }
   ],
   "PropertyInspectorPath": "ui/index.html"
