@@ -38,8 +38,6 @@ export default defineConfig({
           },
           exports: [
             "NativeWindow",
-            "init",
-            "pumpEvents",
             "checkRuntime",
             "ensureRuntime",
             "loadHtmlOrigin",

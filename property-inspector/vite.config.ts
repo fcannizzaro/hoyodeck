@@ -7,6 +7,7 @@ export default defineConfig({
   resolve: {
     tsconfigPaths: true,
   },
+  envPrefix: ["VITE_", "PUBLIC_"],
   plugins: [react(), tailwindcss(), viteSingleFile()],
   build: {
     outDir: "../plugin/com.fcannizzaro.hoyodeck.sdPlugin/ui",

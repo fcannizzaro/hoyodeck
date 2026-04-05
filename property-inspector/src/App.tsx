@@ -1,6 +1,7 @@
 import { useStreamDeck } from "./hooks/use-stream-deck";
 import { AccountPanel } from "./panels/AccountPanel";
 import { AccountPicker } from "./components/AccountPicker";
+import { Footer } from "./components/Footer";
 import { Heading } from "./components/Heading";
 import { BannerPanel, HSRBannerPanel, ZZZBannerPanel } from "./panels/BannerPanel";
 import { DailyRewardPanel } from "./panels/DailyRewardPanel";
@@ -48,6 +49,7 @@ export default function App() {
     return (
       <div className="flex flex-col gap-4 p-3 bg-sd-bg text-sd-text text-xs leading-relaxed font-sans min-h-screen">
         <AccountPanel />
+        <Footer />
       </div>
     );
   }
@@ -73,6 +75,7 @@ export default function App() {
       ) : null}
       <PreferencesPanel />
       <AccountPanel />
+      <Footer />
     </div>
   );
 }

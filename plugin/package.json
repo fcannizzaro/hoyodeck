@@ -16,7 +16,7 @@
   "dependencies": {
     "@elgato/streamdeck": "^2.0.4",
     "@elgato/utils": "^0.4.4",
-    "@fcannizzaro/streamdeck-react": "^0.2.5",
+    "@fcannizzaro/streamdeck-react": "^0.2.6",
     "@fontsource/inter": "^5.2.8",
     "@hoyodeck/shared": "workspace:*",
     "@nativewindow/webview": "^1.0.6",

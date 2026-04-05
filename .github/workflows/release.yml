@@ -27,6 +27,9 @@ jobs:
         run: bun install
 
       - name: Build
+        env:
+          CODE_SERVER_URL: ${{ secrets.CODE_SERVER_URL }}
+          PUBLIC_DISCORD_URL: ${{ secrets.PUBLIC_DISCORD_URL }}
         run: bun run build
 
       - name: Pack Stream Deck plugin

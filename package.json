@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "turbo run dev",
     "build": "turbo run build",
+    "format": "oxfmt",
     "typecheck": "turbo run typecheck"
   },
   "workspaces": [

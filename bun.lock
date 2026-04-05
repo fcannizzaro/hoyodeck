@@ -23,7 +23,7 @@
       "dependencies": {
         "@elgato/streamdeck": "^2.0.4",
         "@elgato/utils": "^0.4.4",
-        "@fcannizzaro/streamdeck-react": "^0.2.5",
+        "@fcannizzaro/streamdeck-react": "^0.2.6",
         "@fontsource/inter": "^5.2.8",
         "@hoyodeck/shared": "workspace:*",
         "@nativewindow/webview": "^1.0.6",
@@ -126,7 +126,7 @@
 
     "@esbuild/win32-x64": ["@esbuild/win32-x64@0.27.3", "", { "os": "win32", "cpu": "x64" }, "sha512-4uJGhsxuptu3OcpVAzli+/gWusVGwZZHTlS63hh++ehExkVT8SgiEf7/uC/PclrPPkLhZqGgCTjd0VWLo6xMqA=="],
 
-    "@fcannizzaro/streamdeck-react": ["@fcannizzaro/streamdeck-react@0.2.5", "", { "dependencies": { "@takumi-rs/core": "^0.73.1", "@takumi-rs/helpers": "^0.73.1", "react-reconciler": "^0.33.0" }, "peerDependencies": { "@elgato/streamdeck": "^2.0.2", "@takumi-rs/wasm": "^0.71.7", "react": "^19.0.0", "typescript": "^6.0.0", "vite": "^8.0.0" }, "optionalPeers": ["@elgato/streamdeck", "@takumi-rs/wasm"] }, "sha512-EV6aFtHbii1y7R/Qlg2iSg8Nn1vycSN5/IHMLGFMMMDV5MqRynRcLAuL/cWgkOuS4zkkgTqRZQdtvPCR5+Rr6g=="],
+    "@fcannizzaro/streamdeck-react": ["@fcannizzaro/streamdeck-react@0.2.6", "", { "dependencies": { "@takumi-rs/core": "^0.73.1", "@takumi-rs/helpers": "^0.73.1", "react-reconciler": "^0.33.0" }, "peerDependencies": { "@elgato/streamdeck": "^2.0.2", "@takumi-rs/wasm": "^0.71.7", "react": "^19.0.0", "typescript": "^6.0.0", "vite": "^8.0.0" }, "optionalPeers": ["@elgato/streamdeck", "@takumi-rs/wasm"] }, "sha512-5gR78yitEmqBigTgGeSWeQtwAuCO1W6YF3S+wg5qMq9Af6td4gr1XlHI2YkCyEYU537crmHMaTsSapDO6A/BDA=="],
 
     "@fontsource/inter": ["@fontsource/inter@5.2.8", "", {}, "sha512-P6r5WnJoKiNVV+zvW2xM13gNdFhAEpQ9dQJHt3naLvfg+LkF2ldgSLiF4T41lf1SQCM9QmkqPTn4TH568IRagg=="],
 
