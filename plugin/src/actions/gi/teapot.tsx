@@ -3,17 +3,17 @@ import type { JsonObject } from "@elgato/utils";
 import type { GenshinActionSettings, GlobalSettings } from "@hoyodeck/shared/types";
 import { useGameData } from "@/hooks/use-game-data";
 import { createActionWrapper } from "@/contexts/create-action-wrapper";
-import { readLocalImageAsDataUri } from "@/utils/image";
+import { useLocalImageDataUri } from "@/hooks/use-local-image-data-uri";
 import { PlaceholderKey } from "@/components/placeholder-key";
 import { FloatingImage } from "@/components/floating-image";
 import { Badge } from "@/components/badge";
 
 const GAME = "gi" as const;
-const BACKGROUND = readLocalImageAsDataUri("imgs/actions/gi/5-star.png");
-const TUBBY_NORMAL = readLocalImageAsDataUri("imgs/actions/gi/tubby.png");
-const TUBBY_MAX = readLocalImageAsDataUri("imgs/actions/gi/tubby-max.png");
 
 function TeapotKey() {
+  const background = useLocalImageDataUri("imgs/actions/gi/5-star.png");
+  const tubbyNormal = useLocalImageDataUri("imgs/actions/gi/tubby.png");
+  const tubbyMax = useLocalImageDataUri("imgs/actions/gi/tubby-max.png");
   const [globalSettings] = useGlobalSettings<GlobalSettings & JsonObject>();
   const { account, data: dailyNoteEntry, requestUpdate } = useGameData("gi:daily-note");
   const animationsDisabled = globalSettings.disableAnimations ?? false;
@@ -31,7 +31,7 @@ function TeapotKey() {
   if (!dailyNote) {
     return (
       <div className="flex items-center justify-center w-full h-full">
-        <img src={BACKGROUND} width={144} height={144} />
+        <img src={background} width={144} height={144} />
       </div>
     );
   }
@@ -39,11 +39,11 @@ function TeapotKey() {
   const maxReached = dailyNote.max_home_coin === dailyNote.current_home_coin;
   const percentage = Math.round((dailyNote.current_home_coin / dailyNote.max_home_coin) * 100);
   const text = maxReached ? "MAX COIN!" : `${percentage}%`;
-  const tubbyIcon = maxReached ? TUBBY_MAX : TUBBY_NORMAL;
+  const tubbyIcon = maxReached ? tubbyMax : tubbyNormal;
 
   return (
     <div className="relative w-full h-full">
-      <img src={BACKGROUND} width={144} height={144} />
+      <img src={background} width={144} height={144} />
       {maxReached && <div className="absolute inset-0 bg-danger-tint" />}
       <FloatingImage src={tubbyIcon} animate={!animationsDisabled} />
       <Badge text={text} />

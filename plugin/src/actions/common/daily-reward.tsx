@@ -5,7 +5,8 @@ import type { DailyRewardSettings, GameId } from "@hoyodeck/shared/types";
 import { useAccount, AccountProvider } from "@/contexts/account-context";
 import { useData, DataProvider } from "@/contexts/data-context";
 import { HoyolabApiError } from "@/api/types/common";
-import { fetchImageAsDataUri, readLocalImageAsDataUri } from "@/utils/image";
+import { fetchImageAsDataUri } from "@/utils/image";
+import { useLocalImageDataUri } from "@/hooks/use-local-image-data-uri";
 import { PlaceholderKey } from "@/components/placeholder-key";
 import { Badge } from "@/components/badge";
 import type { DataType, CheckInData } from "@/services/data-controller.types";
@@ -30,6 +31,9 @@ function DailyRewardKey() {
   const game = (settings.game ?? "gi") as GameId;
   const claimOnClick = settings.claimOnClick ?? true;
   const dataType = `${game}:check-in` as DataType;
+
+  const baseDataUri = useLocalImageDataUri(GAME_BACKGROUNDS[game]);
+  const doneDataUri = useLocalImageDataUri(DONE_OVERLAYS[game]);
 
   const checkInEntry = getData(dataType);
   const checkInData = checkInEntry?.status === "ok" ? (checkInEntry.data as CheckInData) : null;
@@ -90,8 +94,6 @@ function DailyRewardKey() {
     return <PlaceholderKey game={game} status={account.status} />;
   }
 
-  const baseDataUri = readLocalImageAsDataUri(GAME_BACKGROUNDS[game]);
-
   if (!checkInData || !rewardIconUri) {
     return (
       <div className="flex items-center justify-center w-full h-full">
@@ -104,7 +106,6 @@ function DailyRewardKey() {
   const rewardIndex = info.total_sign_day - (info.is_sign ? 1 : 0);
   const todayReward = rewards.awards[rewardIndex];
   const claimed = info.is_sign;
-  const doneDataUri = readLocalImageAsDataUri(DONE_OVERLAYS[game]);
   const useGrayscale = game === "zzz" && claimed;
 
   return (

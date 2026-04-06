@@ -1,5 +1,5 @@
 import type { AccountContextValue } from "@/contexts/account-context";
-import { readLocalImageAsDataUri } from "@/utils/image";
+import { useLocalImageDataUri } from "@/hooks/use-local-image-data-uri";
 import type { GameId } from "@hoyodeck/shared/types";
 
 const GAME_BACKGROUNDS: Record<GameId, string> = {
@@ -24,7 +24,7 @@ interface PlaceholderKeyProps {
  * Displays the game's 5-star background with an appropriate status message.
  */
 export function PlaceholderKey({ game, status }: PlaceholderKeyProps) {
-  const bgDataUri = readLocalImageAsDataUri(GAME_BACKGROUNDS[game]);
+  const bgDataUri = useLocalImageDataUri(GAME_BACKGROUNDS[game]);
 
   return (
     <div className="flex items-center justify-center w-full h-full">

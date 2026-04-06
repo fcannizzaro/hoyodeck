@@ -20,7 +20,7 @@ import type {
   WishTrackerBannerType,
   WishPityData,
 } from "@hoyodeck/shared/types";
-import { readLocalImageAsDataUri } from "@/utils/image";
+import { useLocalImageDataUri } from "@/hooks/use-local-image-data-uri";
 
 // ─── Constants ────────────────────────────────────────────────────
 
@@ -38,18 +38,18 @@ const HARD_PITY: Record<GameId, Record<string, number>> = {
   zzz: { character: 90, "w-engine": 80 },
 };
 
-/** Per-game wish item icons */
-const WISH_ICONS: Record<GameId, string> = {
-  gi: readLocalImageAsDataUri("imgs/actions/gi/wish.webp"),
-  hsr: readLocalImageAsDataUri("imgs/actions/hsr/wish.webp"),
-  zzz: readLocalImageAsDataUri("imgs/actions/zzz/wish.webp"),
+/** Per-game wish item icon paths */
+const WISH_ICON_PATHS: Record<GameId, string> = {
+  gi: "imgs/actions/gi/wish.webp",
+  hsr: "imgs/actions/hsr/wish.webp",
+  zzz: "imgs/actions/zzz/wish.webp",
 };
 
-/** Game avatar icons for the top tab bar */
-const GAME_ICONS: Record<GameId, string> = {
-  gi: readLocalImageAsDataUri("imgs/games/gi.webp"),
-  hsr: readLocalImageAsDataUri("imgs/games/hsr.webp"),
-  zzz: readLocalImageAsDataUri("imgs/games/zzz.webp"),
+/** Game avatar icon paths for the top tab bar */
+const GAME_ICON_PATHS: Record<GameId, string> = {
+  gi: "imgs/games/gi.webp",
+  hsr: "imgs/games/hsr.webp",
+  zzz: "imgs/games/zzz.webp",
 };
 
 // ─── Helpers ──────────────────────────────────────────────────────
@@ -94,6 +94,8 @@ interface GameTabProps {
 }
 
 function GameTab({ game, accountName, active }: GameTabProps) {
+  const gameIcon = useLocalImageDataUri(GAME_ICON_PATHS[game]);
+
   return (
     <div
       className={cn(
@@ -101,7 +103,7 @@ function GameTab({ game, accountName, active }: GameTabProps) {
         active ? "bg-white/15" : "opacity-40",
       )}
     >
-      <img src={GAME_ICONS[game]} width={14} height={14} className="rounded-sm" />
+      <img src={gameIcon} width={14} height={14} className="rounded-sm" />
       {accountName && (
         <span
           className={cn(
@@ -155,13 +157,12 @@ function WishTrackerDial() {
 
   const { pity, hardPity, update: updatePity } = useWishPity(activeGame, bannerType);
   const { value: animatedPity } = useSpring(pity, SpringPresets.snap);
+  const wishIcon = useLocalImageDataUri(WISH_ICON_PATHS[activeGame]);
 
   const displayPity = Math.round(animatedPity);
   const ratio = hardPity > 0 ? Math.min(Math.max(pity / hardPity, 0), 1) : 0;
   const pityColorClass =
     ratio >= 0.9 ? "text-danger" : ratio >= 0.7 ? "text-warning" : "text-white";
-
-  const wishIcon = WISH_ICONS[activeGame];
 
   // Dial rotate: +1 pity per tick
   useDialRotate(({ ticks }) => {

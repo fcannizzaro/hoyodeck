@@ -10,12 +10,12 @@ import type { JsonObject } from "@elgato/utils";
 import type { GenshinActionSettings, GlobalSettings } from "@hoyodeck/shared/types";
 import { useGameData } from "@/hooks/use-game-data";
 import { createActionWrapper } from "@/contexts/create-action-wrapper";
-import { fetchImageAsDataUri, readLocalImageAsDataUri } from "@/utils/image";
+import { fetchImageAsDataUri } from "@/utils/image";
+import { useLocalImageDataUri } from "@/hooks/use-local-image-data-uri";
 import { PlaceholderKey } from "@/components/placeholder-key";
 import { Badge } from "@/components/badge";
 
 const GAME = "gi" as const;
-const BACKGROUND = readLocalImageAsDataUri("imgs/actions/gi/expeditions-state.png");
 const COUNTDOWN_INTERVAL_MS = 30_000;
 
 const AVATAR_SIZE = 48;
@@ -26,6 +26,7 @@ interface ExpeditionData {
 }
 
 function ExpeditionKey() {
+  const background = useLocalImageDataUri("imgs/actions/gi/expeditions-state.png");
   const [globalSettings] = useGlobalSettings<GlobalSettings & JsonObject>();
   const { account, data: dailyNoteEntry, requestUpdate } = useGameData("gi:daily-note");
   const animationsDisabled = globalSettings.disableAnimations ?? false;
@@ -77,7 +78,7 @@ function ExpeditionKey() {
   if (expeditions.length === 0) {
     return (
       <div className="flex items-center justify-center w-full h-full">
-        <img src={BACKGROUND} width={144} height={144} />
+        <img src={background} width={144} height={144} />
       </div>
     );
   }
@@ -101,7 +102,7 @@ function ExpeditionKey() {
 
   return (
     <div className="relative w-full h-full">
-      <img src={BACKGROUND} width={144} height={144} />
+      <img src={background} width={144} height={144} />
 
       {/* Row 1 */}
       <div

@@ -4,16 +4,16 @@ import type { ZZZActionSettings } from "@hoyodeck/shared/types";
 import { GAMES } from "@hoyodeck/shared/games";
 import { useGameData } from "@/hooks/use-game-data";
 import { createActionWrapper } from "@/contexts/create-action-wrapper";
-import { readLocalImageAsDataUri } from "@/utils/image";
+import { useLocalImageDataUri } from "@/hooks/use-local-image-data-uri";
 import { PlaceholderKey } from "@/components/placeholder-key";
 import { StaminaKey } from "@/components/stamina-key";
 
 const GAME = "zzz" as const;
 const MAX_BATTERY = GAMES.zzz.staminaMax;
-const BASE_DATA_URI = readLocalImageAsDataUri("imgs/actions/zzz/battery-recharge-state@2x.png");
-const BATTERY_DATA_URI = readLocalImageAsDataUri("imgs/actions/zzz/battery-recharge.png");
 
 function BatteryChargeKey() {
+  const baseDataUri = useLocalImageDataUri("imgs/actions/zzz/battery-recharge-state@2x.png");
+  const batteryDataUri = useLocalImageDataUri("imgs/actions/zzz/battery-recharge.png");
   const { account, data: dailyNoteEntry, requestUpdate } = useGameData("zzz:daily-note");
 
   useKeyDown(() => {
@@ -29,15 +29,15 @@ function BatteryChargeKey() {
   if (!dailyNote) {
     return (
       <div className="flex items-center justify-center w-full h-full">
-        <img src={BASE_DATA_URI} width={144} height={144} />
+        <img src={baseDataUri} width={144} height={144} />
       </div>
     );
   }
 
   return (
     <StaminaKey
-      baseImage={BASE_DATA_URI}
-      iconImage={BATTERY_DATA_URI}
+      baseImage={baseDataUri}
+      iconImage={batteryDataUri}
       current={dailyNote.energy.progress.current}
       max={MAX_BATTERY}
       iconSize={115}

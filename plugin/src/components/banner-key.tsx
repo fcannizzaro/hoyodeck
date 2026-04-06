@@ -8,7 +8,7 @@ import {
 import type { JsonObject } from "@elgato/utils";
 import type { GlobalSettings, BannerBadgeOptions, GameId } from "@hoyodeck/shared/types";
 import type { AccountContextValue } from "@/contexts/account-context";
-import { readLocalImageAsDataUri } from "@/utils/image";
+import { useLocalImageDataUri } from "@/hooks/use-local-image-data-uri";
 import { useImageDataUri } from "@/hooks/use-image-data-uri";
 import { useBlink } from "@/hooks/use-blink";
 import { formatCountdownFromSeconds } from "@/utils/banner";
@@ -40,12 +40,12 @@ export interface BannerKeyProps {
   iconStyle: { top: number; left: number; width: number; height: number };
 }
 
-// ─── Pre-loaded backgrounds ───────────────────────────────────────
+// ─── Background image paths ───────────────────────────────────────
 
-const BG_DATA_URIS: Record<GameId, string> = {
-  gi: readLocalImageAsDataUri("imgs/actions/gi/5-star.png"),
-  hsr: readLocalImageAsDataUri("imgs/actions/hsr/5-star.png"),
-  zzz: readLocalImageAsDataUri("imgs/actions/zzz/5-star.png"),
+const BG_PATHS: Record<GameId, string> = {
+  gi: "imgs/actions/gi/5-star.png",
+  hsr: "imgs/actions/hsr/5-star.png",
+  zzz: "imgs/actions/zzz/5-star.png",
 };
 
 // ─── Blink animation ─────────────────────────────────────────────
@@ -105,7 +105,7 @@ function useBannerState(game: GameId, items: BannerItem[]) {
   const [settings, setSettings] = useSettings<BannerCycleSettings & JsonObject>();
   const [globalSettings] = useGlobalSettings<GlobalSettings & JsonObject>();
 
-  const bgDataUri = BG_DATA_URIS[game];
+  const bgDataUri = useLocalImageDataUri(BG_PATHS[game]);
   const bannerIndex = settings.bannerIndex ?? 0;
   const currentItem = items.length > 0 ? items[bannerIndex % items.length] : null;
 
@@ -216,7 +216,7 @@ interface BannerDialSlotProps {
  * Renders at 100×100 (the encoder display height).
  */
 function BannerDialSlot({ game, item, iconStyle, shouldAnimate, badge }: BannerDialSlotProps) {
-  const bgDataUri = BG_DATA_URIS[game];
+  const bgDataUri = useLocalImageDataUri(BG_PATHS[game]);
 
   // Fetch icon and closed-eyes avatar independently per slot
   const iconDataUri = useImageDataUri(item.icon);
@@ -272,7 +272,7 @@ export function BannerDial({ game, account, items, requestUpdate, iconStyle }: B
   const [settings, setSettings] = useSettings<BannerCycleSettings & JsonObject>();
   const [globalSettings] = useGlobalSettings<GlobalSettings & JsonObject>();
 
-  const bgDataUri = BG_DATA_URIS[game];
+  const bgDataUri = useLocalImageDataUri(BG_PATHS[game]);
   const bannerIndex = settings.bannerIndex ?? 0;
 
   const badge: BannerBadgeOptions = {

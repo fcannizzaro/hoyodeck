@@ -11,7 +11,7 @@ import type { GlobalSettings, GameId } from "@hoyodeck/shared/types";
 import type { DataType } from "@/services/data-controller.types";
 import { useAccount } from "@/contexts/account-context";
 import { useData } from "@/contexts/data-context";
-import { readLocalImageAsDataUri } from "@/utils/image";
+import { useLocalImageDataUri } from "@/hooks/use-local-image-data-uri";
 import { PlaceholderKey } from "@/components/placeholder-key";
 import { Badge } from "@/components/badge";
 
@@ -120,6 +120,7 @@ export function EndgameKey({ game, modes, defaultMode, formatData }: EndgameKeyP
 
   const config = modes[mode] ?? modes[defaultMode]!;
   const entry = getData(config.dataType);
+  const bgDataUri = useLocalImageDataUri(config.bg);
 
   // ─── Scroll animation ──────────────────────────────────────
 
@@ -149,7 +150,6 @@ export function EndgameKey({ game, modes, defaultMode, formatData }: EndgameKeyP
   // ─── Loading ────────────────────────────────────────────────
 
   const data = entry?.status === "ok" ? entry.data : null;
-  const bgDataUri = readLocalImageAsDataUri(config.bg);
 
   if (!data) {
     return (

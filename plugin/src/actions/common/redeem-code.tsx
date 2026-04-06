@@ -5,7 +5,7 @@ import { useAccount } from "@/contexts/account-context";
 import { AccountProvider } from "@/contexts/account-context";
 import { DataProvider } from "@/contexts/data-context";
 import { CodesProvider, useRedeemCodes } from "@/contexts/codes-context";
-import { readLocalImageAsDataUri } from "@/utils/image";
+import { useLocalImageDataUri } from "@/hooks/use-local-image-data-uri";
 import { GAME_LABELS_EXTENDED } from "@hoyodeck/shared/games";
 import { Badge } from "@/components/badge";
 
@@ -23,13 +23,13 @@ function RedeemCodeKey() {
   const { availableCount, redeemAll } = useRedeemCodes();
 
   const game = (settings.game ?? "gi") as GameId;
+  const bgDataUri = useLocalImageDataUri(GAME_BACKGROUNDS[game]);
+  const iconDataUri = useLocalImageDataUri(CODE_ICON);
 
   useKeyDown(async () => {
     await redeemAll();
   });
 
-  const bgDataUri = readLocalImageAsDataUri(GAME_BACKGROUNDS[game]);
-  const iconDataUri = readLocalImageAsDataUri(CODE_ICON);
   const gameLabel = GAME_LABELS_EXTENDED[game];
 
   if (account.status !== "resolved") {

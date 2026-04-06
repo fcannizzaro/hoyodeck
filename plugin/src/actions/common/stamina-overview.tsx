@@ -8,7 +8,7 @@ import {
 import type { JsonObject } from "@elgato/utils";
 import type { GameId, StaminaOverviewSettings } from "@hoyodeck/shared/types";
 import { GAMES } from "@hoyodeck/shared/games";
-import { readLocalImageAsDataUri } from "@/utils/image";
+import { useLocalImageDataUri } from "@/hooks/use-local-image-data-uri";
 import { formatRecoveryTime } from "@/utils/stamina";
 import {
   StaminaOverviewProvider,
@@ -23,17 +23,17 @@ const DIAL_HEIGHT = 100;
 const BAR_HEIGHT = 26;
 
 /** Stamina icon paths per game (full images, scaled down in each slot) */
-const STAMINA_ICONS: Record<GameId, string> = {
-  gi: readLocalImageAsDataUri("imgs/actions/gi/resin.webp"),
-  hsr: readLocalImageAsDataUri("imgs/actions/hsr/trailblaze-power.webp"),
-  zzz: readLocalImageAsDataUri("imgs/actions/zzz/battery-recharge.png"),
+const STAMINA_ICON_PATHS: Record<GameId, string> = {
+  gi: "imgs/actions/gi/resin.webp",
+  hsr: "imgs/actions/hsr/trailblaze-power.webp",
+  zzz: "imgs/actions/zzz/battery-recharge.png",
 };
 
-/** Per-game themed background (same as each stamina key action) */
-const SLOT_BACKGROUNDS: Record<GameId, string> = {
-  gi: readLocalImageAsDataUri("imgs/actions/gi/3-star.png"),
-  hsr: readLocalImageAsDataUri("imgs/actions/hsr/trailblaze-power-state@2x.png"),
-  zzz: readLocalImageAsDataUri("imgs/actions/zzz/battery-recharge-state@2x.png"),
+/** Per-game themed background paths (same as each stamina key action) */
+const SLOT_BG_PATHS: Record<GameId, string> = {
+  gi: "imgs/actions/gi/3-star.png",
+  hsr: "imgs/actions/hsr/trailblaze-power-state@2x.png",
+  zzz: "imgs/actions/zzz/battery-recharge-state@2x.png",
 };
 
 // ─── Slot Component ───────────────────────────────────────────────
@@ -53,8 +53,8 @@ interface SlotProps {
  * A colored bottom border appears when focused.
  */
 function StaminaSlotView({ slot, width, offsetY, dimmed }: SlotProps) {
-  const icon = STAMINA_ICONS[slot.game];
-  const bg = SLOT_BACKGROUNDS[slot.game];
+  const icon = useLocalImageDataUri(STAMINA_ICON_PATHS[slot.game]);
+  const bg = useLocalImageDataUri(SLOT_BG_PATHS[slot.game]);
   const okData = slot.data.status === "ok" ? slot.data : null;
   const current = okData?.stamina.current ?? null;
   const max = okData?.stamina.max ?? GAMES[slot.game].staminaMax;

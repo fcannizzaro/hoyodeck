@@ -17,7 +17,9 @@
     "singlefile",
     "nativewindow",
     "imaginarium",
-    "Gacha"
+    "Gacha",
+    "Takumi",
+    "@theme"
   ],
   "userWords": ["Yoverse"]
 }

@@ -11,7 +11,7 @@ const HOYOLAB_URL = "https://act.hoyolab.com/app/community-game-records-sea/inde
 const POLL_INTERVAL_MS = 1_000;
 
 /** Domains allowed for navigation in the login webview */
-const ALLOWED_HOSTS = ["*"];
+const ALLOWED_HOSTS = ["*.hoyolab.com"];
 
 // ─── Public API ───────────────────────────────────────────────────
 

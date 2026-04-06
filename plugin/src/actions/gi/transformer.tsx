@@ -3,17 +3,17 @@ import type { JsonObject } from "@elgato/utils";
 import type { GenshinActionSettings } from "@hoyodeck/shared/types";
 import { useGameData } from "@/hooks/use-game-data";
 import { createActionWrapper } from "@/contexts/create-action-wrapper";
-import { readLocalImageAsDataUri } from "@/utils/image";
+import { useLocalImageDataUri } from "@/hooks/use-local-image-data-uri";
 import { PlaceholderKey } from "@/components/placeholder-key";
 import { Badge } from "@/components/badge";
 import { formatTransformerTime } from "@/utils/time";
 
 const GAME = "gi" as const;
 const COOLDOWN_SECONDS = 7 * 24 * 60 * 60; // 7 days
-const BASE_DATA_URI = readLocalImageAsDataUri("imgs/actions/gi/4-star.png");
-const TRANSFORMER_DATA_URI = readLocalImageAsDataUri("imgs/actions/gi/transformer.webp");
 
 function TransformerKey() {
+  const baseDataUri = useLocalImageDataUri("imgs/actions/gi/4-star.png");
+  const transformerDataUri = useLocalImageDataUri("imgs/actions/gi/transformer.webp");
   const { account, data: dailyNoteEntry, requestUpdate } = useGameData("gi:daily-note");
 
   useKeyDown(() => {
@@ -29,7 +29,7 @@ function TransformerKey() {
   if (!dailyNote) {
     return (
       <div className="flex items-center justify-center w-full h-full">
-        <img src={BASE_DATA_URI} width={144} height={144} />
+        <img src={baseDataUri} width={144} height={144} />
       </div>
     );
   }
@@ -37,7 +37,7 @@ function TransformerKey() {
   if (!dailyNote.transformer.obtained) {
     return (
       <div className="relative w-full h-full">
-        <img src={BASE_DATA_URI} width={144} height={144} />
+        <img src={baseDataUri} width={144} height={144} />
         <Badge text="N/A" />
       </div>
     );
@@ -55,9 +55,9 @@ function TransformerKey() {
 
   return (
     <div className="relative w-full h-full">
-      <img src={BASE_DATA_URI} width={144} height={144} />
+      <img src={baseDataUri} width={144} height={144} />
       <div className="absolute top-0 left-0 size-36">
-        <img src={TRANSFORMER_DATA_URI} width={144} height={144} />
+        <img src={transformerDataUri} width={144} height={144} />
       </div>
       <div className="absolute top-0 left-0 w-36 bg-overlay-medium" style={{ height: coverH }} />
       <Badge text={display} />

@@ -4,7 +4,7 @@ import {
   type PatchSlotState,
 } from "@/contexts/patch-countdown-context";
 import { formatCountdownFromSeconds } from "@/utils/banner";
-import { readLocalImageAsDataUri } from "@/utils/image";
+import { useLocalImageDataUri } from "@/hooks/use-local-image-data-uri";
 import type { JsonObject } from "@elgato/utils";
 import { defineAction, cn, useKeyDown, useTouchTap } from "@fcannizzaro/streamdeck-react";
 import type { GameId, PatchCountdownSettings } from "@hoyodeck/shared/types";
@@ -14,11 +14,11 @@ import type { GameId, PatchCountdownSettings } from "@hoyodeck/shared/types";
 const ROW_HEIGHT = 34;
 const DIAL_ROW_HEIGHT = 26;
 
-/** Per-game avatar icons (same as Wish Tracker) */
-const GAME_ICONS: Record<GameId, string> = {
-  gi: readLocalImageAsDataUri("imgs/games/gi.webp"),
-  hsr: readLocalImageAsDataUri("imgs/games/hsr.webp"),
-  zzz: readLocalImageAsDataUri("imgs/games/zzz.webp"),
+/** Per-game avatar icon paths (same as Wish Tracker) */
+const GAME_ICON_PATHS: Record<GameId, string> = {
+  gi: "imgs/games/gi.webp",
+  hsr: "imgs/games/hsr.webp",
+  zzz: "imgs/games/zzz.webp",
 };
 
 /**
@@ -46,6 +46,7 @@ interface PatchRowProps {
  * creating a flush icon tab followed by the countdown text.
  */
 function PatchRow({ game, text, variant, stretch }: PatchRowProps) {
+  const gameIcon = useLocalImageDataUri(GAME_ICON_PATHS[game]);
   const isKey = variant === "key";
   const imageSize = isKey ? ROW_HEIGHT : DIAL_ROW_HEIGHT;
   return (
@@ -57,7 +58,7 @@ function PatchRow({ game, text, variant, stretch }: PatchRowProps) {
       )}
     >
       {/* Icon — fills full height, shares left-side border radius */}
-      <img src={GAME_ICONS[game]} width={imageSize} height={imageSize} />
+      <img src={gameIcon} width={imageSize} height={imageSize} />
       <span
         className={cn("font-bold text-white font-body ml-1.5", isKey ? "text-lg" : "text-base")}
       >
