@@ -154,6 +154,13 @@ export function AccountForm({ account, onSave, onCancel }: AccountFormProps) {
         </>
       ) : (
         <>
+          {/* Real-Time Notes reminder */}
+          <p className="text-[11px] text-sd-secondary leading-relaxed">
+            Make sure <strong>Real-Time Notes</strong> is enabled on{" "}
+            <span className="text-white">HoYoLAB → Settings</span> for each game you
+            play, otherwise the plugin won't be able to read your in-game data.
+          </p>
+
           {/* Login with HoYoLAB button */}
           <button
             onClick={handleLoginWithHoyolab}
