@@ -305,12 +305,11 @@ export function BannerDial({ game, account, items, requestUpdate, iconStyle }: B
   });
 
   // ─── Placeholder ────────────────────────────────────────────
-
   if (account.status !== "resolved") {
     return (
-      <div className="flex items-center justify-center w-full h-full">
-        <img src={bgDataUri} width={DIAL_BG_SIZE} height={DIAL_BG_SIZE} />
-        <div className="absolute flex items-center justify-center">
+      <div className="relative w-full h-full">
+        <img src={bgDataUri} className="w-full h-full object-cover" />
+        <div className="absolute flex items-center justify-center w-full h-full">
           <div className="flex items-center justify-center bg-overlay rounded-lg px-2.5 py-0.75">
             <span className="text-sm font-bold text-white font-body text-center">
               {DIAL_STATUS_LABELS[account.status]}
