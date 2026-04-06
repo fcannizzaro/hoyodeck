@@ -459,6 +459,82 @@ const generateDS = (): string => {
 
 ---
 
+## 9. Plugin Component Styling
+
+Action components in `plugin/src/` render via the Takumi renderer, not a browser DOM. Follow these rules for all JSX in action components.
+
+### Prefer `className` with Tailwind over `style={{}}`
+
+Use Tailwind classes (resolved by Takumi at render time) instead of inline `style` props. Use the `tw()` utility from `@fcannizzaro/streamdeck-react` for conditional classes — it works like `clsx`.
+
+```tsx
+// Bad — inline style props
+<div
+  style={{
+    backgroundColor: "#0f172a",
+    borderRadius: 10,
+    paddingLeft: 10,
+    paddingRight: 10,
+    fontSize: 12,
+    fontWeight: 600,
+    color: "rgba(255, 255, 255, 0.4)",
+  }}
+>
+
+// Good — Tailwind classes
+<div className="bg-[#0f172a] rounded-[10px] px-[10px] text-[12px] font-semibold text-white/40">
+```
+
+### Use `tw()` for conditional classes
+
+```tsx
+// Bad — ternary in style prop
+<div style={{ backgroundColor: pressed ? "#2563eb" : "#0f172a" }}>
+
+// Good — tw() with conditions
+<div className={tw("w-full h-full", pressed ? "bg-[#2563eb]" : "bg-[#0f172a]")}>
+
+// Good — conditional class inclusion
+<div className={tw("flex flex-col items-center", slots.length < 3 && "justify-center")}>
+```
+
+### Only use `style={{}}` for truly dynamic values
+
+Reserve inline styles for values that are computed at runtime and cannot be expressed as static Tailwind classes:
+
+```tsx
+// OK — dynamic value from a lookup/map
+<div className="flex items-center rounded-[10px] overflow-hidden" style={{ backgroundColor: BADGE_COLORS[game] }}>
+
+// OK — value computed from data
+<div className="absolute flex flex-col" style={{ top: computedOffset }}>
+```
+
+### Prefer flex layouts over absolute positioning
+
+Use flex containers (`flex`, `flex-col`, `justify-center`, `items-center`, `flex-1`, `gap-*`) to handle alignment and spacing instead of `relative`/`absolute` with manually computed offsets.
+
+```tsx
+// Bad — manual centering with absolute + computed offset
+const totalHeight = items.length * ROW_HEIGHT + (items.length - 1) * GAP;
+const topOffset = Math.round((CONTAINER_SIZE - totalHeight) / 2);
+
+<div className="relative w-full h-full">
+  <div className="absolute" style={{ top: topOffset, left: 0 }}>
+    {items.map(renderRow)}
+  </div>
+</div>
+
+// Good — flex centering, no math needed
+<div className="flex flex-col items-center justify-center w-full h-full gap-[10px]">
+  {items.map(renderRow)}
+</div>
+```
+
+Only use absolute positioning when elements genuinely need to overlap (e.g. badge overlays on images, floating indicators).
+
+---
+
 ## Summary Checklist
 
 - [ ] Functions are small and focused (<20 lines ideal)
