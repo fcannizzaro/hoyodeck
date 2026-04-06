@@ -464,28 +464,21 @@ export class HoyolabClient {
     if (!redeemUrl) throw new Error(`No redemption URL for game: ${game}`);
 
     const region = getRegionFromUid(uid, game);
+    const gameBiz: Record<GameId, string> = {
+      gi: "hk4e_global",
+      hsr: "hkrpg_global",
+      zzz: "nap_global",
+    };
 
     await this.request<unknown>(redeemUrl, "", {
       query: {
         uid,
         region,
         cdkey: code,
-        game_biz: this.getGameBiz(game),
+        game_biz: gameBiz[game],
         lang: "en",
       },
       useDS: false,
     });
-  }
-
-  /**
-   * Get the game_biz identifier for code redemption API.
-   */
-  private getGameBiz(game: GameId): string {
-    const bizMap: Record<GameId, string> = {
-      gi: "hk4e_global",
-      hsr: "hkrpg_global",
-      zzz: "nap_global",
-    };
-    return bizMap[game];
   }
 }

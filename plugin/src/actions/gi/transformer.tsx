@@ -6,7 +6,6 @@ import { createActionWrapper } from "@/contexts/create-action-wrapper";
 import { useLocalImageDataUri } from "@/hooks/use-local-image-data-uri";
 import { PlaceholderKey } from "@/components/placeholder-key";
 import { Badge } from "@/components/badge";
-import { formatTransformerTime } from "@/utils/time";
 
 const GAME = "gi" as const;
 const COOLDOWN_SECONDS = 7 * 24 * 60 * 60; // 7 days
@@ -51,7 +50,13 @@ function TransformerKey() {
     ? 1
     : Math.min(Math.max(1 - remainingSeconds / COOLDOWN_SECONDS, 0), 1);
   const coverH = Math.round(144 * (1 - percentage));
-  const display = isReady ? "Ready!" : formatTransformerTime(recovery);
+  const display = isReady
+    ? "Ready!"
+    : recovery.Day > 0
+      ? `${recovery.Day}d ${recovery.Hour}h`
+      : recovery.Hour > 0
+        ? `${recovery.Hour}h ${recovery.Minute}m`
+        : `${recovery.Minute}m`;
 
   return (
     <div className="relative w-full h-full">

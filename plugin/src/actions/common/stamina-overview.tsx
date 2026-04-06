@@ -9,10 +9,10 @@ import type { JsonObject } from "@elgato/utils";
 import type { GameId, StaminaOverviewSettings } from "@hoyodeck/shared/types";
 import { GAMES } from "@hoyodeck/shared/games";
 import { useLocalImageDataUri } from "@/hooks/use-local-image-data-uri";
-import { formatRecoveryTime } from "@/utils/stamina";
 import {
   StaminaOverviewProvider,
   useStaminaOverview,
+  formatRecoveryTime,
   type SlotState,
 } from "@/contexts/stamina-overview-context";
 

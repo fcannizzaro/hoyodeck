@@ -1,6 +1,5 @@
 import { validateAuth } from "@/api/hoyolab/auth";
 import { HoyolabClient } from "@/api/hoyolab/client";
-import { isValidUid } from "@/utils/region";
 import type { GameId } from "@hoyodeck/shared/types";
 import { GAMES } from "@hoyodeck/shared/games";
 
@@ -148,7 +147,7 @@ function requireUid(uid: string | undefined, game: GameId): string {
     process.exit(1);
   }
 
-  if (!isValidUid(uid)) {
+  if (!/^\d{9,10}$/.test(uid)) {
     console.error(`Error: Invalid UID "${uid}". Must be 9-10 digits.`);
     process.exit(1);
   }

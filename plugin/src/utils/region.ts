@@ -24,11 +24,3 @@ export function getRegionFromUid(uid: string, game: GameId): string {
 
   return region;
 }
-
-/**
- * Validate UID format
- */
-export function isValidUid(uid: string): boolean {
-  // UID should be 9-10 digits
-  return /^\d{9,10}$/.test(uid);
-}
