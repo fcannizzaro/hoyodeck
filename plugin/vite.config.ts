@@ -45,6 +45,7 @@ export default defineConfig({
         },
       ],
       manifest: {
+        sdkVersion: 3,
         uuid: "com.fcannizzaro.hoyodeck",
         name: "HoYo Deck",
         url: "https://hoyodeck.fcannizzaro.com",
