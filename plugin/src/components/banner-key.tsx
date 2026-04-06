@@ -238,14 +238,14 @@ function BannerDialSlot({ game, item, iconStyle, shouldAnimate, badge }: BannerD
   // Still loading icon
   if (!iconDataUri) {
     return (
-      <div className="relative" style={{ width: DIAL_BG_SIZE, height: DIAL_BG_SIZE }}>
+      <div className="relative size-25">
         <img src={bgDataUri} width={DIAL_BG_SIZE} height={DIAL_BG_SIZE} />
       </div>
     );
   }
 
   return (
-    <div className="relative" style={{ width: DIAL_BG_SIZE, height: DIAL_BG_SIZE }}>
+    <div className="relative size-25">
       <img src={bgDataUri} width={DIAL_BG_SIZE} height={DIAL_BG_SIZE} />
       <div className="absolute" style={scaledIcon}>
         <img src={charSrc!} width={scaledIcon.width} height={scaledIcon.height} />
@@ -311,26 +311,8 @@ export function BannerDial({ game, account, items, requestUpdate, iconStyle }: B
       <div className="flex items-center justify-center w-full h-full">
         <img src={bgDataUri} width={DIAL_BG_SIZE} height={DIAL_BG_SIZE} />
         <div className="absolute flex items-center justify-center">
-          <div
-            className="flex items-center justify-center"
-            style={{
-              backgroundColor: "rgba(0, 0, 0, 0.7)",
-              borderRadius: 8,
-              paddingLeft: 10,
-              paddingRight: 10,
-              paddingTop: 3,
-              paddingBottom: 3,
-            }}
-          >
-            <span
-              style={{
-                color: "white",
-                fontSize: 14,
-                fontWeight: 700,
-                fontFamily: "Inter",
-                textAlign: "center",
-              }}
-            >
+          <div className="flex items-center justify-center bg-overlay rounded-lg px-2.5 py-0.75">
+            <span className="text-sm font-bold text-white font-body text-center">
               {DIAL_STATUS_LABELS[account.status]}
             </span>
           </div>

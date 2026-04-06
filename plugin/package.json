@@ -16,7 +16,7 @@
   "dependencies": {
     "@elgato/streamdeck": "^2.0.4",
     "@elgato/utils": "^0.4.4",
-    "@fcannizzaro/streamdeck-react": "^0.2.7",
+    "@fcannizzaro/streamdeck-react": "^0.3.0",
     "@fontsource/inter": "^5.2.8",
     "@hoyodeck/shared": "workspace:*",
     "@nativewindow/webview": "^1.0.6",
@@ -28,10 +28,12 @@
   },
   "devDependencies": {
     "@elgato/cli": "^1.7.3",
+    "@tailwindcss/vite": "^4.2.2",
     "@types/node": "^25.5.2",
     "@types/react": "^19.1.0",
     "@vitejs/plugin-react": "^6.0.1",
-    "vite": "^8.0.3"
+    "tailwindcss": "^4.2.2",
+    "vite": "^8.0.5"
   },
   "engines": {
     "node": ">=20"

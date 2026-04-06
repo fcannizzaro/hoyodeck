@@ -152,6 +152,7 @@ No platform-specific `@takumi-rs/core-*` packages need to be installed. The inst
 3. All imports of the native module are redirected to the virtual loader via `resolveId`.
 
 Version resolution uses three strategies in order:
+
 1. `createRequire` from the Vite project root (resolves workspace-specific deps).
 2. `createRequire` from the library's own location (handles hoisted packages).
 3. Direct `node_modules` walk (for packages whose `exports` map lacks a `require` condition).

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import {
+  cn,
   defineAction,
   useKeyDown,
   useGlobalSettings,
@@ -18,8 +19,6 @@ const BACKGROUND = readLocalImageAsDataUri("imgs/actions/gi/expeditions-state.pn
 const COUNTDOWN_INTERVAL_MS = 30_000;
 
 const AVATAR_SIZE = 48;
-const AVATAR_BORDER_COLOR = "#6B4226";
-
 interface ExpeditionData {
   avatarDataUri: string;
   finished: boolean;
@@ -106,26 +105,20 @@ function ExpeditionKey() {
 
       {/* Row 1 */}
       <div
-        className="absolute flex items-center justify-center"
-        style={{
-          top: useTwoRows ? 16 : 30,
-          left: 0,
-          width: 144,
-          gap: 6,
-        }}
+        className="absolute left-0 w-36 gap-1.5 flex items-center justify-center"
+        style={{ top: useTwoRows ? 16 : 30 }}
       >
         {circles.slice(0, row1Count).map((exp, i) => (
           <div
             key={i}
+            className={cn(
+              "overflow-hidden border-2 border-solid border-[#6B4226]",
+              exp.finished ? "opacity-100" : "opacity-60",
+            )}
             style={{
               width: avatarSize,
               height: avatarSize,
               borderRadius: avatarSize / 2,
-              overflow: "hidden",
-              borderWidth: 2,
-              borderColor: AVATAR_BORDER_COLOR,
-              borderStyle: "solid",
-              opacity: exp.finished ? 1 : 0.6,
             }}
           >
             <img src={exp.avatarDataUri} width={avatarSize} height={avatarSize} />
@@ -135,27 +128,18 @@ function ExpeditionKey() {
 
       {/* Row 2 (if needed) */}
       {useTwoRows && row2Count > 0 && (
-        <div
-          className="absolute flex items-center justify-center"
-          style={{
-            top: 64,
-            left: 0,
-            width: 144,
-            gap: 6,
-          }}
-        >
+        <div className="absolute top-16 left-0 w-36 gap-1.5 flex items-center justify-center">
           {circles.slice(row1Count).map((exp, i) => (
             <div
               key={i}
+              className={cn(
+                "overflow-hidden border-2 border-solid border-[#6B4226]",
+                exp.finished ? "opacity-100" : "opacity-60",
+              )}
               style={{
                 width: avatarSize,
                 height: avatarSize,
                 borderRadius: avatarSize / 2,
-                overflow: "hidden",
-                borderWidth: 2,
-                borderColor: AVATAR_BORDER_COLOR,
-                borderStyle: "solid",
-                opacity: exp.finished ? 1 : 0.6,
               }}
             >
               <img src={exp.avatarDataUri} width={avatarSize} height={avatarSize} />

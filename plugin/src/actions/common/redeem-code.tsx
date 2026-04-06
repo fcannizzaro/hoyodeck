@@ -61,32 +61,14 @@ function RedeemCodeKey() {
   return (
     <div className="relative w-full h-full">
       <img src={bgDataUri} width={144} height={144} />
-      <div
-        className="absolute flex items-center justify-center w-full h-full"
-        style={{ top: 0, left: 0 }}
-      >
+      <div className="absolute inset-0 flex items-center justify-center">
         <img src={iconDataUri} width={100} height={100} />
       </div>
       {count > 0 && (
         <>
-          <div
-            className="absolute w-full h-full"
-            style={{ top: 0, left: 0, backgroundColor: "rgba(0, 0, 0, 0.4)" }}
-          />
-          <div
-            className="absolute flex items-center justify-center w-full h-full"
-            style={{ top: 0, left: 0 }}
-          >
-            <span
-              style={{
-                fontSize: 64,
-                fontWeight: 700,
-                color: "white",
-                fontFamily: "Inter",
-              }}
-            >
-              {count}
-            </span>
+          <div className="absolute inset-0 bg-overlay-light" />
+          <div className="absolute inset-0 flex items-center justify-center">
+            <span className="text-[64px] font-bold text-white font-body">{count}</span>
           </div>
         </>
       )}

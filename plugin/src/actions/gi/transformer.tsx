@@ -56,19 +56,10 @@ function TransformerKey() {
   return (
     <div className="relative w-full h-full">
       <img src={BASE_DATA_URI} width={144} height={144} />
-      <div className="absolute" style={{ top: 0, left: 0, width: 144, height: 144 }}>
+      <div className="absolute top-0 left-0 size-36">
         <img src={TRANSFORMER_DATA_URI} width={144} height={144} />
       </div>
-      <div
-        className="absolute"
-        style={{
-          top: 0,
-          left: 0,
-          width: 144,
-          height: coverH,
-          backgroundColor: "rgba(0, 0, 0, 0.6)",
-        }}
-      />
+      <div className="absolute top-0 left-0 w-36 bg-overlay-medium" style={{ height: coverH }} />
       <Badge text={display} />
     </div>
   );

@@ -44,18 +44,7 @@ function TeapotKey() {
   return (
     <div className="relative w-full h-full">
       <img src={BACKGROUND} width={144} height={144} />
-      {maxReached && (
-        <div
-          className="absolute"
-          style={{
-            top: 0,
-            left: 0,
-            width: 144,
-            height: 144,
-            backgroundColor: "rgba(255, 0, 0, 0.3)",
-          }}
-        />
-      )}
+      {maxReached && <div className="absolute inset-0 bg-danger-tint" />}
       <FloatingImage src={tubbyIcon} animate={!animationsDisabled} />
       <Badge text={text} />
     </div>

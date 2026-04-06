@@ -66,74 +66,32 @@ function StaminaSlotView({ slot, width, offsetY, dimmed }: SlotProps) {
   return (
     <div
       className="relative"
-      style={{
-        width,
-        height: roundedHeight,
-        marginTop: Math.round(offsetY),
-      }}
+      style={{ width, height: roundedHeight, marginTop: Math.round(offsetY) }}
     >
       {/* Game-themed background */}
-      <img
-        src={bg}
-        width={width}
-        height={roundedHeight}
-        style={{ position: "absolute", top: 0, left: 0 }}
-      />
+      <img src={bg} width={width} height={roundedHeight} className="absolute top-0 left-0" />
 
       {/* Dark cover from top — the unfilled portion */}
       {coverH > 0 && (
         <div
-          className="absolute"
-          style={{
-            top: 0,
-            left: 0,
-            width,
-            height: coverH,
-            backgroundColor: "rgba(0, 0, 0, 0.6)",
-          }}
+          className="absolute top-0 left-0 bg-overlay-medium"
+          style={{ width, height: coverH }}
         />
       )}
 
       {/* Content overlay: centered icon + badge */}
       <div
-        className="absolute flex flex-col items-center justify-center"
-        style={{ top: 0, left: 0, width, height: roundedHeight }}
+        className="absolute top-0 left-0 flex flex-col items-center justify-center"
+        style={{ width, height: roundedHeight }}
       >
         <img src={icon} width={iconSize} height={iconSize} />
 
         {/* Badge pill — same style as per-game key actions */}
-        <div
-          className="flex items-center justify-center"
-          style={{
-            backgroundColor: "rgba(0, 0, 0, 0.7)",
-            borderRadius: 8,
-            paddingLeft: 8,
-            paddingRight: 8,
-            paddingTop: 2,
-            paddingBottom: 0,
-            marginTop: 6,
-          }}
-        >
+        <div className="flex items-center justify-center bg-overlay rounded-lg px-2 pt-0.5 pb-0 mt-1.5">
           {current !== null ? (
-            <span
-              style={{
-                fontSize: 13,
-                fontWeight: 700,
-                color: "white",
-                fontFamily: "Inter",
-              }}
-            >
-              {current}
-            </span>
+            <span className="text-[13px] font-bold text-white font-body">{current}</span>
           ) : (
-            <span
-              style={{
-                fontSize: 10,
-                fontWeight: 600,
-                color: "rgba(255, 255, 255, 0.5)",
-                fontFamily: "Inter",
-              }}
-            >
+            <span className="text-2xs font-semibold text-white/50 font-body">
               {slot.data.status === "error"
                 ? "ERR"
                 : slot.data.status === "unconfigured"
@@ -147,14 +105,8 @@ function StaminaSlotView({ slot, width, offsetY, dimmed }: SlotProps) {
       {/* Dark overlay when another slot is focused */}
       {dimmed && (
         <div
-          className="absolute"
-          style={{
-            top: 0,
-            left: 0,
-            width,
-            height: roundedHeight,
-            backgroundColor: "rgba(0, 0, 0, 0.5)",
-          }}
+          className="absolute top-0 left-0 bg-overlay-dim"
+          style={{ width, height: roundedHeight }}
         />
       )}
     </div>
@@ -187,37 +139,11 @@ function DetailBar({ slot, bottom }: DetailBarProps) {
 
   return (
     <div
-      className="absolute flex items-center justify-between"
-      style={{
-        bottom: Math.round(bottom),
-        left: 0,
-        width: DIAL_WIDTH,
-        height: BAR_HEIGHT,
-        backgroundColor: "rgba(0, 0, 0, 0.8)",
-        paddingLeft: 12,
-        paddingRight: 12,
-      }}
+      className="absolute left-0 w-50 h-6.5 bg-overlay-heavy flex items-center justify-between px-3"
+      style={{ bottom: Math.round(bottom) }}
     >
-      <span
-        style={{
-          fontSize: 13,
-          fontWeight: 700,
-          color: "white",
-          fontFamily: "Inter",
-        }}
-      >
-        {valueText}
-      </span>
-      <span
-        style={{
-          fontSize: 11,
-          fontWeight: 500,
-          color: "rgba(255, 255, 255, 0.6)",
-          fontFamily: "Inter",
-        }}
-      >
-        {timeText}
-      </span>
+      <span className="text-[13px] font-bold text-white font-body">{valueText}</span>
+      <span className="text-[11px] font-medium text-white/60 font-body">{timeText}</span>
     </div>
   );
 }
@@ -226,20 +152,8 @@ function DetailBar({ slot, bottom }: DetailBarProps) {
 
 function EmptyDial() {
   return (
-    <div
-      className="flex items-center justify-center"
-      style={{ width: DIAL_WIDTH, height: DIAL_HEIGHT, backgroundColor: "#0f172a" }}
-    >
-      <span
-        style={{
-          fontSize: 12,
-          fontWeight: 600,
-          color: "rgba(255, 255, 255, 0.4)",
-          fontFamily: "Inter",
-        }}
-      >
-        Configure Slots
-      </span>
+    <div className="flex items-center justify-center w-50 h-25 bg-surface">
+      <span className="text-xs font-semibold text-white/40 font-body">Configure Slots</span>
     </div>
   );
 }
@@ -291,12 +205,9 @@ function StaminaOverviewDialInner() {
   const focusedSlot = focusIndex !== null ? (slots[focusIndex] ?? null) : null;
 
   return (
-    <div
-      className="relative"
-      style={{ width: DIAL_WIDTH, height: DIAL_HEIGHT, backgroundColor: "black" }}
-    >
+    <div className="relative w-50 h-25 bg-black">
       {/* Slot columns — shift up when bar is open */}
-      <div className="flex" style={{ gap: GAP }}>
+      <div className="flex gap-1">
         {slots.map((slot, i) => (
           <StaminaSlotView
             key={`${slot.game}-${i}`}

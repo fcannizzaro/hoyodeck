@@ -30,26 +30,8 @@ export function PlaceholderKey({ game, status }: PlaceholderKeyProps) {
     <div className="flex items-center justify-center w-full h-full">
       <img src={bgDataUri} width={144} height={144} />
       <div className="absolute flex items-center justify-center">
-        <div
-          className="flex items-center justify-center"
-          style={{
-            backgroundColor: "rgba(0, 0, 0, 0.7)",
-            borderRadius: 12,
-            paddingLeft: 14,
-            paddingRight: 14,
-            paddingTop: 6,
-            paddingBottom: 6,
-          }}
-        >
-          <span
-            style={{
-              color: "white",
-              fontSize: 20,
-              fontWeight: 700,
-              fontFamily: "Inter",
-              textAlign: "center",
-            }}
-          >
+        <div className="flex items-center justify-center bg-overlay rounded-[12px] px-3.5 py-1.5">
+          <span className="text-xl font-bold text-white font-body text-center">
             {STATUS_LABELS[status]}
           </span>
         </div>

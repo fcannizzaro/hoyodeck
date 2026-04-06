@@ -6,7 +6,7 @@ import {
 import { formatCountdownFromSeconds } from "@/utils/banner";
 import { readLocalImageAsDataUri } from "@/utils/image";
 import type { JsonObject } from "@elgato/utils";
-import { defineAction, tw, useKeyDown, useTouchTap } from "@fcannizzaro/streamdeck-react";
+import { defineAction, cn, useKeyDown, useTouchTap } from "@fcannizzaro/streamdeck-react";
 import type { GameId, PatchCountdownSettings } from "@hoyodeck/shared/types";
 
 // ─── Constants ────────────────────────────────────────────────────
@@ -22,13 +22,13 @@ const GAME_ICONS: Record<GameId, string> = {
 };
 
 /**
- * Per-game badge background colors — tinted to match each game icon's palette.
+ * Per-game badge background classes — tinted to match each game icon's palette.
  * GI: warm amber/gold  |  HSR: pink/rose  |  ZZZ: cool teal/slate
  */
-const BADGE_COLORS: Record<GameId, string> = {
-  gi: "rgba(40, 140, 180, 0.65)",
-  hsr: "rgba(160, 70, 130, 0.65)",
-  zzz: "rgba(200, 120, 40, 0.65)",
+const BADGE_BG_CLASS: Record<GameId, string> = {
+  gi: "bg-badge-gi",
+  hsr: "bg-badge-hsr",
+  zzz: "bg-badge-zzz",
 };
 
 // ─── Row Component ────────────────────────────────────────────────
@@ -50,20 +50,16 @@ function PatchRow({ game, text, variant, stretch }: PatchRowProps) {
   const imageSize = isKey ? ROW_HEIGHT : DIAL_ROW_HEIGHT;
   return (
     <div
-      className={tw(
-        "flex items-center rounded-[10px] overflow-hidden",
-        isKey && "w-[120px] h-[34px]",
-        !isKey && (stretch ? "w-[170px] flex-1" : "w-[170px] h-[26px]"),
+      className={cn(
+        "flex items-center rounded-badge overflow-hidden",
+        BADGE_BG_CLASS[game],
+        isKey ? "w-30 h-8.5" : stretch ? "w-42.5 flex-1" : "w-42.5 h-6.5",
       )}
-      style={{ backgroundColor: BADGE_COLORS[game] }}
     >
       {/* Icon — fills full height, shares left-side border radius */}
       <img src={GAME_ICONS[game]} width={imageSize} height={imageSize} />
       <span
-        className={tw(
-          "font-bold text-white font-[Inter] ml-[6px]",
-          isKey ? "text-[18px] leading-[34px]" : "text-[16px]",
-        )}
+        className={cn("font-bold text-white font-body ml-1.5", isKey ? "text-lg" : "text-base")}
       >
         {text}
       </span>
@@ -122,8 +118,8 @@ function PatchCountdownKey() {
 
   if (slots.length === 0) {
     return (
-      <div className="flex px-4 items-center justify-center size-full bg-[#0f172a]">
-        <div className="rounded-[10px] px-4 py-2 bg-[rgba(255,255,255,0.08)] text-[18px] text-center font-semibold text-white/40 font-[Inter]">
+      <div className="flex px-4 items-center justify-center size-full bg-surface">
+        <div className="rounded-badge px-4 py-2 bg-overlay-white text-lg text-center font-semibold text-white/40 font-body">
           Configure games
         </div>
       </div>
@@ -133,7 +129,7 @@ function PatchCountdownKey() {
   // ─── Rows ──────────────────────────────────────────────────
 
   return (
-    <div className="flex flex-col items-center justify-center w-full h-full bg-[#0f172a] gap-[10px]">
+    <div className="flex flex-col items-center justify-center w-full h-full bg-surface gap-2.5">
       {slots.map((slot, i) => (
         <PatchRow
           key={`${slot.game}-${i}`}
@@ -165,8 +161,8 @@ function PatchCountdownDial() {
 
   if (slots.length === 0) {
     return (
-      <div className="items-center justify-center size-full bg-[#0f172a]">
-        <div className="items-center justify-center rounded-[10px] px-4 py-2 bg-[rgba(255,255,255,0.08)] text-[16px] font-semibold text-white/40 font-[Inter]">
+      <div className="items-center justify-center size-full bg-surface">
+        <div className="items-center justify-center rounded-badge px-4 py-2 bg-overlay-white text-base font-semibold text-white/40 font-body">
           Configure games
         </div>
       </div>
@@ -177,8 +173,8 @@ function PatchCountdownDial() {
 
   return (
     <div
-      className={tw(
-        "flex flex-col items-center w-[200px] h-[100px] bg-[#0f172a] p-1",
+      className={cn(
+        "flex flex-col items-center w-50 h-25 bg-surface p-1",
         slots.length < 3 && "justify-center",
         slots.length === 2 ? "gap-2" : "gap-1",
       )}

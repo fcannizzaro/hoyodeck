@@ -4,7 +4,9 @@
 
 The renderer is NOT a browser DOM. Keep layouts simple and explicit.
 
-- Use inline styles, `className` with Tailwind classes, or `tw()` utility strings.
+- **Prefer Tailwind classes** via `className` and `cn()` utility for all static styling (layout, colors, spacing, typography).
+- Use inline `style` only for **dynamic values** computed at runtime (animation outputs, `size.scale()`, data-driven colors).
+- Prefer **flexbox layout** (`flex`, `flex-col`, `items-center`, `gap-*`) over absolute positioning.
 - Prefer fixed sizes, percentages, and straightforward flex layouts.
 - Load every font you plan to render explicitly via `googleFont()` or manual `readFile` -- the renderer cannot access system fonts.
 - Supported font formats: `.ttf`, `.otf`, `.woff`, `.woff2` (WASM mode: `.ttf` and `.otf` only).
@@ -42,7 +44,7 @@ Each action instance gets its own isolated React root:
 - **Benefit**: complete isolation, no cross-instance bugs, clean lifecycle.
 - **Recycling**: when actions disappear (profile switch, page navigation), roots are suspended and pooled rather than destroyed. Reappearing actions reuse suspended roots, reducing mount cost from ~5-15ms to ~1-3ms per key.
 
-Use external state managers (Zustand, Jotai) or the wrapper API to share state across roots.
+Use the built-in Action Coordinator (`coordinator: true`), external state managers (Zustand, Jotai), or the wrapper API to share state across roots.
 
 ## Font Bundle Size
 

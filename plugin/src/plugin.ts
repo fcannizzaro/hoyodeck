@@ -1,5 +1,8 @@
 import { createPlugin } from "@fcannizzaro/streamdeck-react";
 
+// Import theme stylesheet (Tailwind v4 CSS with @theme tokens)
+import stylesheet from "./theme.css?inline";
+
 // Import services
 import { registerAuthValidator } from "@/services/auth-validator";
 import { registerLoginHandler } from "@/services/hoyolab-login";
@@ -49,6 +52,7 @@ dataController.init();
 // Create plugin with React renderer
 const plugin = createPlugin({
   devtools: true,
+  stylesheets: [stylesheet],
   wrapper: PluginWrapper,
   fonts: [
     {

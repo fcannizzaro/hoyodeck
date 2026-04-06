@@ -9,7 +9,12 @@
     "streamdeck-react": {
       "source": "fcannizzaro/streamdeck-react",
       "sourceType": "github",
-      "computedHash": "e1e7f08d0dfdd5bb36027ca74abd96cfdb6ee50e943c6b8bb18a4089e4404cfc"
+      "computedHash": "f3d8abb8dd1f99177ce80073aff421ba6168515d754f1f662ac8e0a879e21287"
+    },
+    "tailwind-design-system": {
+      "source": "wshobson/agents",
+      "sourceType": "github",
+      "computedHash": "988d80e52c67c3692d43cc963b6a048a239895e88b272b061de55370d0f8efc3"
     }
   }
 }

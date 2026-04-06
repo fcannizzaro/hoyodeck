@@ -8,7 +8,7 @@ import { HoyolabApiError, isAuthError } from "@/api/types/common";
 // ─── Constants ─────────────────────────────────────────────────
 
 /** Rate-limit cooldown between consecutive redeems (ms) */
-const REDEEM_DELAY_MS = 5_000;
+const REDEEM_DELAY_MS = 4_000;
 
 /** Prevent opening multiple windows simultaneously */
 let windowOpen = false;

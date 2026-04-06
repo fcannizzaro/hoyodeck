@@ -64,17 +64,19 @@ When actions disappear (profile switch, page navigation), the root is **suspende
 
 ### Context Provider Tree
 
-Every action root uses 4 context providers (stable outermost, volatile innermost):
+Every action root uses 6 context providers (stable outermost, volatile innermost):
 
 ```
-RootContext.Provider          ← merged: action + device + canvas + streamDeck (immutable)
-  EventBusContext.Provider    ← per-root EventBus (new instance on resume)
-    GlobalSettingsContext.Provider  ← plugin-wide settings
-      SettingsContext.Provider      ← per-action settings
-        PluginWrapper / ActionWrapper / <UserComponent />
+CoordinatorContext.Provider    ← plugin-level coordinator (null if not enabled)
+  ThemeContext.Provider          ← plugin-level theme (CSS variables + setter)
+    RootContext.Provider          ← merged: action + device + canvas + streamDeck (immutable)
+      EventBusContext.Provider    ← per-root EventBus (new instance on resume)
+        GlobalSettingsContext.Provider  ← plugin-wide settings
+          SettingsContext.Provider      ← per-action settings
+            PluginWrapper / ActionWrapper / <UserComponent />
 ```
 
-`RootContext` merges `ActionInfo`, `DeviceInfo`, `CanvasInfo`, and `StreamDeckAccess` into a single provider, eliminating 3 fiber nodes per root. For 32 active roots, this saves 96 provider fiber nodes.
+`CoordinatorContext` and `ThemeContext` are plugin-level singletons that rarely or never change. `RootContext` merges `ActionInfo`, `DeviceInfo`, `CanvasInfo`, and `StreamDeckAccess` into a single provider, eliminating 3 fiber nodes per root. For 32 active roots, this saves 96 provider fiber nodes.
 
 ### Code-First Manifest Generation
 
@@ -90,7 +92,7 @@ The Vite bundler plugin **auto-generates** `manifest.json` from code:
 
 No hand-written `manifest.json` is needed.
 
-Each visible action instance on the hardware gets its own isolated React root. No shared state between roots unless you use an external store (Zustand, Jotai) or the wrapper API.
+Each visible action instance on the hardware gets its own isolated React root. No shared state between roots unless you use the built-in Action Coordinator (`coordinator: true`), an external store (Zustand, Jotai), or the wrapper API.
 
 ### Native Module Lazy Loading
 
@@ -204,6 +206,9 @@ npm install -D vite@8.0.0 @vitejs/plugin-react@6.0.1
 # Build tooling (with React Compiler -- add on top of base)
 # npm install -D @rolldown/plugin-babel @babel/core babel-plugin-react-compiler
 
+# Build tooling (with Tailwind v4 CSS -- add on top of base)
+# npm install -D @tailwindcss/vite
+
 # Types (if using TypeScript)
 npm install -D @types/react
 ```
@@ -252,7 +257,7 @@ Must use `"type": "module"`. Example:
 ```tsx
 // src/actions/counter.tsx
 import { useState } from "react";
-import { defineAction, useKeyDown, useKeyUp, tw } from "@fcannizzaro/streamdeck-react";
+import { defineAction, useKeyDown, useKeyUp, cn } from "@fcannizzaro/streamdeck-react";
 
 function CounterKey() {
   const [count, setCount] = useState(0);
@@ -267,7 +272,7 @@ function CounterKey() {
 
   return (
     <div
-      className={tw(
+      className={cn(
         "flex flex-col items-center justify-center w-full h-full gap-1",
         pressed ? "bg-[#2563eb]" : "bg-[#0f172a]",
       )}
@@ -438,26 +443,31 @@ If your `package.json` has a `dev` script configured, you can also just run `bun
 
 ## Hook Quick Reference
 
-| Category  | Hooks                                       | Purpose                                                   |
-| --------- | ------------------------------------------- | --------------------------------------------------------- |
-| Events    | `useKeyDown`, `useKeyUp`                    | Key press/release                                         |
-| Events    | `useDialRotate`, `useDialDown`, `useDialUp` | Encoder rotation/press                                    |
-| Events    | `useTouchTap`                               | Touch strip tap                                           |
-| Events    | `useDialHint`                               | Set encoder trigger descriptions                          |
-| Gestures  | `useTap`                                    | Single tap (auto-delayed when useDoubleTap is active)     |
-| Gestures  | `useLongPress`                              | Key held for configurable duration (default 500ms)        |
-| Gestures  | `useDoubleTap`                              | Two rapid taps within configurable window (default 250ms) |
-| Settings  | `useSettings`, `useGlobalSettings`          | Bidirectional settings sync                               |
-| Lifecycle | `useWillAppear`, `useWillDisappear`         | Action mount/unmount                                      |
-| Context   | `useDevice`, `useAction`, `useCanvas`       | Device/action/canvas metadata                             |
-| Context   | `useStreamDeck`                             | Adapter and action handle                                 |
-| SDK       | `useOpenUrl`, `useSwitchProfile`            | System actions                                            |
-| SDK       | `useSendToPI`, `usePropertyInspector`       | PI communication                                          |
-| SDK       | `useShowAlert`, `useShowOk`, `useTitle`     | Key overlays                                              |
-| Utility   | `useInterval`, `useTimeout`, `usePrevious`  | Timers and helpers                                        |
-| Utility   | `useTick`                                   | Animation frame loop                                      |
-| Animation | `useSpring`, `useTween`                     | Physics and easing-based value animation                  |
-| Animation | `SpringPresets`, `Easings`                  | Built-in spring presets and easing functions              |
+| Category    | Hooks                                       | Purpose                                                   |
+| ----------- | ------------------------------------------- | --------------------------------------------------------- |
+| Events      | `useKeyDown`, `useKeyUp`                    | Key press/release                                         |
+| Events      | `useDialRotate`, `useDialDown`, `useDialUp` | Encoder rotation/press                                    |
+| Events      | `useTouchTap`                               | Touch strip tap                                           |
+| Events      | `useDialHint`                               | Set encoder trigger descriptions                          |
+| Gestures    | `useTap`                                    | Single tap (auto-delayed when useDoubleTap is active)     |
+| Gestures    | `useLongPress`                              | Key held for configurable duration (default 500ms)        |
+| Gestures    | `useDoubleTap`                              | Two rapid taps within configurable window (default 250ms) |
+| Settings    | `useSettings`, `useGlobalSettings`          | Bidirectional settings sync                               |
+| Lifecycle   | `useWillAppear`, `useWillDisappear`         | Action mount/unmount                                      |
+| Context     | `useDevice`, `useAction`, `useCanvas`       | Device/action/canvas metadata                             |
+| Context     | `useStreamDeck`                             | Adapter and action handle                                 |
+| Size        | `useSize`                                   | Percentage-based and proportional size calculations       |
+| Coordinator | `useChannel`                                | Cross-action shared state via named channels              |
+| Coordinator | `useActionPresence`                         | Live snapshot of visible action instances                 |
+| Coordinator | `useCoordinator`                            | Raw coordinator instance (escape hatch)                   |
+| Theme       | `useTheme`                                  | Read/write CSS theme variables at runtime                 |
+| SDK         | `useOpenUrl`, `useSwitchProfile`            | System actions                                            |
+| SDK         | `useSendToPI`, `usePropertyInspector`       | PI communication                                          |
+| SDK         | `useShowAlert`, `useShowOk`, `useTitle`     | Key overlays                                              |
+| Utility     | `useInterval`, `useTimeout`, `usePrevious`  | Timers and helpers                                        |
+| Utility     | `useTick`                                   | Animation frame loop                                      |
+| Animation   | `useSpring`, `useTween`                     | Physics and easing-based value animation                  |
+| Animation   | `SpringPresets`, `Easings`                  | Built-in spring presets and easing functions              |
 
 See [references/hooks.md](references/hooks.md) for full signatures and usage.
 
@@ -479,24 +489,49 @@ See [references/components.md](references/components.md) for full props tables.
 
 ## Styling
 
-Three approaches, all valid:
+**Prefer Tailwind classes** for all static styling. Use inline `style` only for dynamic values computed at runtime.
 
-1. **Tailwind classes** via `className` -- resolved by Takumi at render time (no CSS build step):
+1. **Tailwind classes** via `className` — the primary styling approach. Resolved by Takumi at render time (no CSS build step):
 
    ```tsx
    <div className="flex items-center justify-center w-full h-full bg-[#1a1a1a]">
+     <span className="text-white text-[18px] font-bold">Ready</span>
+   </div>
    ```
 
-2. **`tw()` utility** for conditional classes (like `clsx`):
+2. **`cn()` utility** for conditional classes (like `clsx`). `tw()` is a deprecated alias:
 
    ```tsx
-   <div className={tw('w-full h-full', pressed && 'bg-green-500')}>
+   <div
+     className={cn(
+       "flex items-center justify-center w-full h-full",
+       pressed ? "bg-blue-600" : "bg-[#0f172a]",
+     )}
+   >
+     <span className={cn("text-[28px] font-bold", pressed ? "text-white" : "text-white/70")}>
+       {count}
+     </span>
+   </div>
    ```
 
-3. **Inline `style`** for exact control:
+3. **Inline `style`** — only for **dynamic values** that can't be known at write-time:
+
    ```tsx
-   <div style={{ width: '100%', height: '100%', background: '#1a1a1a' }}>
+   // ✅ Dynamic values: animation outputs, size.scale(), computed colors
+   <span className="text-white font-bold" style={{ fontSize: size.scale(24) }}>OK</span>
+   <div className="flex items-center justify-center w-full h-full"
+     style={{ backgroundColor: `hsl(${hue}, 60%, 25%)` }} />
+
+   // ❌ Avoid: inline styles for static layout
+   <div style={{ display: "flex", width: "100%", height: "100%", background: "#1a1a1a" }}>
    ```
+
+**Layout rules:**
+
+- Prefer **flexbox layout** (`flex`, `flex-col`, `items-center`, `justify-center`, `gap-*`) over absolute positioning.
+- Use `w-full h-full` for full-size containers, not `style={{ width: "100%", height: "100%" }}`.
+- Use Tailwind's arbitrary value syntax for one-off values: `bg-[#1a1a2e]`, `text-[14px]`, `p-[6px]`, `rounded-[12px]`.
+- Use `position: absolute` only when elements truly need to overlap (rare — most layouts work with flexbox).
 
 ## State Management Decision Guide
 
@@ -505,8 +540,153 @@ Three approaches, all valid:
 | Simple per-action state                          | `useState` / `useReducer`                                             |
 | Persist per-action settings across reloads       | `useSettings<T>()`                                                    |
 | Plugin-wide shared config                        | `useGlobalSettings<T>()`                                              |
+| Simple cross-action state (built-in)             | `useChannel()` via Action Coordinator (`coordinator: true`)           |
+| Know which actions are visible                   | `useActionPresence()` via Action Coordinator                          |
 | Shared state across actions (no provider needed) | Zustand store in module scope                                         |
 | Shared state with provider pattern               | Jotai/React Context via `wrapper` on `createPlugin` or `defineAction` |
+| Complex derived state / middleware               | Zustand or Jotai                                                      |
+
+## Action Coordinator
+
+Built-in cross-action communication, opt-in via `createPlugin({ coordinator: true })`:
+
+```ts
+const plugin = createPlugin({
+  coordinator: true,
+  fonts: [...],
+  actions: [...],
+});
+```
+
+### Channels
+
+Named publish/subscribe channels with latest-value semantics:
+
+```tsx
+// In a "play/pause" action:
+const [state, setState] = useChannel<"playing" | "paused">("playback", "paused");
+useKeyDown(() => setState(state === "playing" ? "paused" : "playing"));
+
+// In a "now playing" action (reads same channel):
+const [state] = useChannel<"playing" | "paused">("playback", "paused");
+```
+
+- **Scoped re-renders** — only subscribers of the changed channel re-render.
+- **Sticky values** — new subscribers receive the current value immediately.
+- **Referential skip** — updates are skipped when `===` identity matches.
+
+### Presence Tracking
+
+```tsx
+const presence = useActionPresence();
+const volumeActions = presence.byUuid("com.example.plugin.volume");
+const totalVisible = presence.count;
+```
+
+### Imperative Access
+
+```tsx
+const coordinator = useCoordinator();
+coordinator.setChannelValue("volume", 50);
+```
+
+## CSS Theme System
+
+Centralized design tokens injected as CSS custom properties:
+
+```ts
+import { defineTheme, mergeThemes } from "@fcannizzaro/streamdeck-react";
+
+const theme = defineTheme({
+  colors: { primary: "#4CAF50", surface: "#1a1a2e" },
+  spacing: { sm: "4px", md: "8px", lg: "16px" },
+  fontSize: { body: "14px", heading: "24px" },
+});
+
+createPlugin({ theme, ... });
+```
+
+Tokens are mapped to CSS variables: `colors.primary` → `--color-primary`.
+
+Use in components via Tailwind arbitrary values:
+
+```tsx
+<div className="bg-[var(--color-surface)]">
+  <span className="text-[var(--color-primary)]">Themed</span>
+</div>
+```
+
+### Dynamic Theme Switching
+
+```tsx
+const [variables, setTheme] = useTheme();
+useKeyDown(() => setTheme(darkTheme)); // All roots re-render with new variables
+```
+
+### Merging Themes
+
+```ts
+const merged = mergeThemes(baseTheme, darkOverride);
+// Later themes override earlier ones for the same variable name
+```
+
+### Tailwind v4 CSS Support
+
+For full Tailwind v4 support including `@theme` blocks, custom utilities, and standard CSS, use the `stylesheets` option in `createPlugin()`:
+
+```ts
+// Install: npm install -D @tailwindcss/vite
+// vite.config.ts: add tailwindcss() to plugins
+
+// theme.css — @import "tailwindcss"; @theme { --color-primary: #4CAF50; }
+import stylesheet from "./theme.css?inline";
+
+const plugin = createPlugin({
+  stylesheets: [stylesheet],
+  fonts: [await googleFont("Inter")],
+  actions: [...],
+});
+```
+
+With `stylesheets`, Tailwind v4 `@theme` tokens become first-class utility classes:
+
+```tsx
+// With stylesheets: bg-primary instead of bg-[var(--color-primary)]
+<div className="bg-primary text-white">Themed</div>
+```
+
+`defineTheme()` and `stylesheets` can be used together. `defineTheme()` supports runtime switching via `useTheme()`, while `stylesheets` provides first-class Tailwind v4 integration for build-time themes.
+
+## Size Calculation Utility
+
+Percentage-based and proportional size helpers for responsive layouts:
+
+```tsx
+import { calcSize, useSize } from "@fcannizzaro/streamdeck-react";
+
+// Standalone (no React context):
+const s = calcSize(144, 144);
+s.w(50); // 72 (50% of width)
+s.scale(16); // 16 (proportional to 144px reference)
+
+// Hook (reads canvas dimensions from context):
+function MyKey() {
+  const size = useSize();
+  return <span style={{ fontSize: size.scale(24) }}>{size.square ? "Key" : "Dial"}</span>;
+}
+```
+
+### SizeHelper Methods
+
+| Method      | Description                                          |
+| ----------- | ---------------------------------------------------- |
+| `w(pct)`    | Percentage of canvas width, rounded                  |
+| `h(pct)`    | Percentage of canvas height, rounded                 |
+| `minP(pct)` | Percentage of min(width, height), rounded            |
+| `maxP(pct)` | Percentage of max(width, height), rounded            |
+| `scale(px)` | Scale a base pixel value proportionally (ref: 144px) |
+
+Properties: `width`, `height`, `min`, `max`, `square`, `landscape`, `portrait`, `aspectRatio`.
 
 ## Encoder / Dial Actions
 
@@ -545,7 +725,7 @@ For touch interaction on Stream Deck+, use `useTouchTap()` inside the mounted ac
 6. **No animated images** -- each `setImage` call is a static frame. Use `useTick` for manual animation loops, or the higher-level `useSpring` and `useTween` hooks for physics-based and easing-based animation.
 7. **WASM backend limitations** -- `takumi: "wasm"` is available for environments where native addons can't load (WebContainers, browsers). It force-disables worker threads and does not support WOFF/WOFF2 fonts (use TTF/OTF only). Pass `takumi: "wasm"` to both `createPlugin()` and `streamDeckReact()` to skip native binary copying at build time.
 8. **Design for 72x72 minimum** -- smallest key size. Use `useCanvas()` to adapt to larger devices.
-9. **Use simple layouts** -- this is not a browser DOM. Stick to flex layouts, fixed sizes, and simple elements (`div`, `span`, `img`, `svg`, `p`).
+9. **Use simple layouts** -- this is not a browser DOM. Stick to **flexbox layouts** via Tailwind classes (`flex`, `flex-col`, `items-center`, `gap-*`), fixed sizes, and simple elements (`div`, `span`, `img`, `svg`, `p`). Avoid absolute positioning unless elements truly need to overlap.
 10. **Animation FPS** -- Stream Deck hardware refreshes at max 30Hz. The `useTick`, `useSpring`, and `useTween` hooks default to 30fps (clamped). Design animations accordingly.
 
 ## Verification Checklist

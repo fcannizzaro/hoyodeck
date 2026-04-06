@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { defineAction, useKeyDown, useSettings } from "@fcannizzaro/streamdeck-react";
+import { cn, defineAction, useKeyDown, useSettings } from "@fcannizzaro/streamdeck-react";
 import type { JsonObject } from "@elgato/utils";
 import type { DailyRewardSettings, GameId } from "@hoyodeck/shared/types";
 import { useAccount, AccountProvider } from "@/contexts/account-context";
@@ -109,20 +109,17 @@ function DailyRewardKey() {
 
   return (
     <div className="relative w-full h-full">
-      <img
-        src={baseDataUri}
-        width={144}
-        height={144}
-        style={useGrayscale ? { filter: "grayscale(100%)" } : undefined}
-      />
-      <div
-        className="absolute flex items-center justify-center"
-        style={{ top: 32, left: 32, width: 80, height: 80 }}
-      >
-        <img src={rewardIconUri} width={80} height={80} style={{ opacity: claimed ? 0.6 : 1 }} />
+      <img src={baseDataUri} width={144} height={144} className={cn(useGrayscale && "grayscale")} />
+      <div className="absolute top-8 left-8 size-20 flex items-center justify-center">
+        <img
+          src={rewardIconUri}
+          width={80}
+          height={80}
+          className={cn(claimed ? "opacity-60" : "opacity-100")}
+        />
       </div>
       {claimed && (
-        <div className="absolute" style={{ top: 0, left: 0 }}>
+        <div className="absolute top-0 left-0">
           <img src={doneDataUri} width={144} height={144} />
         </div>
       )}

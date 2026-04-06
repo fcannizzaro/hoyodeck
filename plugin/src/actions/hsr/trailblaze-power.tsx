@@ -6,7 +6,7 @@ import { useGameData } from "@/hooks/use-game-data";
 import { createActionWrapper } from "@/contexts/create-action-wrapper";
 import { readLocalImageAsDataUri } from "@/utils/image";
 import { PlaceholderKey } from "@/components/placeholder-key";
-import { Badge } from "@/components/badge";
+import { StaminaKey } from "@/components/stamina-key";
 
 const GAME = "hsr" as const;
 const MAX_STAMINA = GAMES.hsr.staminaMax;
@@ -34,28 +34,13 @@ function TrailblazePowerKey() {
     );
   }
 
-  const current = dailyNote.current_stamina;
-  const percentage = Math.min(Math.max(current / MAX_STAMINA, 0), 1);
-  const coverH = Math.round(144 * (1 - percentage));
-
   return (
-    <div className="relative w-full h-full">
-      <img src={BASE_DATA_URI} width={144} height={144} />
-      <div className="absolute" style={{ top: 0, left: 0, width: 144, height: 144 }}>
-        <img src={STAMINA_DATA_URI} width={144} height={144} />
-      </div>
-      <div
-        className="absolute"
-        style={{
-          top: 0,
-          left: 0,
-          width: 144,
-          height: coverH,
-          backgroundColor: "rgba(0, 0, 0, 0.6)",
-        }}
-      />
-      <Badge text={`${current}`} />
-    </div>
+    <StaminaKey
+      baseImage={BASE_DATA_URI}
+      iconImage={STAMINA_DATA_URI}
+      current={dailyNote.current_stamina}
+      max={MAX_STAMINA}
+    />
   );
 }
 

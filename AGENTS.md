@@ -465,7 +465,7 @@ Action components in `plugin/src/` render via the Takumi renderer, not a browser
 
 ### Prefer `className` with Tailwind over `style={{}}`
 
-Use Tailwind classes (resolved by Takumi at render time) instead of inline `style` props. Use the `tw()` utility from `@fcannizzaro/streamdeck-react` for conditional classes — it works like `clsx`.
+Use Tailwind classes (resolved by Takumi at render time) instead of inline `style` props. Use the `cn()` utility from `@fcannizzaro/streamdeck-react` for conditional classes — it works like `clsx`. (`tw()` is a deprecated alias — always use `cn()`.)
 
 ```tsx
 // Bad — inline style props
@@ -481,21 +481,21 @@ Use Tailwind classes (resolved by Takumi at render time) instead of inline `styl
   }}
 >
 
-// Good — Tailwind classes
-<div className="bg-[#0f172a] rounded-[10px] px-[10px] text-[12px] font-semibold text-white/40">
+// Good — theme tokens + canonical Tailwind classes
+<div className="bg-surface rounded-badge px-2.5 text-xs font-semibold text-white/40">
 ```
 
-### Use `tw()` for conditional classes
+### Use `cn()` for conditional classes
 
 ```tsx
 // Bad — ternary in style prop
 <div style={{ backgroundColor: pressed ? "#2563eb" : "#0f172a" }}>
 
-// Good — tw() with conditions
-<div className={tw("w-full h-full", pressed ? "bg-[#2563eb]" : "bg-[#0f172a]")}>
+// Good — cn() with conditions
+<div className={cn("w-full h-full", pressed ? "bg-[#2563eb]" : "bg-surface")}>
 
 // Good — conditional class inclusion
-<div className={tw("flex flex-col items-center", slots.length < 3 && "justify-center")}>
+<div className={cn("flex flex-col items-center", slots.length < 3 && "justify-center")}>
 ```
 
 ### Only use `style={{}}` for truly dynamic values
@@ -503,9 +503,6 @@ Use Tailwind classes (resolved by Takumi at render time) instead of inline `styl
 Reserve inline styles for values that are computed at runtime and cannot be expressed as static Tailwind classes:
 
 ```tsx
-// OK — dynamic value from a lookup/map
-<div className="flex items-center rounded-[10px] overflow-hidden" style={{ backgroundColor: BADGE_COLORS[game] }}>
-
 // OK — value computed from data
 <div className="absolute flex flex-col" style={{ top: computedOffset }}>
 ```
@@ -526,12 +523,104 @@ const topOffset = Math.round((CONTAINER_SIZE - totalHeight) / 2);
 </div>
 
 // Good — flex centering, no math needed
-<div className="flex flex-col items-center justify-center w-full h-full gap-[10px]">
+<div className="flex flex-col items-center justify-center w-full h-full gap-2.5">
   {items.map(renderRow)}
 </div>
 ```
 
 Only use absolute positioning when elements genuinely need to overlap (e.g. badge overlays on images, floating indicators).
+
+---
+
+## 9.1 Shared Theme (`plugin/src/theme.css`)
+
+The plugin uses a **Tailwind v4 `@theme`** CSS file as a single source of truth for design tokens. The file is compiled at build time by `@tailwindcss/vite` and passed to `createPlugin({ stylesheets: [...] })` so Takumi can resolve the custom utility classes.
+
+### How it works
+
+```
+theme.css ──(@tailwindcss/vite)──> compiled CSS string ──(stylesheets)──> Takumi renderer
+```
+
+1. `plugin/src/theme.css` defines tokens inside a `@theme {}` block.
+2. Vite compiles the CSS with `@tailwindcss/vite` (imported as `?inline`).
+3. The compiled string is passed to `createPlugin({ stylesheets: [stylesheet] })`.
+4. Takumi resolves the custom utilities at render time — `bg-surface`, `text-lg`, `rounded-badge`, etc.
+
+### Spacing base
+
+The theme sets `--spacing: 4px` so all spacing utilities use **pixel multiples** instead of `rem` (Takumi has no root font-size). Compute any dimension as `value / 4`:
+
+| Pixels | Class     | Computation    |
+| ------ | --------- | -------------- |
+| 6px    | `ml-1.5`  | 1.5 × 4 = 6    |
+| 10px   | `gap-2.5` | 2.5 × 4 = 10   |
+| 26px   | `h-6.5`   | 6.5 × 4 = 26   |
+| 34px   | `h-8.5`   | 8.5 × 4 = 34   |
+| 100px  | `h-25`    | 25 × 4 = 100   |
+| 120px  | `w-30`    | 30 × 4 = 120   |
+| 144px  | `size-36` | 36 × 4 = 144   |
+| 170px  | `w-42.5`  | 42.5 × 4 = 170 |
+| 200px  | `w-50`    | 50 × 4 = 200   |
+
+### Font sizes (px)
+
+Standard Tailwind names, redefined in `px` for Takumi:
+
+| Class       | Size | Typical usage                    |
+| ----------- | ---- | -------------------------------- |
+| `text-2xs`  | 10px | Game tab labels, small badges    |
+| `text-xs`   | 12px | Placeholder text, configure msgs |
+| `text-sm`   | 14px | Secondary info, labels           |
+| `text-base` | 16px | Dial body text                   |
+| `text-lg`   | 18px | Key text, badge text             |
+| `text-xl`   | 20px | Prominent labels                 |
+| `text-2xl`  | 24px | Display headings                 |
+
+### Color tokens
+
+| Token          | Utility             | Value                    |
+| -------------- | ------------------- | ------------------------ |
+| Surface        | `bg-surface`        | `#0f172a`                |
+| Overlay        | `bg-overlay`        | `rgba(0,0,0,0.7)`        |
+| Overlay heavy  | `bg-overlay-heavy`  | `rgba(0,0,0,0.8)`        |
+| Overlay medium | `bg-overlay-medium` | `rgba(0,0,0,0.6)`        |
+| Overlay dim    | `bg-overlay-dim`    | `rgba(0,0,0,0.5)`        |
+| Overlay light  | `bg-overlay-light`  | `rgba(0,0,0,0.4)`        |
+| Overlay subtle | `bg-overlay-subtle` | `rgba(0,0,0,0.3)`        |
+| Overlay white  | `bg-overlay-white`  | `rgba(255,255,255,0.08)` |
+| Badge GI       | `bg-badge-gi`       | `rgba(40,140,180,0.65)`  |
+| Badge HSR      | `bg-badge-hsr`      | `rgba(160,70,130,0.65)`  |
+| Badge ZZZ      | `bg-badge-zzz`      | `rgba(200,120,40,0.65)`  |
+| Danger         | `text-danger`       | `#ef4444`                |
+| Warning        | `text-warning`      | `#f59e0b`                |
+| Danger tint    | `bg-danger-tint`    | `rgba(255,0,0,0.3)`      |
+
+### Other tokens
+
+| Category      | Token            | Utility         |
+| ------------- | ---------------- | --------------- |
+| Font family   | `--font-body`    | `font-body`     |
+| Border radius | `--radius-badge` | `rounded-badge` |
+| Border radius | `--radius-sm`    | `rounded-sm`    |
+
+### Prefer canonical classes over arbitrary values
+
+Always use theme-based or default Tailwind classes. Only fall back to arbitrary `[…]` syntax for truly one-off values that don't belong in the design system.
+
+```tsx
+// Bad — arbitrary pixel values
+<div className="bg-[#0f172a] rounded-[10px] w-[120px] h-[34px] gap-[10px] text-[18px] font-[Inter]">
+
+// Good — theme tokens + canonical spacing
+<div className="bg-surface rounded-badge w-30 h-8.5 gap-2.5 text-lg font-body">
+```
+
+### When arbitrary values are acceptable
+
+- **Truly dynamic runtime values** in `style={{}}` (animation offsets, computed positions)
+- **One-off font sizes** used by a single component (e.g. `text-[52px]` for endgame progress)
+- **Hardware-specific constants** that are not reusable (e.g. image dimensions matching an exact asset)
 
 ---
 

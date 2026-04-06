@@ -1,10 +1,10 @@
 # Components
 
-All components are optional convenience wrappers. Raw HTML elements (`div`, `span`, `img`, `svg`, `p`) work directly in `@fcannizzaro/streamdeck-react`.
+All components are optional convenience wrappers. Raw HTML elements (`div`, `span`, `img`, `svg`, `p`) with **Tailwind classes** are the preferred approach. Use components when their shorthand props API is more convenient.
 
 ## Box
 
-Renders a `div` with `display: flex` and convenience layout props.
+Renders a `div` with `display: flex` and convenience layout props. For most layouts, prefer raw `<div>` with Tailwind classes instead.
 
 ```tsx
 import { Box } from "@fcannizzaro/streamdeck-react";
@@ -24,7 +24,16 @@ interface BoxProps {
 }
 ```
 
-Example:
+Example (prefer Tailwind classes directly):
+
+```tsx
+<div className="flex flex-col items-center justify-center gap-1 rounded-xl bg-[#1a1a1a] p-2">
+  <span className="text-[12px] text-[#888]">LABEL</span>
+  <span className="text-[24px] font-bold text-white">42</span>
+</div>
+```
+
+Or with Box shorthand props:
 
 ```tsx
 <Box center padding={8} background="#1a1a1a" borderRadius={12} gap={4}>
@@ -39,7 +48,7 @@ Example:
 
 ## Text
 
-Renders a `span` with shorthand text styling props.
+Renders a `span` with shorthand text styling props. For most text, prefer raw `<span>` with Tailwind classes instead.
 
 ```tsx
 import { Text } from "@fcannizzaro/streamdeck-react";
@@ -59,7 +68,13 @@ interface TextProps {
 }
 ```
 
-Example:
+Example (prefer Tailwind classes directly):
+
+```tsx
+<span className="text-[24px] font-bold text-white text-center font-[Inter]">Hello</span>
+```
+
+Or with Text shorthand props:
 
 ```tsx
 <Text size={24} color="white" weight={700} align="center" font="Inter">

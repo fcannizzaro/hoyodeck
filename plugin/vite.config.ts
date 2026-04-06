@@ -2,6 +2,7 @@ import { builtinModules } from "node:module";
 import { resolve } from "node:path";
 import { defineConfig, esmExternalRequirePlugin } from "vite";
 import react from "@vitejs/plugin-react";
+import tailwindcss from "@tailwindcss/vite";
 import { streamDeckReact } from "@fcannizzaro/streamdeck-react/vite";
 
 const PLUGIN_DIR = "com.fcannizzaro.hoyodeck.sdPlugin";
@@ -19,6 +20,7 @@ export default defineConfig({
   plugins: [
     esmExternalRequirePlugin({ external: builtins }),
     react(),
+    tailwindcss(),
     streamDeckReact({
       uuid: "com.fcannizzaro.hoyodeck",
       nativeModules: [

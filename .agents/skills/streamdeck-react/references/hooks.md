@@ -168,16 +168,8 @@ function ModeKey() {
   useDoubleTap(() => setLabel("DOUBLE"));
 
   return (
-    <div
-      style={{
-        width: "100%",
-        height: "100%",
-        alignItems: "center",
-        justifyContent: "center",
-        background: "#1a1a1a",
-      }}
-    >
-      <span style={{ color: "white", fontSize: 16 }}>{label}</span>
+    <div className="flex items-center justify-center w-full h-full bg-[#1a1a1a]">
+      <span className="text-white text-[16px]">{label}</span>
     </div>
   );
 }
@@ -475,11 +467,11 @@ function SpringBounce() {
 
   return (
     <div
-      className={tw("flex items-center justify-center w-full h-full")}
+      className="flex items-center justify-center w-full h-full"
       style={{ backgroundColor: `hsl(${Math.round(hue)}, 60%, 25%)` }}
     >
       <div
-        className={tw("flex flex-col items-center justify-center")}
+        className="flex flex-col items-center justify-center"
         style={{ width: `${size}%`, height: `${size}%` }}
       >
         <span className="text-white text-[48px] font-bold">{count}</span>
@@ -551,7 +543,7 @@ function FadeSlide() {
 
   return (
     <div
-      className={tw("flex items-center justify-center w-full h-full")}
+      className="flex items-center justify-center w-full h-full"
       style={{ backgroundColor: `hsl(${Math.round(bg) % 360}, 50%, 25%)` }}
     >
       <span className="text-white text-[28px] font-bold">ITEM {index}</span>
@@ -568,3 +560,148 @@ const { value } = useTween(target, {
   easing: (t) => 1 - Math.pow(1 - t, 4), // ease-out quartic
 });
 ```
+
+## Size Hook
+
+### useSize
+
+Returns a memoized size helper bound to the current canvas dimensions. Provides percentage-based and proportional size calculations.
+
+```ts
+function useSize(): SizeHelper;
+
+interface SizeHelper {
+  readonly width: number;
+  readonly height: number;
+  readonly min: number; // min(width, height)
+  readonly max: number; // max(width, height)
+  readonly square: boolean; // width === height
+  readonly landscape: boolean; // width > height
+  readonly portrait: boolean; // height > width
+  readonly aspectRatio: number; // width / height
+  w(percent: number): number; // % of width, rounded
+  h(percent: number): number; // % of height, rounded
+  minP(percent: number): number; // % of min dimension, rounded
+  maxP(percent: number): number; // % of max dimension, rounded
+  scale(basePx: number, referenceSize?: number): number;
+}
+```
+
+The `scale()` method scales a pixel value proportionally using the minimum dimension as reference (default 144, the standard key size). A value of 16 on a 144×144 key stays 16. On a 200×100 dial, it becomes `Math.round(16 * 100/144) = 11`.
+
+Example:
+
+```tsx
+function AdaptiveKey() {
+  const size = useSize();
+
+  return (
+    <div className="flex flex-col items-center justify-center w-full h-full bg-[#1a1a1a]">
+      <span className="text-white" style={{ fontSize: size.scale(24) }}>
+        {size.square ? "KEY" : "DIAL"}
+      </span>
+    </div>
+  );
+}
+```
+
+There is also a standalone `calcSize(width, height)` function that works outside React:
+
+```ts
+import { calcSize } from "@fcannizzaro/streamdeck-react";
+const s = calcSize(200, 100);
+s.w(50); // 100
+```
+
+## Coordinator Hooks
+
+All coordinator hooks require `coordinator: true` in `createPlugin()`. They throw a helpful error if called without a coordinator context.
+
+### useChannel
+
+Named channel for cross-action state sharing. Works like `useState` but shared across all action roots.
+
+```ts
+function useChannel<T>(name: string, defaultValue: T): [T, (value: T) => void];
+```
+
+- **Scoped re-renders** — only subscribers of the changed channel re-render.
+- **Sticky values** — new subscribers to existing channels receive the current value.
+- **Referential skip** — updates skipped when `===` identity matches.
+- Uses `useSyncExternalStore` for concurrent-mode safety.
+
+Example:
+
+```tsx
+// In a "play/pause" action:
+const [state, setState] = useChannel<"playing" | "paused">("playback", "paused");
+useKeyDown(() => setState(state === "playing" ? "paused" : "playing"));
+
+// In a "now playing" action (reads same channel):
+const [state] = useChannel<"playing" | "paused">("playback", "paused");
+```
+
+### useActionPresence
+
+Live snapshot of all currently visible action instances.
+
+```ts
+function useActionPresence(): ActionPresenceSnapshot;
+
+interface ActionPresenceSnapshot {
+  readonly all: readonly ActionPresenceInfo[];
+  byUuid(uuid: string): readonly ActionPresenceInfo[];
+  readonly count: number;
+}
+
+interface ActionPresenceInfo {
+  id: string;
+  uuid: string;
+  surface: "key" | "dial" | "touch";
+  coordinates?: { column: number; row: number };
+  deviceId: string;
+}
+```
+
+Re-renders only when the presence set changes (action appears or disappears).
+
+### useCoordinator
+
+Escape hatch — returns the raw `ActionCoordinator` instance for imperative operations.
+
+```ts
+function useCoordinator(): ActionCoordinator;
+```
+
+Example:
+
+```tsx
+const coordinator = useCoordinator();
+useKeyDown(() => {
+  coordinator.setChannelValue("volume", 50);
+});
+```
+
+## Theme Hook
+
+### useTheme
+
+Returns the current theme's CSS variables and a setter for dynamic switching.
+
+```ts
+function useTheme(): [ThemeVariables, (theme: ThemeDefinition) => void];
+
+type ThemeVariables = Record<string, string>;
+```
+
+Example:
+
+```tsx
+const [variables, setTheme] = useTheme();
+// variables = { "--color-primary": "#4CAF50", "--color-surface": "#1a1a2e", ... }
+
+// Dynamic switch:
+useKeyDown(() => setTheme(darkTheme));
+```
+
+If no theme is configured, returns an empty object `{}`. The setter replaces the active theme — all roots re-render with the new CSS variables.

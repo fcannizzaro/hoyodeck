@@ -8,6 +8,7 @@ import {
   useDialDown,
   useSpring,
   SpringPresets,
+  cn,
 } from "@fcannizzaro/streamdeck-react";
 import type { JsonObject } from "@elgato/utils";
 import type {
@@ -22,11 +23,6 @@ import type {
 import { readLocalImageAsDataUri } from "@/utils/image";
 
 // ─── Constants ────────────────────────────────────────────────────
-
-const DIAL_WIDTH = 200;
-const DIAL_HEIGHT = 100;
-const TOP_BAR_HEIGHT = 22;
-const BOTTOM_BAR_HEIGHT = 18;
 
 const BANNER_LABELS: Record<WishTrackerBannerType, string> = {
   character: "Character",
@@ -95,32 +91,23 @@ interface GameTabProps {
   game: GameId;
   accountName: string | undefined;
   active: boolean;
-  width: number;
 }
 
-function GameTab({ game, accountName, active, width }: GameTabProps) {
-  const icon = GAME_ICONS[game];
-
+function GameTab({ game, accountName, active }: GameTabProps) {
   return (
     <div
-      className="flex items-center justify-center"
-      style={{
-        width,
-        height: TOP_BAR_HEIGHT,
-        backgroundColor: active ? "rgba(255, 255, 255, 0.15)" : "transparent",
-        opacity: active ? 1 : 0.4,
-      }}
+      className={cn(
+        "flex-1 flex items-center justify-center h-5.5",
+        active ? "bg-white/15" : "opacity-40",
+      )}
     >
-      <img src={icon} width={14} height={14} style={{ borderRadius: 4 }} />
+      <img src={GAME_ICONS[game]} width={14} height={14} className="rounded-sm" />
       {accountName && (
         <span
-          style={{
-            fontSize: 10,
-            fontWeight: active ? 700 : 500,
-            color: "white",
-            fontFamily: "Inter",
-            marginLeft: 4,
-          }}
+          className={cn(
+            "text-[12px] text-white font-body ml-1",
+            active ? "font-bold" : "font-medium",
+          )}
         >
           {accountName}
         </span>
@@ -133,20 +120,8 @@ function GameTab({ game, accountName, active, width }: GameTabProps) {
 
 function EmptyDial() {
   return (
-    <div
-      className="flex items-center justify-center"
-      style={{ width: DIAL_WIDTH, height: DIAL_HEIGHT, backgroundColor: "#0f172a" }}
-    >
-      <span
-        style={{
-          fontSize: 12,
-          fontWeight: 600,
-          color: "rgba(255, 255, 255, 0.4)",
-          fontFamily: "Inter",
-        }}
-      >
-        Configure Slots
-      </span>
+    <div className="flex items-center justify-center w-50 h-25 bg-surface">
+      <span className="text-xs font-semibold text-white/40 font-body">Configure Slots</span>
     </div>
   );
 }
@@ -158,7 +133,7 @@ function EmptyDial() {
  *
  * Layout (200×100):
  *  - Top bar (22px): game tabs from configured slots
- *  - Main area (78px): large pity counter + wish icon, banner label
+ *  - Main area (flex-1): large pity counter + wish icon, banner label
  *
  * Interaction:
  *  - Touch: cycle active slot (game)
@@ -183,11 +158,10 @@ function WishTrackerDial() {
 
   const displayPity = Math.round(animatedPity);
   const ratio = hardPity > 0 ? Math.min(Math.max(pity / hardPity, 0), 1) : 0;
-  const pityColor = ratio >= 0.9 ? "#ef4444" : ratio >= 0.7 ? "#f59e0b" : "white";
+  const pityColorClass =
+    ratio >= 0.9 ? "text-danger" : ratio >= 0.7 ? "text-warning" : "text-white";
 
   const wishIcon = WISH_ICONS[activeGame];
-  const mainH = DIAL_HEIGHT - TOP_BAR_HEIGHT - BOTTOM_BAR_HEIGHT;
-  const tabWidth = slots.length > 0 ? Math.floor(DIAL_WIDTH / slots.length) : DIAL_WIDTH;
 
   // Dial rotate: +1 pity per tick
   useDialRotate(({ ticks }) => {
@@ -219,12 +193,9 @@ function WishTrackerDial() {
   }
 
   return (
-    <div
-      className="relative flex flex-col"
-      style={{ width: DIAL_WIDTH, height: DIAL_HEIGHT, backgroundColor: "#0f172a" }}
-    >
+    <div className="flex flex-col w-50 h-25 bg-surface">
       {/* ── Top bar: game tabs from configured slots ── */}
-      <div className="flex" style={{ height: TOP_BAR_HEIGHT }}>
+      <div className="flex h-5.5">
         {slots.map((slot, i) => {
           const account = accounts[slot.accountId] as HoyoAccount | undefined;
           return (
@@ -233,41 +204,19 @@ function WishTrackerDial() {
               game={slot.game}
               accountName={account?.name}
               active={i === activeSlot}
-              width={tabWidth}
             />
           );
         })}
       </div>
 
       {/* ── Main area: pity counter + wish icon ── */}
-      <div
-        className="flex items-center justify-center"
-        style={{ width: DIAL_WIDTH, height: mainH }}
-      >
+      <div className="flex-1 flex items-center justify-center">
         {/* Pity counter */}
-        <div className="flex items-baseline" style={{ marginRight: 8 }}>
-          <span
-            style={{
-              fontSize: 32,
-              fontWeight: 800,
-              color: pityColor,
-              fontFamily: "Inter",
-              lineHeight: 1,
-            }}
-          >
+        <div className="flex items-baseline mr-2">
+          <span className={cn("text-[32px] font-extrabold font-body leading-none", pityColorClass)}>
             {displayPity}
           </span>
-          <span
-            style={{
-              fontSize: 14,
-              fontWeight: 600,
-              color: "rgba(255, 255, 255, 0.35)",
-              fontFamily: "Inter",
-              marginLeft: 3,
-            }}
-          >
-            /{hardPity}
-          </span>
+          <span className="text-sm font-semibold text-white/35 font-body ml-0.75">/{hardPity}</span>
         </div>
 
         {/* Wish icon */}
@@ -275,22 +224,8 @@ function WishTrackerDial() {
       </div>
 
       {/* ── Bottom bar: banner type label ── */}
-      <div
-        className="flex items-center justify-center"
-        style={{
-          width: DIAL_WIDTH,
-          height: BOTTOM_BAR_HEIGHT,
-          backgroundColor: "rgba(255, 255, 255, 0.08)",
-        }}
-      >
-        <span
-          style={{
-            fontSize: 10,
-            fontWeight: 600,
-            color: "rgba(255, 255, 255, 0.5)",
-            fontFamily: "Inter",
-          }}
-        >
+      <div className="flex items-center justify-center h-4.5 bg-overlay-white">
+        <span className="text-2xs font-semibold text-white/50 font-body">
           {BANNER_LABELS[bannerType]}
         </span>
       </div>

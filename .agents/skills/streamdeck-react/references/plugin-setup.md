@@ -25,6 +25,7 @@ interface PluginConfig {
   fonts: FontConfig[];
   actions: ActionDefinition[];
   wrapper?: WrapperComponent;
+  info?: PluginManifestInfo;
   takumi?: TakumiBackend; // Default: "native-binding"
   imageFormat?: "png" | "webp"; // Default: 'png'
   caching?: boolean; // Default: true
@@ -34,26 +35,33 @@ interface PluginConfig {
   debug?: boolean; // Default: NODE_ENV !== 'production'
   imageCacheMaxBytes?: number; // Default: 16777216 (16 MB)
   touchStripCacheMaxBytes?: number; // Default: 8388608 (8 MB)
-  useWorker?: boolean; // Default: true (force-disabled when takumi is "wasm")
+  useWorker?: boolean; // Default: auto-detect (true if any action has touchStrip)
+  coordinator?: boolean; // Default: false
+  theme?: ThemeDefinition;
+  stylesheets?: string[];
 }
 ```
 
-| Field                     | Required | Description                                                                                                                  |
-| ------------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| `adapter`                 | No       | Stream Deck adapter. Defaults to `physicalDevice()` (Elgato SDK). See [adapter reference](adapter.md).                       |
-| `fonts`                   | Yes      | At least one font file. See FontConfig below.                                                                                |
-| `actions`                 | Yes      | Array of action definitions from `defineAction()`.                                                                           |
-| `wrapper`                 | No       | Component that wraps ALL action roots. Use for global providers.                                                             |
-| `takumi`                  | No       | Renderer backend: `"native-binding"` (default) or `"wasm"`. WASM mode disables workers and WOFF fonts.                       |
-| `imageFormat`             | No       | Output format. PNG is default and most compatible.                                                                           |
-| `caching`                 | No       | Output hash caching (xxHash-wasm) to skip duplicate `setImage()` calls.                                                      |
-| `devicePixelRatio`        | No       | Device pixel ratio used by the Takumi renderer. Default: `1`.                                                                |
-| `onActionError`           | No       | Called when a component throws in any action root.                                                                           |
-| `devtools`                | No       | Enable the devtools server. Port derived from plugin UUID (39400-39499).                                                     |
-| `debug`                   | No       | Enable render counters, duplicate detection, and depth warnings. Defaults to non-production.                                 |
-| `imageCacheMaxBytes`      | No       | Max bytes for the key/dial image cache (LRU). Set to 0 to disable. Default: 16 MB.                                           |
-| `touchStripCacheMaxBytes` | No       | Max bytes for the TouchStrip raw buffer cache (LRU). Set to 0 to disable. Default: 8 MB.                                     |
-| `useWorker`               | No       | Offload Takumi rendering to a worker thread. Transparent fallback if worker fails. Force-disabled when `takumi` is `"wasm"`. |
+| Field                     | Required | Description                                                                                                                                                                               |
+| ------------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `adapter`                 | No       | Stream Deck adapter. Defaults to `physicalDevice()` (Elgato SDK). See [adapter reference](adapter.md).                                                                                    |
+| `fonts`                   | Yes      | At least one font file. See FontConfig below.                                                                                                                                             |
+| `actions`                 | Yes      | Array of action definitions from `defineAction()`.                                                                                                                                        |
+| `wrapper`                 | No       | Component that wraps ALL action roots. Use for global providers.                                                                                                                          |
+| `info`                    | No       | Plugin-level manifest metadata. Optional, used for runtime documentation. For manifest generation, use the bundler's `manifest` option.                                                   |
+| `takumi`                  | No       | Renderer backend: `"native-binding"` (default) or `"wasm"`. WASM mode disables workers and WOFF fonts.                                                                                    |
+| `imageFormat`             | No       | Output format. PNG is default and most compatible.                                                                                                                                        |
+| `caching`                 | No       | Output hash caching (xxHash-wasm) to skip duplicate `setImage()` calls.                                                                                                                   |
+| `devicePixelRatio`        | No       | Device pixel ratio used by the Takumi renderer. Default: `1`.                                                                                                                             |
+| `onActionError`           | No       | Called when a component throws in any action root.                                                                                                                                        |
+| `devtools`                | No       | Enable the devtools server. Port derived from plugin UUID (39400-39499).                                                                                                                  |
+| `debug`                   | No       | Enable render counters, duplicate detection, and depth warnings. Defaults to non-production.                                                                                              |
+| `imageCacheMaxBytes`      | No       | Max bytes for the key/dial image cache (LRU). Set to 0 to disable. Default: 16 MB.                                                                                                        |
+| `touchStripCacheMaxBytes` | No       | Max bytes for the TouchStrip raw buffer cache (LRU). Set to 0 to disable. Default: 8 MB.                                                                                                  |
+| `useWorker`               | No       | Offload Takumi rendering to a worker thread. Auto-detected: enabled if any action has `touchStrip`. Force-disabled when `takumi` is `"wasm"`.                                             |
+| `coordinator`             | No       | Enable the Action Coordinator for cross-action communication via channels and presence tracking. Default: `false`.                                                                        |
+| `theme`                   | No       | CSS theme definition from `defineTheme()`. Tokens injected as CSS custom properties on all roots.                                                                                         |
+| `stylesheets`             | No       | CSS stylesheets for the Takumi renderer. Enables full Tailwind v4 support with `@theme` blocks and custom utilities. Import CSS files with `?inline` query. Requires `@tailwindcss/vite`. |
 
 ### Plugin-Level Wrapper
 
@@ -264,17 +272,21 @@ Critical rules:
 
 ## Context Provider Tree
 
-Every action root is wrapped with 4 context providers (stable outermost, volatile innermost):
+Every action root is wrapped with 6 context providers (stable outermost, volatile innermost):
 
 ```
-RootContext.Provider          ← merged: action + device + canvas + streamDeck (immutable)
-  EventBusContext.Provider    ← per-root EventBus (new instance on resume)
-    GlobalSettingsContext.Provider  ← plugin-wide settings
-      SettingsContext.Provider      ← per-action settings
-        PluginWrapper (if set)
-          ActionWrapper (if set)
-            <YourComponent />
+CoordinatorContext.Provider        ← plugin-level coordinator (null if not enabled)
+  ThemeContext.Provider              ← plugin-level theme variables + setter
+    RootContext.Provider              ← merged: action + device + canvas + streamDeck (immutable)
+      EventBusContext.Provider        ← per-root EventBus (new instance on resume)
+        GlobalSettingsContext.Provider  ← plugin-wide settings
+          SettingsContext.Provider      ← per-action settings
+            PluginWrapper (if set)
+              ActionWrapper (if set)
+                <YourComponent />
 ```
+
+`CoordinatorContext` and `ThemeContext` are the outermost providers because they are plugin-level singletons that rarely or never change. Theme CSS variables are injected on a `display: contents` wrapper div that cascades to all children without affecting layout.
 
 `RootContext` merges `ActionInfo`, `DeviceInfo`, `CanvasInfo`, and `StreamDeckAccess` into a single provider, eliminating 3 fiber nodes per root. For 32 active roots, this saves 96 provider fiber nodes.
 

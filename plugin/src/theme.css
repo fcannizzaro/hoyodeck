@@ -1,0 +1,52 @@
+@import "tailwindcss";
+
+@theme {
+  /* ─── Spacing Base ───────────────────────────────────────── */
+  /* Takumi renderer has no root font-size, so use px instead of rem.
+     All spacing utilities (w-*, h-*, p-*, m-*, gap-*) multiply by this value:
+     w-30 = 30 × 4px = 120px, gap-2.5 = 2.5 × 4px = 10px, etc. */
+  --spacing: 4px;
+
+  /* ─── Font Sizes (px for Takumi) ─────────────────────────── */
+  /* Standard Tailwind scale re-expressed in px.
+     text-xs = 12px, text-sm = 14px, text-base = 16px, text-lg = 18px, etc. */
+  --font-size-2xs: 10px;
+  --font-size-xs: 12px;
+  --font-size-sm: 14px;
+  --font-size-base: 16px;
+  --font-size-lg: 18px;
+  --font-size-xl: 20px;
+  --font-size-2xl: 24px;
+  --font-size-3xl: 30px;
+  --font-size-4xl: 36px;
+  --font-size-5xl: 48px;
+
+  /* ─── Surface Colors ─────────────────────────────────────── */
+  --color-surface: #0f172a;
+
+  /* ─── Overlay Colors ─────────────────────────────────────── */
+  --color-overlay: rgba(0, 0, 0, 0.7);
+  --color-overlay-heavy: rgba(0, 0, 0, 0.8);
+  --color-overlay-medium: rgba(0, 0, 0, 0.6);
+  --color-overlay-dim: rgba(0, 0, 0, 0.5);
+  --color-overlay-light: rgba(0, 0, 0, 0.4);
+  --color-overlay-subtle: rgba(0, 0, 0, 0.3);
+  --color-overlay-white: rgba(255, 255, 255, 0.08);
+
+  /* ─── Game Badge Colors ──────────────────────────────────── */
+  --color-badge-gi: rgba(40, 140, 180, 0.65);
+  --color-badge-hsr: rgba(160, 70, 130, 0.65);
+  --color-badge-zzz: rgba(200, 120, 40, 0.65);
+
+  /* ─── Status Colors ──────────────────────────────────────── */
+  --color-danger: #ef4444;
+  --color-warning: #f59e0b;
+  --color-danger-tint: rgba(255, 0, 0, 0.3);
+
+  /* ─── Font ───────────────────────────────────────────────── */
+  --font-family-body: "Inter", sans-serif;
+
+  /* ─── Border Radius ──────────────────────────────────────── */
+  --radius-badge: 10px;
+  --radius-sm: 4px;
+}

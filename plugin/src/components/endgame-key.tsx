@@ -4,6 +4,7 @@ import {
   useSettings,
   useGlobalSettings,
   useInterval,
+  cn,
 } from "@fcannizzaro/streamdeck-react";
 import type { JsonObject } from "@elgato/utils";
 import type { GlobalSettings, GameId } from "@hoyodeck/shared/types";
@@ -172,31 +173,16 @@ export function EndgameKey({ game, modes, defaultMode, formatData }: EndgameKeyP
 
       {/* Name label (top pill) */}
       {showName && (
-        <div
-          className="absolute flex items-center justify-center"
-          style={{ top: 6, left: 0, width: "100%" }}
-        >
+        <div className="absolute top-1.5 left-0 w-full flex items-center justify-center">
           <div
-            className="flex items-center"
-            style={{
-              height: NAME_FONT + 12,
-              backgroundColor: "rgba(0, 0, 0, 0.7)",
-              borderRadius: needsScroll ? 0 : 10,
-              paddingLeft: needsScroll ? 0 : 10,
-              paddingRight: needsScroll ? 0 : 10,
-              overflow: "hidden",
-              ...(needsScroll ? { width: 144 } : {}),
-            }}
+            className={cn(
+              "flex items-center h-6.5 bg-overlay overflow-hidden",
+              needsScroll ? "w-36 rounded-none" : "rounded-badge px-2.5",
+            )}
           >
             <span
-              style={{
-                fontSize: NAME_FONT,
-                fontWeight: 700,
-                color: "white",
-                fontFamily: "Inter",
-                whiteSpace: "nowrap",
-                ...(needsScroll ? { marginLeft: -scrollOffset + 10 } : {}),
-              }}
+              className="text-sm font-bold text-white font-body whitespace-nowrap"
+              style={needsScroll ? { marginLeft: -scrollOffset + 10 } : undefined}
             >
               {scrollText}
             </span>
@@ -204,29 +190,14 @@ export function EndgameKey({ game, modes, defaultMode, formatData }: EndgameKeyP
         </div>
       )}
 
-      <div
-        className="absolute"
-        style={{
-          top: 0,
-          left: 0,
-          width: "100%",
-          height: "100%",
-          backgroundColor: "rgba(0, 0, 0, 0.3)",
-        }}
-      />
+      <div className="absolute inset-0 bg-overlay-subtle" />
 
       {/* Star/progress box (center) */}
       {showStars && (
-        <div
-          className="absolute flex items-center justify-center"
-          style={{ top: 45, left: 0, width: 144, height: 60 }}
-        >
+        <div className="absolute top-[45px] left-0 w-36 h-15 flex items-center justify-center">
           <span
+            className="text-[52px] font-bold text-white font-body"
             style={{
-              fontSize: 52,
-              fontWeight: 700,
-              color: "white",
-              fontFamily: "Inter",
               textShadow:
                 "-2px -2px 0 rgba(0,0,0,0.7), 2px -2px 0 rgba(0,0,0,0.7), -2px 2px 0 rgba(0,0,0,0.7), 2px 2px 0 rgba(0,0,0,0.7)",
             }}

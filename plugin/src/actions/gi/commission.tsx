@@ -89,7 +89,7 @@ function CommissionKey() {
   return (
     <div className="relative w-full h-full">
       <img src={BACKGROUND} width={144} height={144} />
-      <div className="absolute" style={{ top: 0, left: floatX }}>
+      <div className="absolute top-0" style={{ left: floatX }}>
         <img src={charSrc} width={144} height={144} />
       </div>
       {text && <Badge text={text} />}

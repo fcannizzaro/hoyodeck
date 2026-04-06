@@ -1,3 +1,4 @@
+import { cn } from "@fcannizzaro/streamdeck-react";
 import type { BannerBadgeOptions } from "@hoyodeck/shared/types";
 
 /**
@@ -11,7 +12,8 @@ export function BannerBadge({ text, options }: { text: string; options: BannerBa
   const { position, layout, fontSize } = options;
   const isVertical = layout === "vertical";
 
-  // Wrapper spans the full axis needed for flexbox centering
+  // Wrapper spans the full axis needed for flexbox centering —
+  // position offsets are dynamic per-config so they stay in style
   const wrapperStyle: Record<string, string | number> = {};
 
   if (isVertical) {
@@ -36,25 +38,12 @@ export function BannerBadge({ text, options }: { text: string; options: BannerBa
   return (
     <div className="absolute flex items-center justify-center" style={wrapperStyle}>
       <div
-        className="flex items-center justify-center"
-        style={{
-          backgroundColor: "rgba(0, 0, 0, 0.7)",
-          borderRadius: 10,
-          paddingLeft: 10,
-          paddingRight: 10,
-          paddingTop: 2,
-          paddingBottom: 2,
-          ...(isVertical ? { transform: "rotate(-90deg)" } : {}),
-        }}
+        className={cn(
+          "flex items-center justify-center bg-overlay rounded-badge px-2.5 py-0.5",
+          isVertical && "-rotate-90",
+        )}
       >
-        <span
-          style={{
-            fontSize,
-            fontWeight: 700,
-            color: "white",
-            fontFamily: "Inter",
-          }}
-        >
+        <span className="font-bold text-white font-body" style={{ fontSize }}>
           {text}
         </span>
       </div>
