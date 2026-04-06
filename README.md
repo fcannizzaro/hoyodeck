@@ -206,12 +206,88 @@ The plugin uses a **React-on-Stream-Deck** architecture via [`@fcannizzaro/strea
 
 ## Contributing
 
-Contributions are welcome! Please:
+Contributions are welcome! Whether it's a bug fix, a new game action, or a UI improvement — we'd love your help.
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Submit a pull request
+### How It Works
+
+HoYo Deck is a **Turborepo monorepo** with three workspace packages:
+
+| Package              | Path                  | Description                                                                                                                                                                   |
+| -------------------- | --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `@hoyodeck/shared`   | `packages/shared/`    | Shared types, Zod schemas, cookie utilities, and game constants. Has **no build step** — consumers import `.ts` source directly.                                              |
+| `plugin`             | `plugin/`             | Stream Deck plugin backend. React components are rendered to key images via [Takumi](https://github.com/nicholasgasior/takumi-rs) (a Rust-based renderer), not a browser DOM. |
+| `property-inspector` | `property-inspector/` | Stream Deck settings UI panel. A React + Tailwind CSS app bundled as a single HTML file via `vite-plugin-singlefile`.                                                         |
+
+Data flows like this: the **plugin** polls the HoYoLAB API on a 5-minute interval via a centralized `DataController`, which pushes updates to subscribed actions. Each action is a React component that renders to a Stream Deck key/dial image. The **Property Inspector** communicates with the plugin over the Stream Deck SDK messaging bridge to configure accounts and action settings.
+
+### Getting Started
+
+```bash
+# 1. Fork and clone
+git clone https://github.com/<your-username>/hoyodeck.git
+cd hoyodeck
+
+# 2. Install dependencies (Bun is required)
+bun install
+
+# 3. Link the plugin for local Stream Deck development
+cd plugin
+bun run link
+cd ..
+
+# 4. Start development mode (watches all workspaces)
+bun run dev
+```
+
+> **Prerequisites:** [Bun](https://bun.sh) (v1.3+), Node.js 24+, and the [Stream Deck](https://developer.elgato.com/documentation/stream-deck/) desktop app.
+
+### Available Scripts
+
+Run these from the **repository root**:
+
+| Script              | Description                                    |
+| ------------------- | ---------------------------------------------- |
+| `bun run dev`       | Start all workspaces in watch mode (Turborepo) |
+| `bun run build`     | Type-check and build all workspaces            |
+| `bun run typecheck` | Type-check all workspaces without building     |
+| `bun run format`    | Format code with oxfmt                         |
+
+### Submitting Changes
+
+1. **Fork** the repository and create a **feature branch** from `main`
+   ```bash
+   git checkout -b feat/my-feature
+   ```
+2. **Make your changes** — keep commits focused and descriptive
+3. **Verify your work** before pushing:
+   ```bash
+   bun run typecheck   # must pass with no errors
+   bun run build       # must build successfully
+   ```
+4. **Push** your branch and open a **Pull Request** against `main`
+
+### Coding Guidelines
+
+The project follows strict TypeScript conventions documented in [`AGENTS.md`](./AGENTS.md). The key principles are:
+
+- **Simplicity** — prefer readable code over clever abstractions; keep functions small (<20 lines)
+- **Type safety** — no `any`; use Zod for runtime validation; discriminated unions for state
+- **Feature-based organization** — code is organized by game/domain (`gi/`, `hsr/`, `zzz/`), not by type
+- **Shared code** — types, schemas, and utilities shared across packages go in `@hoyodeck/shared`
+- **Plugin styling** — action components use Tailwind classes (not inline styles) resolved by Takumi; see the theme system in `plugin/src/theme.css`
+- **Error handling** — graceful degradation with fallback displays; use `Promise.allSettled` for non-critical operations
+
+### Where to Put Things
+
+| What you're adding         | Where it goes                                      |
+| -------------------------- | -------------------------------------------------- |
+| New game action            | `plugin/src/actions/<game>/` — one file per action |
+| API response types         | `plugin/src/api/types/<game>.ts`                   |
+| Shared types or schemas    | `packages/shared/src/types/`                       |
+| Cookie / auth utilities    | `packages/shared/src/cookies/`                     |
+| Settings panel UI          | `property-inspector/src/panels/`                   |
+| Reusable plugin components | `plugin/src/components/`                           |
+| Reusable PI components     | `property-inspector/src/components/`               |
 
 ## Support
 
