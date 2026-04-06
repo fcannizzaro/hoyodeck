@@ -10,6 +10,7 @@ import {
 import { useAction, useSettings, useGlobalSettings } from "@fcannizzaro/streamdeck-react";
 import type { JsonObject } from "@elgato/utils";
 import type {
+  AccountId,
   GameId,
   GlobalSettings,
   HoyoAccount,
@@ -29,6 +30,22 @@ const CALENDAR_DATA_TYPES: Record<GameId, DataType> = {
   hsr: "hsr:act-calendar",
   zzz: "zzz:gacha-calendar",
 };
+
+// ─── Account Resolution ───────────────────────────────────────────
+
+/**
+ * Find the first account that has a UID for the given game.
+ * Returns the account ID or undefined if no account supports the game.
+ */
+function findAccountForGame(
+  accounts: Record<string, HoyoAccount>,
+  game: GameId,
+): AccountId | undefined {
+  for (const account of Object.values(accounts)) {
+    if (account.uids[game]) return account.id;
+  }
+  return undefined;
+}
 
 // ─── Resolved Slot Data ───────────────────────────────────────────
 
@@ -65,6 +82,8 @@ const PatchCountdownContext = createContext<PatchCountdownContextValue | null>(n
  *
  * Each slot subscribes to the calendar data type for its game
  * (`gi:act-calendar`, `hsr:act-calendar`, or `zzz:gacha-calendar`).
+ * The account is auto-resolved — the first account with a UID for the
+ * slot's game is used. No per-slot account selection is needed.
  * Patch end timing is extracted from the calendar using `getPatchInfo()`.
  */
 export function PatchCountdownProvider({ children }: { children?: React.ReactNode }) {
@@ -73,6 +92,7 @@ export function PatchCountdownProvider({ children }: { children?: React.ReactNod
   const [globalSettings] = useGlobalSettings<GlobalSettings & JsonObject>();
 
   const slots: PatchCountdownSlot[] = settings.slots ?? [];
+  const accounts = (globalSettings.accounts ?? {}) as Record<string, HoyoAccount>;
 
   // Data entries keyed by slot index
   const [slotEntries, setSlotEntries] = useState<Map<number, DataEntry<unknown>>>(new Map());
@@ -80,15 +100,18 @@ export function PatchCountdownProvider({ children }: { children?: React.ReactNod
   // Generation counter to discard stale listener updates
   const generationRef = useRef(0);
 
-  // Stable key for dependency tracking
-  const slotsKey = slots.map((s) => `${s.game}:${s.accountId}`).join("|");
+  // Resolve account per game — auto-picks the first available account
+  const resolvedAccounts = slots.map((s) => findAccountForGame(accounts, s.game));
+
+  // Stable key for dependency tracking (game + resolved accountId)
+  const slotsKey = slots.map((s, i) => `${s.game}:${resolvedAccounts[i] ?? ""}`).join("|");
 
   // Stable key from relevant account UIDs (avoids teardown on unrelated account changes)
-  const accounts = globalSettings.accounts ?? {};
-  const accountsKey = slots
-    .map((s) => {
-      const account = accounts[s.accountId] as HoyoAccount | undefined;
-      return account?.uids[s.game] ?? "";
+  const accountsKey = resolvedAccounts
+    .map((accountId, i) => {
+      if (!accountId) return "";
+      const account = accounts[accountId];
+      return account?.uids[slots[i]!.game] ?? "";
     })
     .join("|");
 
@@ -104,16 +127,25 @@ export function PatchCountdownProvider({ children }: { children?: React.ReactNod
 
     for (let i = 0; i < slots.length; i++) {
       const slot = slots[i]!;
+      const accountId = resolvedAccounts[i];
 
-      // Skip slots with no account selected
-      if (!slot.accountId) {
-        debug.log("[PatchCountdown]", actionId, `| slot ${i}: no accountId configured`);
+      // Skip slots with no account available for this game
+      if (!accountId) {
+        debug.log(
+          "[PatchCountdown]",
+          actionId,
+          `| slot ${i}: no account with UID for ${slot.game}`,
+        );
         continue;
       }
 
-      const account = accounts[slot.accountId] as HoyoAccount | undefined;
+      const account = accounts[accountId];
       if (!account) {
-        debug.log("[PatchCountdown]", actionId, `| slot ${i}: account ${slot.accountId} not found`);
+        debug.log(
+          "[PatchCountdown]",
+          actionId,
+          `| slot ${i}: resolved account ${accountId} not found`,
+        );
         continue;
       }
 
@@ -127,17 +159,11 @@ export function PatchCountdownProvider({ children }: { children?: React.ReactNod
       const dataType = CALENDAR_DATA_TYPES[slot.game];
       registrationIds.push(regId);
 
-      debug.log(
-        "[PatchCountdown]",
-        actionId,
-        `| registering slot ${i}:`,
-        slot.game,
-        slot.accountId,
-      );
+      debug.log("[PatchCountdown]", actionId, `| registering slot ${i}:`, slot.game, accountId);
 
       dataController.register({
         actionId: regId,
-        accountId: slot.accountId,
+        accountId,
         dataTypes: [dataType],
         listener: (update: DataUpdate) => {
           // Discard updates from a previous generation
@@ -169,7 +195,7 @@ export function PatchCountdownProvider({ children }: { children?: React.ReactNod
       });
 
       // Trigger initial fetch
-      void dataController.requestUpdate(slot.accountId, slot.game);
+      void dataController.requestUpdate(accountId, slot.game);
     }
 
     return () => {
@@ -184,13 +210,10 @@ export function PatchCountdownProvider({ children }: { children?: React.ReactNod
   // Resolve slot data — extract PatchInfo from calendar responses
   const resolvedSlots = useMemo<PatchSlotState[]>(() => {
     return slots.map((slot, i) => {
-      // Unconfigured: no accountId set or account doesn't exist
-      if (!slot.accountId || !accounts[slot.accountId]) {
-        return { game: slot.game, data: { status: "unconfigured" as const } };
-      }
+      const accountId = resolvedAccounts[i];
 
-      const account = accounts[slot.accountId] as HoyoAccount | undefined;
-      if (!account?.uids[slot.game]) {
+      // Unconfigured: no account available for this game
+      if (!accountId) {
         return { game: slot.game, data: { status: "unconfigured" as const } };
       }
 
@@ -222,9 +245,13 @@ export function PatchCountdownProvider({ children }: { children?: React.ReactNod
   const requestUpdateAll = useCallback(async () => {
     const currentSlots = settings.slots ?? [];
     const promises = currentSlots
-      .filter((slot) => slot.accountId)
-      .map((slot) => dataController.requestUpdate(slot.accountId, slot.game));
-    await Promise.allSettled(promises);
+      .map((slot) => {
+        const accountId = findAccountForGame(accounts, slot.game);
+        if (!accountId) return null;
+        return dataController.requestUpdate(accountId, slot.game);
+      })
+      .filter(Boolean);
+    await Promise.allSettled(promises as Promise<void>[]);
   }, [slotsKey]);
 
   const value = useMemo<PatchCountdownContextValue>(

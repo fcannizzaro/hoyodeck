@@ -275,12 +275,12 @@ export interface WishTrackerSettings extends GameActionSettings {
 
 /**
  * A single slot in the patch countdown action.
- * Pairs a game with the account to fetch calendar data from.
+ * Only specifies the game — the plugin auto-resolves the first available account
+ * that has a UID for the game.
  * Index signature required for JsonObject compatibility (stored in Stream Deck settings).
  */
 export interface PatchCountdownSlot {
   game: GameId;
-  accountId: AccountId;
   [key: string]: JsonValue;
 }
 
