@@ -1,7 +1,11 @@
+import { z } from "zod";
+
 /**
  * Supported game identifiers
  */
 export type GameId = "gi" | "hsr" | "zzz";
+
+export const GameIdSchema = z.enum(["gi", "hsr", "zzz"]);
 
 /**
  * Full game configuration

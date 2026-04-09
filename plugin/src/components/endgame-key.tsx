@@ -64,23 +64,28 @@ const ENDING_SOONEST = "ending-soonest";
 
 /**
  * Iterate all modes, format each one that has data, and return the
- * mode whose `endMs` is the smallest (i.e. the one ending soonest).
- * Falls back to `defaultMode` when no mode has a valid `endMs`.
+ * mode whose `endMs` is the smallest **and still in the future**
+ * (i.e. the active challenge ending soonest).
+ * Ended challenges (endMs ≤ now) are skipped so the key always
+ * shows the next relevant challenge.
+ * Falls back to `fallbackMode` when no active mode has a valid `endMs`.
  */
 function resolveEndingSoonest(
   modes: Record<string, EndgameModeConfig>,
-  defaultMode: string,
+  fallbackMode: string,
   formatData: EndgameKeyProps["formatData"],
   getData: (dataType: DataType) => { status: string; data?: unknown } | undefined,
 ): string {
-  let soonestMode = defaultMode;
+  const now = Date.now();
+  let soonestMode = fallbackMode;
   let soonestMs = Infinity;
 
   for (const [modeId, config] of Object.entries(modes)) {
     const entry = getData(config.dataType);
     if (entry?.status !== "ok" || !entry.data) continue;
     const display = formatData(modeId, entry.data);
-    if (display.endMs != null && display.endMs < soonestMs) {
+    // Only consider challenges that haven't ended yet
+    if (display.endMs != null && display.endMs > now && display.endMs < soonestMs) {
       soonestMs = display.endMs;
       soonestMode = modeId;
     }
@@ -112,13 +117,16 @@ export function EndgameKey({ game, modes, defaultMode, formatData }: EndgameKeyP
   const showStars = settings.showStars ?? true;
   const showName = settings.showName ?? true;
 
+  // Concrete fallback — first mode in the map (used when defaultMode is "ending-soonest")
+  const concreteDefault = Object.keys(modes)[0]!;
+
   // Resolve the actual mode — "ending-soonest" picks dynamically
   const mode =
     selectedMode === ENDING_SOONEST
-      ? resolveEndingSoonest(modes, defaultMode, formatData, getData)
+      ? resolveEndingSoonest(modes, concreteDefault, formatData, getData)
       : selectedMode;
 
-  const config = modes[mode] ?? modes[defaultMode]!;
+  const config = modes[mode] ?? modes[concreteDefault]!;
   const entry = getData(config.dataType);
   const bgDataUri = useLocalImageDataUri(config.bg);
 

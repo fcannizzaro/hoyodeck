@@ -1,7 +1,10 @@
 import type { GameId } from "./game";
 
 /** Status of a code relative to a specific account */
-type CodeStatus = "available" | "claimed" | "dismissed" | "expired";
+export type CodeStatus = "available" | "claimed" | "dismissed" | "expired";
+
+/** Live redemption progress for a single code */
+export type CodeRedeemProgress = "pending" | "loading" | "success" | "error";
 
 /** A redeemable game code from the crawler */
 interface GameCode {

@@ -79,7 +79,7 @@ class CodesClient {
     const cacheKey = game ?? "all";
 
     try {
-      const path = game ? `/codes/${game}` : "/codes";
+      const path = game ? `/api/codes/${game}` : "/api/codes";
       const result = await this.get<GameCodeWithStatus[] | Record<string, GameCodeWithStatus[]>>(
         path,
       );

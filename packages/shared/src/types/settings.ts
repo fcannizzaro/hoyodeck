@@ -208,6 +208,50 @@ export interface ZZZEndgameSettings extends ZZZActionSettings {
   showName?: boolean;
 }
 
+// ─── Unified Stamina Action Settings ──────────────────────────────
+
+/**
+ * Unified stamina action settings (multi-game: Resin / Trailblaze Power / Battery)
+ */
+export interface StaminaSettings extends GameActionSettings {
+  game?: GameId;
+}
+
+// ─── Unified Endgame Action Settings ──────────────────────────────
+
+/**
+ * All endgame modes across all games
+ */
+export type EndgameMode = GenshinEndgameMode | StarRailEndgameMode | ZZZEndgameMode;
+
+/**
+ * Unified endgame action settings (multi-game)
+ */
+export interface UnifiedEndgameSettings extends GameActionSettings {
+  game?: GameId;
+  mode?: EndgameMode;
+  showStars?: boolean;
+  showName?: boolean;
+}
+
+// ─── Unified Banner Action Settings ───────────────────────────────
+
+/**
+ * All banner types across all games
+ */
+export type UnifiedBannerType = "character" | "weapon" | "lightcone" | "w-engine";
+
+/**
+ * Unified banner action settings (multi-game)
+ */
+export interface UnifiedBannerSettings extends GameActionSettings {
+  game?: GameId;
+  type?: UnifiedBannerType;
+  bannerIndex?: number;
+  /** When true, run eye-blink animation even when animations are globally disabled */
+  alwaysBlink?: boolean;
+}
+
 // ─── Stamina Overview Action Settings ─────────────────────────────
 
 /**

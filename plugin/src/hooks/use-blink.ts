@@ -12,9 +12,7 @@ import { useState, useEffect } from "react";
  * placed at the midpoint of the biggest unused gap. This guarantees
  * maximum visual spread between concurrent blinkers.
  *
- * Performance: components only re-render **twice per cycle** (blink-on
- * and blink-off), compared to 30 re-renders per cycle with the old
- * frame-index approach.
+ * Performance: components only re-render **twice per cycle** (blink-on and blink-off)
  */
 
 // ─── Blink cycle constants ───────────────────────────────────────

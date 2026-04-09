@@ -5,29 +5,51 @@ import { Checkbox } from "../components/Checkbox";
 import { AccountPicker } from "../components/AccountPicker";
 import type { GameId } from "@hoyodeck/shared/types";
 
-interface EndgamePanelProps {
-  game: GameId;
-  heading: string;
-  modeOptions: { value: string; label: string }[];
-  defaultMode: string;
-}
+const GAME_OPTIONS = [
+  { value: "gi", label: "Genshin Impact" },
+  { value: "hsr", label: "Honkai: Star Rail" },
+  { value: "zzz", label: "Zenless Zone Zero" },
+];
+
+const MODE_OPTIONS: Record<GameId, { value: string; label: string }[]> = {
+  gi: [
+    { value: "spiral-abyss", label: "Spiral Abyss" },
+    { value: "imaginarium-theater", label: "Imaginarium Theater" },
+    { value: "stygian-onslaught", label: "Stygian Onslaught" },
+  ],
+  hsr: [
+    { value: "memory-of-chaos", label: "Memory of Chaos" },
+    { value: "pure-fiction", label: "Pure Fiction" },
+    { value: "apocalyptic-shadow", label: "Apocalyptic Shadow" },
+    { value: "anomaly-arbitration", label: "Anomaly Arbitration" },
+  ],
+  zzz: [
+    { value: "shiyu-defense", label: "Shiyu Defense" },
+    { value: "deadly-assault", label: "Deadly Assault" },
+  ],
+};
 
 const ENDING_SOONEST_OPTION = { value: "ending-soonest", label: "Ending Soonest" };
+const DEFAULT_MODE = "ending-soonest";
+
+interface EndgamePanelBaseProps {
+  game: GameId;
+  modeOptions: { value: string; label: string }[];
+}
 
 /**
- * Shared endgame panel — renders account picker and mode selector.
+ * Shared endgame panel base — renders account picker and mode selector.
  */
-function EndgamePanel({ game, heading, modeOptions, defaultMode }: EndgamePanelProps) {
+function EndgamePanelBase({ game, modeOptions }: EndgamePanelBaseProps) {
   const { settings, saveSettings } = useStreamDeck();
-  const mode = (settings.mode as string) ?? defaultMode;
+  const mode = (settings.mode as string) ?? DEFAULT_MODE;
   const showStars = (settings.showStars as boolean) ?? true;
   const showName = (settings.showName as boolean) ?? true;
 
   const allOptions = [...modeOptions, ENDING_SOONEST_OPTION];
 
   return (
-    <div className="flex flex-col gap-2">
-      <Heading>{heading}</Heading>
+    <>
       <AccountPicker game={game} />
       <Select
         label="Mode"
@@ -46,6 +68,27 @@ function EndgamePanel({ game, heading, modeOptions, defaultMode }: EndgamePanelP
         checked={showName}
         onChange={(checked) => saveSettings({ showName: checked })}
       />
+    </>
+  );
+}
+
+/**
+ * Unified endgame panel — game picker + account picker + mode selector.
+ */
+export function UnifiedEndgamePanel() {
+  const { settings, saveSettings } = useStreamDeck();
+  const game = (settings.game as GameId) ?? "gi";
+
+  return (
+    <div className="flex flex-col gap-2">
+      <Heading>Endgame Settings</Heading>
+      <Select
+        label="Game"
+        value={game}
+        options={GAME_OPTIONS}
+        onChange={(value) => saveSettings({ game: value, mode: undefined })}
+      />
+      <EndgamePanelBase game={game} modeOptions={MODE_OPTIONS[game]} />
     </div>
   );
 }
@@ -55,16 +98,10 @@ function EndgamePanel({ game, heading, modeOptions, defaultMode }: EndgamePanelP
  */
 export function GenshinEndgamePanel() {
   return (
-    <EndgamePanel
-      game="gi"
-      heading="Endgame Settings"
-      defaultMode="spiral-abyss"
-      modeOptions={[
-        { value: "spiral-abyss", label: "Spiral Abyss" },
-        { value: "imaginarium-theater", label: "Imaginarium Theater" },
-        { value: "stygian-onslaught", label: "Stygian Onslaught" },
-      ]}
-    />
+    <div className="flex flex-col gap-2">
+      <Heading>Endgame Settings</Heading>
+      <EndgamePanelBase game="gi" modeOptions={MODE_OPTIONS.gi} />
+    </div>
   );
 }
 
@@ -73,17 +110,10 @@ export function GenshinEndgamePanel() {
  */
 export function StarRailEndgamePanel() {
   return (
-    <EndgamePanel
-      game="hsr"
-      heading="Endgame Settings"
-      defaultMode="memory-of-chaos"
-      modeOptions={[
-        { value: "memory-of-chaos", label: "Memory of Chaos" },
-        { value: "pure-fiction", label: "Pure Fiction" },
-        { value: "apocalyptic-shadow", label: "Apocalyptic Shadow" },
-        { value: "anomaly-arbitration", label: "Anomaly Arbitration" },
-      ]}
-    />
+    <div className="flex flex-col gap-2">
+      <Heading>Endgame Settings</Heading>
+      <EndgamePanelBase game="hsr" modeOptions={MODE_OPTIONS.hsr} />
+    </div>
   );
 }
 
@@ -92,14 +122,9 @@ export function StarRailEndgamePanel() {
  */
 export function ZZZEndgamePanel() {
   return (
-    <EndgamePanel
-      game="zzz"
-      heading="Endgame Settings"
-      defaultMode="shiyu-defense"
-      modeOptions={[
-        { value: "shiyu-defense", label: "Shiyu Defense" },
-        { value: "deadly-assault", label: "Deadly Assault" },
-      ]}
-    />
+    <div className="flex flex-col gap-2">
+      <Heading>Endgame Settings</Heading>
+      <EndgamePanelBase game="zzz" modeOptions={MODE_OPTIONS.zzz} />
+    </div>
   );
 }

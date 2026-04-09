@@ -11,26 +11,16 @@ import { dataController } from "@/services/data-controller";
 // Import plugin-level wrapper (provides QueryClientProvider to all action roots)
 import { PluginWrapper } from "@/contexts/plugin-wrapper.tsx";
 
-// Import React actions — Genshin Impact
-import { genshinBannerAction } from "./actions/gi/banner.tsx";
-import { resinAction } from "./actions/gi/resin.tsx";
+// Import React actions — Genshin Impact (game-specific)
 import { commissionAction } from "./actions/gi/commission.tsx";
 import { expeditionAction } from "./actions/gi/expedition.tsx";
 import { teapotAction } from "./actions/gi/teapot.tsx";
 import { transformerAction } from "./actions/gi/transformer.tsx";
-import { genshinEndgameAction } from "./actions/gi/endgame.tsx";
 
-// Import React actions — Honkai: Star Rail
-import { trailblazePowerAction } from "./actions/hsr/trailblaze-power.tsx";
-import { starRailBannerAction } from "./actions/hsr/banner.tsx";
-import { starRailEndgameAction } from "./actions/hsr/endgame.tsx";
-
-// Import React actions — Zenless Zone Zero
-import { batteryChargeAction } from "./actions/zzz/battery-charge.tsx";
-import { zzzBannerAction } from "./actions/zzz/banner.tsx";
-import { zzzEndgameAction } from "./actions/zzz/endgame.tsx";
-
-// Import React actions — Common
+// Import React actions — Common (multi-game)
+import { staminaAction } from "./actions/common/stamina.tsx";
+import { endgameAction } from "./actions/common/endgame.tsx";
+import { bannerAction } from "./actions/common/banner.tsx";
 import { dailyRewardAction } from "./actions/common/daily-reward.tsx";
 import { redeemCodeAction } from "./actions/common/redeem-code.tsx";
 import { staminaOverviewAction } from "./actions/common/stamina-overview.tsx";
@@ -63,28 +53,20 @@ const plugin = createPlugin({
     },
   ],
   actions: [
-    // Genshin Impact
-    resinAction,
-    commissionAction,
-    expeditionAction,
-    teapotAction,
-    transformerAction,
-    genshinEndgameAction,
-    genshinBannerAction,
-    // Honkai: Star Rail
-    trailblazePowerAction,
-    starRailBannerAction,
-    starRailEndgameAction,
-    // Zenless Zone Zero
-    batteryChargeAction,
-    zzzBannerAction,
-    zzzEndgameAction,
-    // Common
+    // Multi-game (unified)
+    staminaAction,
+    bannerAction,
+    endgameAction,
     dailyRewardAction,
     redeemCodeAction,
     staminaOverviewAction,
     wishTrackerAction,
     patchCountdownAction,
+    // Genshin Impact (game-specific)
+    commissionAction,
+    expeditionAction,
+    teapotAction,
+    transformerAction,
   ],
 });
 

@@ -73,10 +73,9 @@ function PatchRow({ game, text, variant, stretch }: PatchRowProps) {
 /** Format a slot into compact text for the key (e.g. "12d 5h") */
 function getSlotText(slot: PatchSlotState): string {
   if (slot.data.status === "ok") {
-    return formatCountdownFromSeconds(slot.data.patch.remainingSeconds);
+    return formatCountdownFromSeconds(slot.data.patch);
   }
   if (slot.data.status === "error") return "N/A";
-  if (slot.data.status === "unconfigured") return "N/A";
   return "--";
 }
 
@@ -87,7 +86,7 @@ function getSlotText(slot: PatchSlotState): string {
 function getSlotTextVerbose(slot: PatchSlotState): string {
   if (slot.data.status !== "ok") return getSlotText(slot);
 
-  const seconds = slot.data.patch.remainingSeconds;
+  const seconds = slot.data.patch;
   if (seconds <= 0) return "Ended";
 
   const days = Math.floor(seconds / 86400);

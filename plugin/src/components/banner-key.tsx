@@ -64,7 +64,7 @@ const toSlug = (name: string): string =>
  * Build the codes-server URL for a character's closed-eyes avatar.
  */
 const getClosedEyesUrl = (game: GameId, name: string): string =>
-  `${__CODE_SERVER_URL__}/avatars/${game}/${toSlug(name)}.png`;
+  `${__CODE_SERVER_URL__}/api/avatars/${game}/${toSlug(name)}.png`;
 
 // ─── Key dimensions ──────────────────────────────────────────────
 

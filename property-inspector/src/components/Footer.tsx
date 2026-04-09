@@ -83,7 +83,6 @@ export function Footer() {
           <FooterLink href={KOFI_URL} title="Ko-fi">
             <KofiIcon />
           </FooterLink>
-          <span className="w-px h-4 bg-sd-border/40 mx-1" />
           <FooterLink href={WEBSITE_URL} title="fcannizzaro.com">
             <GlobeIcon />
           </FooterLink>

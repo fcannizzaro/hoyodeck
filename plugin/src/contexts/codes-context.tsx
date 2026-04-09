@@ -13,18 +13,22 @@ import {
   useWillAppear,
   useInterval,
 } from "@fcannizzaro/streamdeck-react";
+import streamDeck from "@elgato/streamdeck";
 import type { JsonObject } from "@elgato/utils";
 import type { RedeemCodeSettings, GlobalSettings, GameId } from "@hoyodeck/shared/types";
+import type { GameCodeWithStatus, CodeRedeemProgress } from "@hoyodeck/shared/types";
 import { toJsonObject } from "@/utils/json";
-import type { GameCodeWithStatus } from "@hoyodeck/shared/types";
 import { codesClient } from "@/api/manager/client";
-import { openRedeemWindow } from "@/services/redeem-window";
+import { HoyolabApiError, isAuthError } from "@/api/types/common";
 import { useAccount } from "./account-context";
 import { useData } from "./data-context";
 
 // ─── Constants ────────────────────────────────────────────────────
 
 const REFRESH_INTERVAL_MS = 5 * 60 * 1000;
+
+/** Rate-limit cooldown between consecutive redeems (ms) */
+const REDEEM_DELAY_MS = 4_000;
 
 // ─── Context Value ────────────────────────────────────────────────
 
@@ -33,10 +37,11 @@ interface CodesContextValue {
   codes: GameCodeWithStatus[];
   /** Number of available (unclaimed, active) codes */
   availableCount: number;
-  /**
-   * Open the redeem window and start redeeming all available codes.
-   * Resolves when the window is closed.
-   */
+  /** Live redemption progress per code (only populated during redemption) */
+  redeemProgress: Map<string, CodeRedeemProgress>;
+  /** Whether a redemption loop is currently running */
+  isRedeeming: boolean;
+  /** Start redeeming all available codes inline (no window) */
   redeemAll: () => Promise<void>;
 }
 
@@ -70,8 +75,8 @@ function mergeStatus(codes: GameCodeWithStatus[], localClaimed: Set<string>): Ga
 }
 
 /**
- * Provides codes fetching, claimed-code tracking, and redeem-window
- * orchestration for the redeem-code action.
+ * Provides codes fetching, claimed-code tracking, and inline
+ * redemption for the redeem-code action.
  *
  * Must be rendered inside AccountProvider and DataProvider so it can
  * resolve the current account and obtain a HoyolabClient for redemption.
@@ -90,6 +95,8 @@ export function CodesProvider({ children }: CodesProviderProps) {
 
   const [codes, setCodes] = useState<GameCodeWithStatus[]>([]);
   const [, setRefreshTick] = useState(0);
+  const [redeemProgress, setRedeemProgress] = useState<Map<string, CodeRedeemProgress>>(new Map());
+  const [isRedeeming, setIsRedeeming] = useState(false);
 
   // Keep a ref to always have the latest globalSettings (avoids stale closures)
   const globalSettingsRef = useRef(globalSettings);
@@ -181,31 +188,93 @@ export function CodesProvider({ children }: CodesProviderProps) {
   );
 
   /**
-   * Open the redeem window with fresh codes and start redemption.
-   * Resolves when the window is closed.
+   * Run the redemption loop inline — redeems all available codes
+   * sequentially, updating `redeemProgress` state for each code
+   * so the key component can visualize live progress.
    */
   const redeemAll = useCallback(async () => {
+    if (isRedeeming) return;
     if (!resolvedAccount || !uid) return;
 
     const client = getClient();
     if (!client) return;
 
-    // Fetch fresh codes before opening window
-    const freshCodes = await codesClient.listCodes(game);
+    setIsRedeeming(true);
 
-    // Merge local claim status so the window shows correct state
+    // Fetch fresh codes before starting
+    const freshCodes = await codesClient.listCodes(game);
     const merged = mergeStatus(freshCodes, localClaimed);
     setCodes(merged);
 
-    try {
-      await openRedeemWindow(game, merged, client, uid, persistOneClaimed);
-    } catch {
-      // Window open failed
+    const available = merged.filter((c) => c.status === "available" && c.active);
+
+    if (available.length === 0) {
+      setIsRedeeming(false);
+      return;
     }
 
-    // Refresh after window closes
+    // Initialize progress map — all available codes start as "pending"
+    const initial = new Map<string, CodeRedeemProgress>();
+    for (const c of available) initial.set(c.code, "pending");
+    // Include non-available codes with their final state
+    for (const c of merged) {
+      if (!initial.has(c.code)) {
+        initial.set(c.code, c.status === "claimed" ? "success" : "pending");
+      }
+    }
+    setRedeemProgress(new Map(initial));
+
+    for (let i = 0; i < available.length; i++) {
+      const entry = available[i]!;
+
+      // Mark as loading
+      initial.set(entry.code, "loading");
+      setRedeemProgress(new Map(initial));
+
+      try {
+        await client.redeemCode(game, entry.code, uid);
+        persistOneClaimed(entry.code);
+        initial.set(entry.code, "success");
+        setRedeemProgress(new Map(initial));
+      } catch (error) {
+        if (isAuthError(error)) {
+          initial.set(entry.code, "error");
+          setRedeemProgress(new Map(initial));
+          streamDeck.logger.warn("[RedeemCode] Auth error, stopping redemption loop");
+          break;
+        }
+
+        const isAlreadyClaimed = error instanceof HoyolabApiError && error.retcode === -2017;
+        persistOneClaimed(entry.code);
+        initial.set(entry.code, isAlreadyClaimed ? "success" : "error");
+        setRedeemProgress(new Map(initial));
+
+        if (!isAlreadyClaimed) {
+          const message = error instanceof Error ? error.message : "Unknown error";
+          streamDeck.logger.warn(`[RedeemCode] Failed to redeem ${entry.code}:`, message);
+        }
+      }
+
+      // Rate-limit delay between codes (skip after last)
+      if (i < available.length - 1) {
+        await new Promise((resolve) => setTimeout(resolve, REDEEM_DELAY_MS));
+      }
+    }
+
+    setIsRedeeming(false);
+
+    // Refresh codes after completion
     await fetchCodes();
-  }, [resolvedAccount, uid, game, getClient, localClaimed, persistOneClaimed, fetchCodes]);
+  }, [
+    isRedeeming,
+    resolvedAccount,
+    uid,
+    game,
+    getClient,
+    localClaimed,
+    persistOneClaimed,
+    fetchCodes,
+  ]);
 
   // Merge server codes with locally tracked claims
   const merged = mergeStatus(codes, localClaimed);
@@ -215,9 +284,11 @@ export function CodesProvider({ children }: CodesProviderProps) {
     () => ({
       codes: merged,
       availableCount,
+      redeemProgress,
+      isRedeeming,
       redeemAll,
     }),
-    [merged, availableCount, redeemAll],
+    [merged, availableCount, redeemProgress, isRedeeming, redeemAll],
   );
 
   return <CodesContext.Provider value={value}>{children}</CodesContext.Provider>;

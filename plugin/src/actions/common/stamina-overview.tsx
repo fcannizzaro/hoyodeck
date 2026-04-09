@@ -239,7 +239,7 @@ export const staminaOverviewAction = defineAction<StaminaOverviewSettings & Json
   wrapper: StaminaOverviewWrapper,
   info: {
     name: "Stamina Overview",
-    icon: "imgs/actions/common/stamina-overview-icon",
+    icon: "imgs/actions/common/stamina-icon",
     tooltip: "Multi-game stamina overview for the Stream Deck+ encoder",
     states: [{ image: "imgs/actions/gi/5-star", titleAlignment: "middle" }],
     encoder: {

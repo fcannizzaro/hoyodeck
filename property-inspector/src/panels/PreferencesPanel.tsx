@@ -3,6 +3,7 @@ import { Heading } from "../components/Heading";
 import { Checkbox } from "../components/Checkbox";
 
 const BANNER_ACTIONS = new Set([
+  "com.fcannizzaro.hoyodeck.banner",
   "com.fcannizzaro.hoyodeck.genshin.banner",
   "com.fcannizzaro.hoyodeck.hsr.banner",
   "com.fcannizzaro.hoyodeck.zzz.banner",

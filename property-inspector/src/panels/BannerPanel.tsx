@@ -5,6 +5,12 @@ import { NumberInput } from "../components/NumberInput";
 import { AccountPicker } from "../components/AccountPicker";
 import type { GameId } from "@hoyodeck/shared/types";
 
+const GAME_OPTIONS = [
+  { value: "gi", label: "Genshin Impact" },
+  { value: "hsr", label: "Honkai: Star Rail" },
+  { value: "zzz", label: "Zenless Zone Zero" },
+];
+
 const BADGE_POSITION_OPTIONS = [
   { value: "left", label: "Left" },
   { value: "center", label: "Center" },
@@ -16,30 +22,45 @@ const BADGE_LAYOUT_OPTIONS = [
   { value: "vertical", label: "Vertical" },
 ];
 
-interface BaseBannerPanelProps {
-  game: GameId;
-  typeOptions: { value: string; label: string }[];
-}
+const TYPE_OPTIONS: Record<GameId, { value: string; label: string }[]> = {
+  gi: [
+    { value: "character", label: "Character Event Wish" },
+    { value: "weapon", label: "Weapon Event Wish" },
+  ],
+  hsr: [
+    { value: "character", label: "Character Warp" },
+    { value: "lightcone", label: "Light Cone Warp" },
+  ],
+  zzz: [
+    { value: "character", label: "Agent Signal Search" },
+    { value: "w-engine", label: "W-Engine Signal Search" },
+  ],
+};
+
+const DEFAULT_TYPES: Record<GameId, string> = {
+  gi: "character",
+  hsr: "character",
+  zzz: "character",
+};
 
 /**
- * Shared banner settings panel — renders account picker, banner type selector,
- * and global badge style settings. Used by all three games.
+ * Shared banner settings — renders account picker, banner type selector,
+ * and global badge style settings.
  */
-function BaseBannerPanel({ game, typeOptions }: BaseBannerPanelProps) {
+function BannerPanelBase({ game }: { game: GameId }) {
   const { settings, saveSettings, globalSettings, saveGlobalSettings } = useStreamDeck();
-  const type = (settings.type as string) ?? "character";
+  const type = (settings.type as string) ?? DEFAULT_TYPES[game];
   const badgePosition = (globalSettings.bannerBadgePosition as string) ?? "center";
   const badgeLayout = (globalSettings.bannerBadgeLayout as string) ?? "horizontal";
   const badgeFontSize = (globalSettings.bannerBadgeFontSize as number) ?? 18;
 
   return (
-    <div className="flex flex-col gap-2">
-      <Heading>Banner Settings</Heading>
+    <>
       <AccountPicker game={game} />
       <Select
         label="Banner Type"
         value={type}
-        options={typeOptions}
+        options={TYPE_OPTIONS[game]}
         info="Select which type of banner to display."
         onChange={(value) => saveSettings({ type: value })}
       />
@@ -67,6 +88,27 @@ function BaseBannerPanel({ game, typeOptions }: BaseBannerPanelProps) {
         info="Adjust the countdown text size (default: 18)."
         onChange={(value) => saveGlobalSettings({ bannerBadgeFontSize: value })}
       />
+    </>
+  );
+}
+
+/**
+ * Unified banner panel — game picker + account picker + type selector + badge style.
+ */
+export function UnifiedBannerPanel() {
+  const { settings, saveSettings } = useStreamDeck();
+  const game = (settings.game as GameId) ?? "gi";
+
+  return (
+    <div className="flex flex-col gap-2">
+      <Heading>Banner Settings</Heading>
+      <Select
+        label="Game"
+        value={game}
+        options={GAME_OPTIONS}
+        onChange={(value) => saveSettings({ game: value, type: undefined })}
+      />
+      <BannerPanelBase game={game} />
     </div>
   );
 }
@@ -74,38 +116,29 @@ function BaseBannerPanel({ game, typeOptions }: BaseBannerPanelProps) {
 /** Genshin Impact banner panel — Character Event Wish / Weapon Event Wish */
 export function BannerPanel() {
   return (
-    <BaseBannerPanel
-      game="gi"
-      typeOptions={[
-        { value: "character", label: "Character Event Wish" },
-        { value: "weapon", label: "Weapon Event Wish" },
-      ]}
-    />
+    <div className="flex flex-col gap-2">
+      <Heading>Banner Settings</Heading>
+      <BannerPanelBase game="gi" />
+    </div>
   );
 }
 
 /** Star Rail banner panel — Character Warp / Light Cone Warp */
 export function HSRBannerPanel() {
   return (
-    <BaseBannerPanel
-      game="hsr"
-      typeOptions={[
-        { value: "character", label: "Character Warp" },
-        { value: "lightcone", label: "Light Cone Warp" },
-      ]}
-    />
+    <div className="flex flex-col gap-2">
+      <Heading>Banner Settings</Heading>
+      <BannerPanelBase game="hsr" />
+    </div>
   );
 }
 
 /** ZZZ banner panel — Agent Signal Search / W-Engine Signal Search */
 export function ZZZBannerPanel() {
   return (
-    <BaseBannerPanel
-      game="zzz"
-      typeOptions={[
-        { value: "character", label: "Agent Signal Search" },
-        { value: "w-engine", label: "W-Engine Signal Search" },
-      ]}
-    />
+    <div className="flex flex-col gap-2">
+      <Heading>Banner Settings</Heading>
+      <BannerPanelBase game="zzz" />
+    </div>
   );
 }

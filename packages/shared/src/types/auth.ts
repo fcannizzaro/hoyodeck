@@ -7,12 +7,12 @@ export const HoyoAuthSchema = z.object({
   ltoken_v2: z.string().min(1),
   ltuid_v2: z.string().min(1),
   ltmid_v2: z.string().min(1),
-  cookie_token_v2: z.string().optional(),
-  account_mid_v2: z.string().optional(),
-  account_id_v2: z.string().optional(),
+  cookie_token_v2: z.string().min(1),
+  account_mid_v2: z.string().min(1),
+  account_id_v2: z.string().min(1),
 });
 
-/** Full auth — 3 required + 3 optional fields */
+/** Full auth — all 6 fields required for both API and code redemption */
 export type HoyoAuth = z.infer<typeof HoyoAuthSchema>;
 
 /** All fields optional — for partial cookie extraction */

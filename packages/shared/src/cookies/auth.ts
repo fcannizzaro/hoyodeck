@@ -36,29 +36,18 @@ export function isValidAuth(auth: unknown): auth is HoyoAuth {
 
 /**
  * Build a cookie string from an auth object.
- * Includes all available auth tokens so both the standard API
+ * Includes all 6 auth tokens so both the standard API
  * (ltoken_v2) and the redemption API (cookie_token_v2) work.
  */
 export function buildCookieString(auth: HoyoAuth): string {
-  const pairs: string[] = [
+  return [
     `ltoken_v2=${auth.ltoken_v2}`,
     `ltuid_v2=${auth.ltuid_v2}`,
     `ltmid_v2=${auth.ltmid_v2}`,
-  ];
-
-  if (auth.cookie_token_v2) {
-    pairs.push(`cookie_token_v2=${auth.cookie_token_v2}`);
-  }
-
-  if (auth.account_mid_v2) {
-    pairs.push(`account_mid_v2=${auth.account_mid_v2}`);
-  }
-
-  if (auth.account_id_v2) {
-    pairs.push(`account_id_v2=${auth.account_id_v2}`);
-  }
-
-  return pairs.join("; ");
+    `cookie_token_v2=${auth.cookie_token_v2}`,
+    `account_mid_v2=${auth.account_mid_v2}`,
+    `account_id_v2=${auth.account_id_v2}`,
+  ].join("; ");
 }
 
 /**

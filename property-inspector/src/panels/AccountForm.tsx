@@ -10,9 +10,6 @@ import { GAMES } from "@hoyodeck/shared/games";
 import type { GameId, HoyoAccount, HoyoAuth, PendingLogin } from "@hoyodeck/shared/types";
 import hoyolabLogo from "../assets/hoyo.webp";
 
-/** Console snippet that extracts HoYoLAB auth cookies and copies them to clipboard */
-const COOKIE_SCRIPT = `(()=>{const keys=['ltoken_v2','ltuid_v2','ltmid_v2','cookie_token_v2','account_mid_v2','account_id_v2'];const r=document.cookie.split('; ').filter(p=>{const k=p.substring(0,p.indexOf('='));return keys.includes(k)});if(!r.length){console.error('No HoYoLAB cookies found. Make sure you are logged in on hoyolab.com');return}navigator.clipboard.writeText(r.join('; ')).then(()=>console.log('Cookies copied to clipboard!')).catch(()=>prompt('Auto-copy failed. Manually copy:',r.join('; ')))})()`;
-
 /** All game IDs in display order */
 const GAME_IDS: GameId[] = ["gi", "hsr", "zzz"];
 
@@ -93,14 +90,6 @@ export function AccountForm({ account, onSave, onCancel }: AccountFormProps) {
     setError(null);
     saveGlobalSettings({ pendingLogin: { status: "requested" } });
   }, [saveGlobalSettings]);
-
-  const handleCopyScript = useCallback(() => {
-    navigator.clipboard.writeText(COOKIE_SCRIPT).then(() => {
-      setCopied(true);
-      clearTimeout(copiedTimer.current);
-      copiedTimer.current = setTimeout(() => setCopied(false), 2000);
-    });
-  }, []);
 
   const handleSave = useCallback(() => {
     if (!name.trim()) {
@@ -201,11 +190,9 @@ export function AccountForm({ account, onSave, onCancel }: AccountFormProps) {
             placeholder={
               account ? "Paste new cookies to update..." : "Paste your HoYoLAB cookies here..."
             }
-            info="Copy the script below, then on hoyolab.com open DevTools (F12) → Console tab and paste it to auto-copy cookies."
+            info="Open hoyolab.com, then open DevTools (F12) → Application → Cookies. Locate these cookies: ltoken_v2, ltuid_v2, ltmid_v2, cookie_token_v2, account_mid_v2, account_id_v2 and paste them below as key=value; pairs."
             onChange={setCookies}
           />
-
-          <Button onClick={handleCopyScript}>{copied ? "Copied!" : "Copy Cookie Script"}</Button>
         </>
       )}
 

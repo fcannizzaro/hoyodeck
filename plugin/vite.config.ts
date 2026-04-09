@@ -15,7 +15,9 @@ export default defineConfig({
   },
   define: {
     __DEBUG__: process.env.DEBUG === "1" ? "true" : "false",
-    __CODE_SERVER_URL__: JSON.stringify(process.env.CODE_SERVER_URL ?? "http://localhost:3000"),
+    __CODE_SERVER_URL__: JSON.stringify(
+      process.env.CODE_SERVER_URL ?? "http://localhost:3000",
+    ),
   },
   plugins: [
     esmExternalRequirePlugin({ external: builtins }),
@@ -54,7 +56,7 @@ export default defineConfig({
         description:
           "HoYoverse games utilities for Stream Deck (Genshin Impact, Honkai: Star Rail and Zenless Zone Zero)",
         icon: "imgs/plugin/icon",
-        version: "1.0.0.1",
+        version: "1.0.0.2",
         category: "HoYo Deck",
         categoryIcon: "imgs/plugin/category",
         propertyInspectorPath: "ui/index.html",
@@ -66,7 +68,7 @@ export default defineConfig({
     outDir: resolve(PLUGIN_DIR, "bin"),
     emptyOutDir: false,
     sourcemap: process.env.DEBUG === "1",
-    minify: false,
+    minify: true,
     lib: {
       entry: resolve("src/plugin.ts"),
       formats: ["es"],

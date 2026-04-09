@@ -32,6 +32,7 @@ Thumbs.db
 
 # compiled plugin
 **/bin/
+server
 plugin/**/ui/index.html
 plugin/**/imgs/banner
 plugin/**/manifest.json
