@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useStreamDeck } from "../hooks/use-stream-deck";
 import { Input } from "../components/Input";
 import { GameIcon } from "../components/GameIcon";
@@ -42,8 +42,6 @@ export function AccountForm({ account, onSave, onCancel }: AccountFormProps) {
   const [name, setName] = useState(account?.name ?? "");
   const [cookies, setCookies] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
-  const copiedTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   /** Auth obtained from the native webview login flow */
   const [loginAuth, setLoginAuth] = useState<HoyoAuth | null>(null);

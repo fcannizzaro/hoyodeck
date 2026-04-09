@@ -1,6 +1,7 @@
 import type { AccountId, HoyoAuth } from "./auth";
 import type { HoyoAccount } from "./account";
 import type { GameId } from "./game";
+import type { CodeRedeemResult } from "./codes";
 
 // ─── JSON Types (Stream Deck SDK compat) ──────────────────────────
 
@@ -75,6 +76,13 @@ export interface GlobalSettings {
    * without relying on the codes-server for per-user state.
    */
   claimedCodes?: Record<string, string[]>;
+
+  /**
+   * Per-code redemption results with status and reason.
+   * Key format: "{game}:{uid}" → array of CodeRedeemResult.
+   * Used by the PI to display outcome details.
+   */
+  redeemResults?: Record<string, CodeRedeemResult[]>;
 
   /**
    * Wish/pity tracker data stored globally so it persists across action instances.

@@ -16,7 +16,12 @@ import {
 import streamDeck from "@elgato/streamdeck";
 import type { JsonObject } from "@elgato/utils";
 import type { RedeemCodeSettings, GlobalSettings, GameId } from "@hoyodeck/shared/types";
-import type { GameCodeWithStatus, CodeRedeemProgress } from "@hoyodeck/shared/types";
+import type {
+  GameCodeWithStatus,
+  CodeRedeemProgress,
+  CodeRedeemResult,
+  CodeRedeemStatus,
+} from "@hoyodeck/shared/types";
 import { toJsonObject } from "@/utils/json";
 import { codesClient } from "@/api/manager/client";
 import { HoyolabApiError, isAuthError } from "@/api/types/common";
@@ -28,7 +33,32 @@ import { useData } from "./data-context";
 const REFRESH_INTERVAL_MS = 5 * 60 * 1000;
 
 /** Rate-limit cooldown between consecutive redeems (ms) */
-const REDEEM_DELAY_MS = 4_000;
+const REDEEM_DELAY_MS = 5_000;
+
+/** HoYoLAB retcode for "already claimed" */
+const ALREADY_CLAIMED_RETCODE = -2017;
+
+/** Known retcodes that indicate an expired or invalid code */
+const EXPIRED_RETCODES = new Set([-2001, -2003, -2016]);
+
+/**
+ * Classify a redeem error into a persisted status + human-readable reason.
+ */
+function classifyRedeemError(error: unknown): { status: CodeRedeemStatus; reason: string } {
+  if (error instanceof HoyolabApiError) {
+    if (error.retcode === ALREADY_CLAIMED_RETCODE) {
+      return { status: "already_claimed", reason: "Already claimed" };
+    }
+    if (EXPIRED_RETCODES.has(error.retcode)) {
+      return { status: "expired", reason: error.message || "Code expired" };
+    }
+    if (isAuthError(error)) {
+      return { status: "error", reason: "Authentication failed" };
+    }
+    return { status: "error", reason: error.message || `Error (${error.retcode})` };
+  }
+  return { status: "error", reason: error instanceof Error ? error.message : "Unknown error" };
+}
 
 // ─── Context Value ────────────────────────────────────────────────
 
@@ -109,14 +139,27 @@ export function CodesProvider({ children }: CodesProviderProps) {
    */
   const claimedAccRef = useRef<Set<string>>(new Set());
 
-  // Seed the accumulator from persisted globalSettings on load / when settings change
+  /**
+   * In-memory accumulator for redeem results within the current session.
+   * Keyed by code string to allow upserts (re-redeem replaces prior result).
+   */
+  const resultsAccRef = useRef<Map<string, CodeRedeemResult>>(new Map());
+
+  // Sync the accumulators with persisted globalSettings.
+  // When the PI resets claimed codes, the persisted arrays become empty
+  // and the accumulators must follow suit so localClaimed stays correct.
   useEffect(() => {
     if (!uid) return;
     const key = claimedKey(game, uid);
-    const persisted = globalSettings.claimedCodes?.[key] ?? [];
-    const acc = claimedAccRef.current;
-    for (const c of persisted) acc.add(c);
-  }, [game, uid, globalSettings.claimedCodes]);
+
+    const persistedCodes = globalSettings.claimedCodes?.[key] ?? [];
+    claimedAccRef.current = new Set(persistedCodes);
+
+    const persistedResults = globalSettings.redeemResults?.[key] ?? [];
+    const rAcc = new Map<string, CodeRedeemResult>();
+    for (const r of persistedResults) rAcc.set(r.code, r);
+    resultsAccRef.current = rAcc;
+  }, [game, uid, globalSettings.claimedCodes, globalSettings.redeemResults]);
 
   // Derive localClaimed from BOTH persisted globalSettings (available synchronously
   // on mount, survives page switches) AND the in-memory accumulator (handles rapid
@@ -129,19 +172,25 @@ export function CodesProvider({ children }: CodesProviderProps) {
     : new Set<string>();
 
   /**
-   * Persist a single claimed code immediately.
-   * 1. Adds to the in-memory accumulator (instant, no async gap)
-   * 2. Writes the full set to globalSettings (persists across restarts)
-   * 3. Forces a re-render so the badge updates
+   * Persist a single code result immediately.
+   * 1. Adds code to the claimed accumulator (instant, no async gap)
+   * 2. Adds result to the results accumulator
+   * 3. Writes both to globalSettings (persists across restarts)
+   * 4. Forces a re-render so the badge updates
    */
   const persistOneClaimed = useCallback(
-    (code: string) => {
+    (code: string, result?: CodeRedeemResult) => {
       if (!uid) return;
 
       // 1. Accumulate locally
       claimedAccRef.current.add(code);
 
-      // 2. Persist to globalSettings
+      // 2. Accumulate result
+      if (result) {
+        resultsAccRef.current.set(code, result);
+      }
+
+      // 3. Persist to globalSettings
       const current = globalSettingsRef.current;
       const key = claimedKey(game, uid);
 
@@ -151,11 +200,15 @@ export function CodesProvider({ children }: CodesProviderProps) {
           ...current.claimedCodes,
           [key]: [...claimedAccRef.current],
         },
+        redeemResults: {
+          ...current.redeemResults,
+          [key]: [...resultsAccRef.current.values()],
+        },
       };
 
       void setGlobalSettings(toJsonObject(updated));
 
-      // 3. Force re-render so the badge count updates immediately
+      // 4. Force re-render so the badge count updates immediately
       setRefreshTick((t) => t + 1);
     },
     [game, uid, setGlobalSettings],
@@ -233,25 +286,44 @@ export function CodesProvider({ children }: CodesProviderProps) {
 
       try {
         await client.redeemCode(game, entry.code, uid);
-        persistOneClaimed(entry.code);
+        const result: CodeRedeemResult = {
+          code: entry.code,
+          status: "success",
+          reason: "Redeemed successfully",
+          redeemedAt: new Date().toISOString(),
+        };
+        persistOneClaimed(entry.code, result);
         initial.set(entry.code, "success");
         setRedeemProgress(new Map(initial));
       } catch (error) {
+        const classified = classifyRedeemError(error);
+
         if (isAuthError(error)) {
+          const result: CodeRedeemResult = {
+            code: entry.code,
+            status: classified.status,
+            reason: classified.reason,
+            redeemedAt: new Date().toISOString(),
+          };
+          persistOneClaimed(entry.code, result);
           initial.set(entry.code, "error");
           setRedeemProgress(new Map(initial));
           streamDeck.logger.warn("[RedeemCode] Auth error, stopping redemption loop");
           break;
         }
 
-        const isAlreadyClaimed = error instanceof HoyolabApiError && error.retcode === -2017;
-        persistOneClaimed(entry.code);
-        initial.set(entry.code, isAlreadyClaimed ? "success" : "error");
+        const result: CodeRedeemResult = {
+          code: entry.code,
+          status: classified.status,
+          reason: classified.reason,
+          redeemedAt: new Date().toISOString(),
+        };
+        persistOneClaimed(entry.code, result);
+        initial.set(entry.code, classified.status === "already_claimed" ? "success" : "error");
         setRedeemProgress(new Map(initial));
 
-        if (!isAlreadyClaimed) {
-          const message = error instanceof Error ? error.message : "Unknown error";
-          streamDeck.logger.warn(`[RedeemCode] Failed to redeem ${entry.code}:`, message);
+        if (classified.status !== "already_claimed") {
+          streamDeck.logger.warn(`[RedeemCode] Failed to redeem ${entry.code}:`, classified.reason);
         }
       }
 
