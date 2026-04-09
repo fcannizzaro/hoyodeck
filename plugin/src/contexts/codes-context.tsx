@@ -46,16 +46,17 @@ const EXPIRED_RETCODES = new Set([-2001, -2003, -2016]);
  */
 function classifyRedeemError(error: unknown): { status: CodeRedeemStatus; reason: string } {
   if (error instanceof HoyolabApiError) {
-    if (error.retcode === ALREADY_CLAIMED_RETCODE) {
+    const { message, retcode } = error;
+    if (retcode === ALREADY_CLAIMED_RETCODE) {
       return { status: "already_claimed", reason: "Already claimed" };
     }
-    if (EXPIRED_RETCODES.has(error.retcode)) {
-      return { status: "expired", reason: error.message || "Code expired" };
+    if (EXPIRED_RETCODES.has(retcode)) {
+      return { status: "expired", reason: message || "Code expired" };
     }
     if (isAuthError(error)) {
       return { status: "error", reason: "Authentication failed" };
     }
-    return { status: "error", reason: error.message || `Error (${error.retcode})` };
+    return { status: "error", reason: message || `Error (${retcode})` };
   }
   return { status: "error", reason: error instanceof Error ? error.message : "Unknown error" };
 }
