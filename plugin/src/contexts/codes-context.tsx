@@ -7,17 +7,16 @@ import {
   useCallback,
   useMemo,
 } from "react";
+import { queryOptions, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   useSettings,
   useGlobalSettings,
   useWillAppear,
-  useInterval,
 } from "@fcannizzaro/streamdeck-react";
 import streamDeck from "@elgato/streamdeck";
 import type { JsonObject } from "@elgato/utils";
 import type { RedeemCodeSettings, GlobalSettings, GameId } from "@hoyodeck/shared/types";
 import type {
-  GameCodeWithStatus,
   CodeRedeemProgress,
   CodeRedeemResult,
   CodeRedeemStatus,
@@ -30,7 +29,7 @@ import { useData } from "./data-context";
 
 // ─── Constants ────────────────────────────────────────────────────
 
-const REFRESH_INTERVAL_MS = 5 * 60 * 1000;
+const REFRESH_INTERVAL_MS = 30 * 60 * 1000;
 
 /** Rate-limit cooldown between consecutive redeems (ms) */
 const REDEEM_DELAY_MS = 5_000;
@@ -76,6 +75,12 @@ interface CodesContextValue {
   redeemAll: () => Promise<void>;
 }
 
+interface GameCodeWithStatus {
+  code: string;
+  status: "available" | "claimed" | "dismissed" | "expired";
+  active: boolean;
+}
+
 // ─── Context ──────────────────────────────────────────────────────
 
 const CodesContext = createContext<CodesContextValue | null>(null);
@@ -105,6 +110,26 @@ function mergeStatus(codes: GameCodeWithStatus[], localClaimed: Set<string>): Ga
   });
 }
 
+function toPluginCodes(codes: string[]): GameCodeWithStatus[] {
+  return codes.map((code) => ({
+    code,
+    status: "available",
+    active: true,
+  }));
+}
+
+function codesQueryKey(game: GameId) {
+  return ["codes", "list", game] as const;
+}
+
+function codesQueryOptions(game: GameId) {
+  return queryOptions({
+    queryKey: codesQueryKey(game),
+    queryFn: async () => toPluginCodes(await codesClient.listCodes(game)),
+    refetchInterval: REFRESH_INTERVAL_MS,
+  });
+}
+
 /**
  * Provides codes fetching, claimed-code tracking, and inline
  * redemption for the redeem-code action.
@@ -119,13 +144,13 @@ export function CodesProvider({ children }: CodesProviderProps) {
   const [globalSettings, setGlobalSettings] = useGlobalSettings<GlobalSettings & JsonObject>();
   const account = useAccount();
   const { getClient } = useData();
+  const queryClient = useQueryClient();
 
   const game = (settings.game ?? "gi") as GameId;
   const resolvedAccount = account.status === "resolved" ? account.account : null;
   const uid = resolvedAccount?.uids[game];
 
-  const [codes, setCodes] = useState<GameCodeWithStatus[]>([]);
-  const [, setRefreshTick] = useState(0);
+  const [, setClaimedTick] = useState(0);
   const [redeemProgress, setRedeemProgress] = useState<Map<string, CodeRedeemProgress>>(new Map());
   const [isRedeeming, setIsRedeeming] = useState(false);
 
@@ -210,36 +235,17 @@ export function CodesProvider({ children }: CodesProviderProps) {
       void setGlobalSettings(toJsonObject(updated));
 
       // 4. Force re-render so the badge count updates immediately
-      setRefreshTick((t) => t + 1);
+      setClaimedTick((t) => t + 1);
     },
     [game, uid, setGlobalSettings],
   );
 
-  // Fetch codes from the codes-server
-  const fetchCodes = useCallback(async () => {
-    const result = await codesClient.listCodes(game);
-    setCodes(result);
-  }, [game]);
-
-  // Fetch on mount and when game changes
-  useEffect(() => {
-    void fetchCodes();
-  }, [fetchCodes]);
+  const { data: codes = [], refetch: refetchCodes } = useQuery(codesQueryOptions(game));
 
   // Fetch on key appear (e.g. profile switch, plugin reload)
   useWillAppear(() => {
-    void fetchCodes();
+    void refetchCodes();
   });
-
-  // Auto-refresh every 5 minutes
-  useInterval(
-    () =>
-      setRefreshTick((t) => {
-        void fetchCodes();
-        return t + 1;
-      }),
-    REFRESH_INTERVAL_MS,
-  );
 
   /**
    * Run the redemption loop inline — redeems all available codes
@@ -256,9 +262,8 @@ export function CodesProvider({ children }: CodesProviderProps) {
     setIsRedeeming(true);
 
     // Fetch fresh codes before starting
-    const freshCodes = await codesClient.listCodes(game);
+    const freshCodes = await queryClient.fetchQuery(codesQueryOptions(game));
     const merged = mergeStatus(freshCodes, localClaimed);
-    setCodes(merged);
 
     const available = merged.filter((c) => c.status === "available" && c.active);
 
@@ -337,16 +342,16 @@ export function CodesProvider({ children }: CodesProviderProps) {
     setIsRedeeming(false);
 
     // Refresh codes after completion
-    await fetchCodes();
+    await queryClient.invalidateQueries({ queryKey: codesQueryKey(game) });
   }, [
     isRedeeming,
     resolvedAccount,
     uid,
     game,
     getClient,
+    queryClient,
     localClaimed,
     persistOneClaimed,
-    fetchCodes,
   ]);
 
   // Merge server codes with locally tracked claims

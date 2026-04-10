@@ -1,12 +1,11 @@
-import { useState, useEffect } from "react";
 import { cn, defineAction, useKeyDown, useSettings } from "@fcannizzaro/streamdeck-react";
 import type { JsonObject } from "@elgato/utils";
 import type { DailyRewardSettings, GameId } from "@hoyodeck/shared/types";
 import { useAccount, AccountProvider } from "@/contexts/account-context";
 import { useData, DataProvider } from "@/contexts/data-context";
 import { HoyolabApiError } from "@/api/types/common";
-import { fetchImageAsDataUri } from "@/utils/image";
 import { useLocalImageDataUri } from "@/hooks/use-local-image-data-uri";
+import { useImageDataUri } from "@/hooks/use-image-data-uri";
 import { PlaceholderKey } from "@/components/placeholder-key";
 import { Badge } from "@/components/badge";
 import type { DataType, CheckInData } from "@/services/data-controller.types";
@@ -37,34 +36,9 @@ function DailyRewardKey() {
 
   const checkInEntry = getData(dataType);
   const checkInData = checkInEntry?.status === "ok" ? (checkInEntry.data as CheckInData) : null;
-
-  const [rewardIconUri, setRewardIconUri] = useState<string | null>(null);
-
-  // Fetch reward icon
-  useEffect(() => {
-    if (!checkInData) {
-      setRewardIconUri(null);
-      return;
-    }
-
-    const { info, rewards } = checkInData;
-    const rewardIndex = info.total_sign_day - (info.is_sign ? 1 : 0);
-    const todayReward = rewards.awards[rewardIndex];
-
-    if (!todayReward) {
-      setRewardIconUri(null);
-      return;
-    }
-
-    let cancelled = false;
-    fetchImageAsDataUri(todayReward.icon).then((uri: string) => {
-      if (!cancelled) setRewardIconUri(uri);
-    });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [checkInData]);
+  const rewardIndex = checkInData ? checkInData.info.total_sign_day - (checkInData.info.is_sign ? 1 : 0) : -1;
+  const todayReward = checkInData?.rewards.awards[rewardIndex];
+  const rewardIconUri = useImageDataUri(todayReward?.icon);
 
   useKeyDown(async () => {
     if (account.status !== "resolved") return;
@@ -102,10 +76,7 @@ function DailyRewardKey() {
     );
   }
 
-  const { info, rewards } = checkInData;
-  const rewardIndex = info.total_sign_day - (info.is_sign ? 1 : 0);
-  const todayReward = rewards.awards[rewardIndex];
-  const claimed = info.is_sign;
+  const claimed = checkInData.info.is_sign;
   const useGrayscale = game === "zzz" && claimed;
 
   return (

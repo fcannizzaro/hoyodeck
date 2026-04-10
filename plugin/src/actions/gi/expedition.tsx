@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useMemo, useState } from "react";
 import {
   cn,
   defineAction,
@@ -6,6 +6,7 @@ import {
   useGlobalSettings,
   useInterval,
 } from "@fcannizzaro/streamdeck-react";
+import { useQuery } from "@tanstack/react-query";
 import type { JsonObject } from "@elgato/utils";
 import type { GenshinActionSettings, GlobalSettings } from "@hoyodeck/shared/types";
 import { useGameData } from "@/hooks/use-game-data";
@@ -31,9 +32,6 @@ function ExpeditionKey() {
   const { account, data: dailyNoteEntry, requestUpdate } = useGameData("gi:daily-note");
   const animationsDisabled = globalSettings.disableAnimations ?? false;
 
-  const [expeditions, setExpeditions] = useState<ExpeditionData[]>([]);
-  const [totalExpeditions, setTotalExpeditions] = useState(0);
-  const [lastRefreshTime, setLastRefreshTime] = useState(0);
   const [, setTick] = useState(0);
 
   // Re-render every 30s to update countdown
@@ -44,32 +42,25 @@ function ExpeditionKey() {
   });
 
   const dailyNote = dailyNoteEntry?.status === "ok" ? dailyNoteEntry.data : null;
+  const expeditionAvatarUrls = dailyNote?.expeditions.map((exp) => exp.avatar_side_icon) ?? [];
 
-  // Fetch avatar images when daily note updates
-  useEffect(() => {
-    if (!dailyNote) return;
+  const { data: avatarDataUris = [] } = useQuery({
+    queryKey: ["expedition-avatars", expeditionAvatarUrls],
+    queryFn: async () => Promise.all(expeditionAvatarUrls.map((url) => fetchImageAsDataUri(url))),
+    enabled: expeditionAvatarUrls.length > 0,
+  });
 
-    let cancelled = false;
+  const expeditions = useMemo<ExpeditionData[]>(() => {
+    if (!dailyNote || avatarDataUris.length !== dailyNote.expeditions.length) {
+      return [];
+    }
 
-    Promise.all(dailyNote.expeditions.map((exp) => fetchImageAsDataUri(exp.avatar_side_icon))).then(
-      (avatarDataUris) => {
-        if (cancelled) return;
-        setLastRefreshTime(Date.now());
-        setTotalExpeditions(dailyNote.current_expedition_num);
-        setExpeditions(
-          dailyNote.expeditions.map((exp, i) => ({
-            avatarDataUri: avatarDataUris[i]!,
-            finished: exp.status === "Finished",
-            remainingSeconds: parseInt(exp.remained_time, 10) || 0,
-          })),
-        );
-      },
-    );
-
-    return () => {
-      cancelled = true;
-    };
-  }, [dailyNote]);
+    return dailyNote.expeditions.map((exp, i) => ({
+      avatarDataUri: avatarDataUris[i]!,
+      finished: exp.status === "Finished",
+      remainingSeconds: parseInt(exp.remained_time, 10) || 0,
+    }));
+  }, [dailyNote, avatarDataUris]);
 
   if (account.status !== "resolved") {
     return <PlaceholderKey game={GAME} status={account.status} />;
@@ -84,7 +75,7 @@ function ExpeditionKey() {
   }
 
   // Compute current remaining times
-  const elapsed = (Date.now() - lastRefreshTime) / 1000;
+  const elapsed = dailyNoteEntry ? (Date.now() - dailyNoteEntry.fetchedAt) / 1000 : 0;
   const circles = expeditions.slice(0, 5).map((exp) => {
     const remaining = Math.max(0, exp.remainingSeconds - elapsed);
     return { ...exp, remainingSeconds: remaining, finished: exp.finished || remaining <= 0 };
@@ -92,6 +83,7 @@ function ExpeditionKey() {
 
   const finishedCount = circles.filter((c) => c.finished).length;
   const count = circles.length;
+  const totalExpeditions = dailyNote?.current_expedition_num ?? circles.length;
 
   // Layout: 1-3 = single row, 4-5 = two rows
   const useTwoRows = count > 3;

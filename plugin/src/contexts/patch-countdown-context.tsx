@@ -1,5 +1,6 @@
-import { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react";
-import { useAction, useSettings, useInterval } from "@fcannizzaro/streamdeck-react";
+import { createContext, useContext, useMemo } from "react";
+import { useAction, useSettings } from "@fcannizzaro/streamdeck-react";
+import { useQuery } from "@tanstack/react-query";
 import type { JsonObject } from "@elgato/utils";
 import type { GameId, PatchCountdownSettings, PatchCountdownSlot } from "@hoyodeck/shared/types";
 import { patchesClient, type PatchesResponse } from "@/api/manager/patches-client";
@@ -57,49 +58,40 @@ export function PatchCountdownProvider({ children }: { children?: React.ReactNod
   const [settings] = useSettings<PatchCountdownSettings & JsonObject>();
   const slots: PatchCountdownSlot[] = settings.slots ?? [];
 
-  const [patchData, setPatchData] = useState<PatchesResponse | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const {
+    data: patchData,
+    isPending,
+    refetch: refetchPatches,
+  } = useQuery<PatchesResponse | null>({
+    queryKey: ["patches", "countdown"],
+    queryFn: async () => {
+      debug.log("[PatchCountdown]", actionId, "| fetching via PatchesClient");
 
-  const fetchPatches = useCallback(async () => {
-    debug.log("[PatchCountdown]", actionId, "| fetching via PatchesClient");
+      const data = await patchesClient.fetchPatches();
 
-    const data = await patchesClient.fetchPatches();
-
-    if (data) {
-      setPatchData(data);
-      setError(null);
-      debug.log("[PatchCountdown]", actionId, "| fetched patch data");
-    } else {
-      setError("No patch data available");
-      debug.log("[PatchCountdown]", actionId, "| no patch data returned");
-    }
-  }, [actionId]);
-
-  // Initial fetch
-  useEffect(() => {
-    if (slots.length > 0) {
-      void fetchPatches();
-    }
-  }, [slots.length > 0]);
-
-  // Poll every 10 minutes
-  useInterval(
-    () => {
-      if (slots.length > 0) {
-        void fetchPatches();
+      if (data) {
+        debug.log("[PatchCountdown]", actionId, "| fetched patch data");
+      } else {
+        debug.log("[PatchCountdown]", actionId, "| no patch data returned");
       }
+
+      return data;
     },
-    slots.length > 0 ? POLL_INTERVAL_MS : null,
-  );
+    enabled: slots.length > 0,
+    refetchInterval: POLL_INTERVAL_MS,
+  });
 
   // Resolve slot data from the server response
   const resolvedSlots = useMemo<PatchSlotState[]>(() => {
     return slots.map((slot) => {
       if (!patchData) {
-        if (error) {
-          return { game: slot.game, data: { status: "error" as const, message: error } };
+        if (isPending) {
+          return { game: slot.game, data: { status: "loading" as const } };
         }
-        return { game: slot.game, data: { status: "loading" as const } };
+        return {
+          game: slot.game,
+          data: { status: "error" as const, message: "No patch data available" },
+        };
       }
 
       const serverPatch = patchData[slot.game];
@@ -118,14 +110,16 @@ export function PatchCountdownProvider({ children }: { children?: React.ReactNod
         },
       };
     });
-  }, [slots, patchData, error]);
+  }, [slots, patchData, isPending]);
 
   const value = useMemo<PatchCountdownContextValue>(
     () => ({
       slots: resolvedSlots,
-      requestUpdateAll: fetchPatches,
+      requestUpdateAll: async () => {
+        await refetchPatches();
+      },
     }),
-    [resolvedSlots, fetchPatches],
+    [resolvedSlots, refetchPatches],
   );
 
   return <PatchCountdownContext.Provider value={value}>{children}</PatchCountdownContext.Provider>;
