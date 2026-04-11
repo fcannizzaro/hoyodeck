@@ -73,6 +73,7 @@ function RedeemCodeKey() {
   const wasRedeeming = useRef(false);
 
   useKeyDown(async () => {
+    if (availableCount === 0) return;
     setShowGrid(true);
     await redeemAll();
   });
