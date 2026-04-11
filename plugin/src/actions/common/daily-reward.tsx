@@ -36,7 +36,9 @@ function DailyRewardKey() {
 
   const checkInEntry = getData(dataType);
   const checkInData = checkInEntry?.status === "ok" ? (checkInEntry.data as CheckInData) : null;
-  const rewardIndex = checkInData ? checkInData.info.total_sign_day - (checkInData.info.is_sign ? 1 : 0) : -1;
+  const rewardIndex = checkInData
+    ? checkInData.info.total_sign_day - (checkInData.info.is_sign ? 1 : 0)
+    : -1;
   const todayReward = checkInData?.rewards.awards[rewardIndex];
   const rewardIconUri = useImageDataUri(todayReward?.icon);
 

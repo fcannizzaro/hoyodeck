@@ -21,40 +21,71 @@ const steps = [
       "Drag and drop actions onto your Stream Deck layout. Configure each action to your account and preferred game. Data refreshes automatically.",
   },
 ];
+
+const trustPoints = [
+  "Secure HoYoLAB login inside the property inspector",
+  "No manual cookie extraction or fragile copy-paste setup",
+  "Per-action configuration for the exact game and account you want",
+  "Real-Time Notes support so your device stays genuinely useful",
+];
 ---
 
-<section id="setup" class="px-6 py-16 lg:py-20">
-  <div class="mx-auto max-w-4xl">
-    <!-- Section header -->
-    <div class="mb-16 text-center" data-animate="fade-up">
-      <p class="mb-3 text-xs font-semibold tracking-[0.2em] uppercase text-muted-foreground/60">
-        Getting Started
-      </p>
-      <h2 class="mb-4 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-        Set Up in Minutes
-      </h2>
-      <p class="mx-auto max-w-lg text-sm leading-relaxed text-muted-foreground/70">
-        Four steps and you're live. No manual cookie extraction — the plugin handles authentication through a secure login window.
-      </p>
-    </div>
+<section id="setup" class="section-space section-border">
+  <div class="section-frame">
+    <div class="setup-shell">
+      <div>
+        <div class="section-heading-block" data-animate="fade-up">
+          <p class="section-label">Setup</p>
+          <h2 class="section-title">From install to live data in a few calm clicks.</h2>
+          <p class="section-copy">
+            No manual cookie wrangling. Install the plugin, sign in with HoYoLAB, enable
+            Real-Time Notes, and start placing actions.
+          </p>
+        </div>
 
-    <!-- Steps -->
-    <div class="flex flex-col gap-8">
-      {
-        steps.map((step, i) => (
-          <div
-            class="flex items-start gap-5"
-            data-animate="fade-up"
-            style={`--stagger-delay: ${i * 0.1}s`}
-          >
-            <div class="step-number">{i + 1}</div>
-            <div class="pt-1">
-              <h3 class="mb-1.5 text-base font-semibold text-foreground">{step.title}</h3>
-              <p class="text-sm leading-relaxed text-muted-foreground/70">{step.description}</p>
-            </div>
-          </div>
-        ))
-      }
+        <div class="step-grid">
+          {
+            steps.map((step, i) => (
+              <article
+                class="step-card"
+                data-animate="fade-up"
+                style={`--stagger-delay: ${i * 0.08}s`}
+              >
+                <div class="step-index">0{i + 1}</div>
+                <h3 class="step-title">{step.title}</h3>
+                <p class="step-copy">{step.description}</p>
+              </article>
+            ))
+          }
+        </div>
+      </div>
+
+      <aside class="trust-panel surface-panel" data-animate="slide-left" style="--stagger-delay: 0.12s">
+        <p class="section-label">Why it feels easy</p>
+        <h3 class="trust-title">The auth flow is built for normal humans, not workarounds.</h3>
+        <p class="trust-copy">
+          HoYo Deck keeps setup practical: sign in once, point actions at the right game,
+          and let the plugin handle the data refresh loop.
+        </p>
+
+        <div class="trust-list">
+          {
+            trustPoints.map((point) => (
+              <div class="trust-item">
+                <span class="trust-check"></span>
+                <p>{point}</p>
+              </div>
+            ))
+          }
+        </div>
+
+        <div class="trust-flow">
+          <span>Marketplace</span>
+          <span>HoYoLAB login</span>
+          <span>Enable notes</span>
+          <span>Place actions</span>
+        </div>
+      </aside>
     </div>
   </div>
 </section>

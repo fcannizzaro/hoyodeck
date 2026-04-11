@@ -3,32 +3,34 @@ const frames = ["/divider/1.webp", "/divider/2.webp", "/divider/3.webp", "/divid
 const duration = 0.8;
 ---
 
-<div class="flex items-center gap-6 px-6 py-4">
-  <!-- Left line -->
-  <div class="h-px flex-1 bg-linear-to-r from-transparent to-white/10" />
+<div class="section-frame">
+  <div class="sprite-divider-shell" data-animate="fade-in">
+    <div class="sprite-divider-line"></div>
 
-  <!-- Sprite animation -->
-  <div class="sprite-container relative h-28 w-auto shrink-0">
-    <!-- Background scene -->
-    <img
-      src="/sprite-bg.webp"
-      alt=""
-      draggable="false"
-      class="inset-0 h-full mx-auto object-fit opacity-25"
-    />
-    {
-      frames.map((src, i) => (
+    <div class="sprite-divider-core">
+      <div class="sprite-divider-scene">
         <img
-          src={src}
+          src="/sprite-bg.webp"
           alt=""
           draggable="false"
-          class="absolute inset-0 h-full w-full object-contain"
-          style={`animation: sprite-frame ${duration}s steps(1) infinite; animation-delay: ${i * duration / 4}s; opacity: 0;`}
+          class="sprite-divider-bg"
         />
-      ))
-    }
-  </div>
+        {
+          frames.map((src, i) => (
+            <img
+              src={src}
+              alt=""
+              draggable="false"
+              class="sprite-divider-frame"
+              style={`animation: sprite-frame ${duration}s steps(1) infinite; animation-delay: ${i * duration / 4}s; opacity: 0;`}
+            />
+          ))
+        }
+      </div>
 
-  <!-- Right line -->
-  <div class="h-px flex-1 bg-linear-to-l from-transparent to-white/10" />
+      <p class="sprite-divider-label">three universes · one desk companion</p>
+    </div>
+
+    <div class="sprite-divider-line"></div>
+  </div>
 </div>

@@ -24,22 +24,26 @@ const {
     <meta property="og:description" content={description} />
     <meta property="og:type" content="website" />
     <meta property="og:image" content="/og.webp" />
-    <meta name="theme-color" content="#191b2a" />
+    <meta name="theme-color" content="#080b12" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Outfit:wght@300..800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Instrument+Sans:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
+    <script is:inline>
+      document.documentElement.classList.add("js");
+    </script>
     <title>{title}</title>
   </head>
-  <body class="min-h-screen bg-background text-foreground antialiased">
-    <!-- Film grain overlay -->
-    <div class="grain" aria-hidden="true"></div>
+  <body class="min-h-screen bg-background text-foreground antialiased selection:bg-white/15 selection:text-white">
+    <div class="site-ambient site-ambient-one" aria-hidden="true"></div>
+    <div class="site-ambient site-ambient-two" aria-hidden="true"></div>
+    <div class="site-noise" aria-hidden="true"></div>
 
     <Navbar />
-    <main>
+    <main class="relative overflow-hidden">
       <slot />
     </main>
   </body>
@@ -58,16 +62,32 @@ const {
     { threshold: 0.08 },
   );
 
+  const revealIfVisible = (el) => {
+    const rect = el.getBoundingClientRect();
+    const visible = rect.top < window.innerHeight * 0.92 && rect.bottom > 0;
+
+    if (visible) {
+      el.classList.add("is-visible");
+      return true;
+    }
+
+    return false;
+  };
+
   // Observe all existing [data-animate] elements
-  document.querySelectorAll("[data-animate]").forEach((el) => io.observe(el));
+  document.querySelectorAll("[data-animate]").forEach((el) => {
+    if (!revealIfVisible(el)) io.observe(el);
+  });
 
   // Also observe dynamically added elements (React islands hydrate after page load)
   const mo = new MutationObserver((mutations) => {
     for (const mutation of mutations) {
       for (const node of mutation.addedNodes) {
         if (node instanceof HTMLElement) {
-          if (node.dataset.animate) io.observe(node);
-          node.querySelectorAll("[data-animate]").forEach((el) => io.observe(el));
+          if (node.dataset.animate && !revealIfVisible(node)) io.observe(node);
+          node.querySelectorAll("[data-animate]").forEach((el) => {
+            if (!revealIfVisible(el)) io.observe(el);
+          });
         }
       }
     }

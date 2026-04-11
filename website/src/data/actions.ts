@@ -6,227 +6,165 @@ export interface ActionDef {
   description: string;
   features: string[];
   inputType: InputType;
+  supportedGames?: Array<"gi" | "hsr" | "zzz">;
 }
 
 export interface GameDef {
   id: "gi" | "hsr" | "zzz";
   name: string;
   description: string;
-  actions: ActionDef[];
+  availability: string;
+  coreActions: ActionDef[];
+  utilityActions: ActionDef[];
+  exclusiveActions: ActionDef[];
 }
 
-export interface CrossGameActionDef {
-  id: string;
-  name: string;
-  description: string;
-  features: string[];
-  inputType: InputType;
-}
+export const coreActions: ActionDef[] = [
+  {
+    id: "stamina",
+    name: "Stamina",
+    description:
+      "One unified stamina key for Resin, Trailblaze Power, or Battery Charge. Pick the game in settings and press to refresh.",
+    features: ["GI / HSR / ZZZ", "Tap to refresh", "Game-specific art"],
+    inputType: "key",
+    supportedGames: ["gi", "hsr", "zzz"],
+  },
+  {
+    id: "banner",
+    name: "Wish Banner",
+    description:
+      "Unified banner action for all supported games with both key and Stream Deck+ dial layouts.",
+    features: ["Key + dial", "Current 5★ pools", "Countdown timer"],
+    inputType: "key+dial",
+    supportedGames: ["gi", "hsr", "zzz"],
+  },
+  {
+    id: "endgame",
+    name: "Endgame",
+    description:
+      "Unified endgame tracker that switches between each game's active challenge modes and reset windows.",
+    features: ["Per-game modes", "Star progress", "Ending-soonest view"],
+    inputType: "key",
+    supportedGames: ["gi", "hsr", "zzz"],
+  },
+  {
+    id: "daily-reward",
+    name: "Daily Reward",
+    description:
+      "See today's HoYoLAB login reward and claim it directly from the key for the selected game.",
+    features: ["In-key claim", "Reward preview", "Done overlay"],
+    inputType: "key",
+    supportedGames: ["gi", "hsr", "zzz"],
+  },
+  {
+    id: "redeem-code",
+    name: "Redeem Code",
+    description:
+      "Redeem available promo codes for the selected game and watch progress directly on the key.",
+    features: ["Batch redeem", "Live status grid", "Per-game codes"],
+    inputType: "key",
+    supportedGames: ["gi", "hsr", "zzz"],
+  },
+];
+
+export const multiGameUtilities: ActionDef[] = [
+  {
+    id: "stamina-overview",
+    name: "Stamina Overview",
+    description: "Stream Deck+ overview for up to three game stamina meters in one dial display.",
+    features: ["Dial only", "Up to 3 slots", "Rotate focus"],
+    inputType: "dial",
+    supportedGames: ["gi", "hsr", "zzz"],
+  },
+  {
+    id: "wish-tracker",
+    name: "Wish Tracker",
+    description:
+      "Manual pity counter for Stream Deck+ with rotate, press, tap, and long-touch gestures.",
+    features: ["Dial only", "+1 / +10", "Tap switch / hold reset"],
+    inputType: "dial",
+    supportedGames: ["gi", "hsr", "zzz"],
+  },
+  {
+    id: "patch-countdown",
+    name: "Patch Countdown",
+    description: "Version countdown rows for multiple games on either key or dial layouts.",
+    features: ["Key + dial", "Up to 3 games", "Refresh on tap"],
+    inputType: "key+dial",
+    supportedGames: ["gi", "hsr", "zzz"],
+  },
+];
+
+const genshinExclusiveActions: ActionDef[] = [
+  {
+    id: "commissions",
+    name: "Commissions",
+    description:
+      "Animated daily commission tracker with unfinished, completed, and rewarded states.",
+    features: ["Genshin only", "Animated mascot", "Progress badge"],
+    inputType: "key",
+    supportedGames: ["gi"],
+  },
+  {
+    id: "expeditions",
+    name: "Expeditions",
+    description: "Shows expedition avatars with completion status and a finished-count badge.",
+    features: ["Genshin only", "Avatar grid", "Completion count"],
+    inputType: "key",
+    supportedGames: ["gi"],
+  },
+  {
+    id: "teapot",
+    name: "Teapot",
+    description:
+      "Serenitea Pot currency tracker with floating Tubby art and a max-coin warning state.",
+    features: ["Genshin only", "Tubby animation", "MAX COIN alert"],
+    inputType: "key",
+    supportedGames: ["gi"],
+  },
+  {
+    id: "transformer",
+    name: "Transformer",
+    description:
+      "Parametric Transformer cooldown key with ready-state handling and progress cover.",
+    features: ["Genshin only", "Cooldown timer", "Ready state"],
+    inputType: "key",
+    supportedGames: ["gi"],
+  },
+];
 
 export const games: GameDef[] = [
   {
     id: "gi",
     name: "Genshin Impact",
     description:
-      "Monitor your Original Resin, daily commissions, expeditions, Serenitea Pot, endgame progress, and current banners — never miss a resin cap again.",
-    actions: [
-      {
-        id: "resin",
-        name: "Resin",
-        description:
-          "Animated fill gauge showing your current Original Resin with visual fill level and count badge.",
-        features: ["Fill-level visualization", "0–200 range", "Tap to refresh"],
-        inputType: "key",
-      },
-      {
-        id: "commissions",
-        name: "Commissions",
-        description:
-          "Daily commission progress tracker with an animated mascot that blinks and floats across three visual states.",
-        features: ["Progress tracking", "Animated mascot", "Three visual states"],
-        inputType: "key",
-      },
-      {
-        id: "expeditions",
-        name: "Expeditions",
-        description:
-          "Character avatar display showing all active expeditions with completion status and live countdown timers.",
-        features: ["Character avatars", "Completion indicators", "Live countdown"],
-        inputType: "key",
-      },
-      {
-        id: "teapot",
-        name: "Teapot",
-        description:
-          "Serenitea Pot realm currency shown as a percentage with a floating Tubby animation and max coin alert.",
-        features: ["Currency percentage", "Floating animation", "MAX COIN alert"],
-        inputType: "key",
-      },
-      {
-        id: "transformer",
-        name: "Transformer",
-        description:
-          "Parametric Transformer cooldown timer with ready state indicator. Supports icon and text display styles.",
-        features: ["Cooldown timer", "Ready indicator", "Two display styles"],
-        inputType: "key",
-      },
-      {
-        id: "endgame",
-        name: "Endgame",
-        description:
-          "Track Spiral Abyss, Imaginarium Theater, and Stygian Onslaught progress with star counts and reset timers.",
-        features: [
-          "3 endgame modes",
-          "Star count",
-          "Days until reset",
-          "Auto-select ending soonest",
-        ],
-        inputType: "key",
-      },
-      {
-        id: "banner",
-        name: "Banner",
-        description:
-          "Current wish banner with 5-star character or weapon icon, countdown badge, and animated blink effect.",
-        features: [
-          "Character / weapon icon",
-          "Countdown badge",
-          "Cycle banners",
-          "Blink animation",
-        ],
-        inputType: "key+dial",
-      },
-    ],
+      "Genshin gets the full shared action set plus dedicated keys for commissions, expeditions, teapot income, and the Parametric Transformer.",
+    availability: "Shared unified actions + 4 GI-only keys",
+    coreActions,
+    utilityActions: multiGameUtilities,
+    exclusiveActions: genshinExclusiveActions,
   },
   {
     id: "hsr",
     name: "Honkai: Star Rail",
     description:
-      "Keep an eye on your Trailblaze Power, endgame challenges, and current warp banners at a glance.",
-    actions: [
-      {
-        id: "trailblaze-power",
-        name: "Trailblaze Power",
-        description:
-          "Animated fill gauge showing your current Trailblaze Power with visual fill level and count badge.",
-        features: ["Fill-level visualization", "0–300 range", "Tap to refresh"],
-        inputType: "key",
-      },
-      {
-        id: "endgame",
-        name: "Endgame",
-        description:
-          "Track Memory of Chaos, Pure Fiction, Apocalyptic Shadow, and Anomaly Arbitration with star counts and timers.",
-        features: [
-          "4 endgame modes",
-          "Star count",
-          "Days until reset",
-          "Auto-select ending soonest",
-        ],
-        inputType: "key",
-      },
-      {
-        id: "banner",
-        name: "Banner",
-        description:
-          "Current warp banner with 5-star character or Light Cone icon, countdown badge, and blink animation.",
-        features: [
-          "Character / Light Cone icon",
-          "Countdown badge",
-          "Cycle banners",
-          "Blink animation",
-        ],
-        inputType: "key+dial",
-      },
-    ],
+      "Star Rail now uses the unified common actions for stamina, banners, endgame, rewards, and code redemption, plus the multi-game dial tools.",
+    availability: "Unified common action set",
+    coreActions,
+    utilityActions: multiGameUtilities,
+    exclusiveActions: [],
   },
   {
     id: "zzz",
     name: "Zenless Zone Zero",
     description:
-      "Track your Battery Charge, endgame challenges, and Signal Search banners directly from your desk.",
-    actions: [
-      {
-        id: "battery-charge",
-        name: "Battery Charge",
-        description:
-          "Animated fill gauge showing your current Battery Charge with visual fill level and count badge.",
-        features: ["Fill-level visualization", "0–240 range", "Tap to refresh"],
-        inputType: "key",
-      },
-      {
-        id: "endgame",
-        name: "Endgame",
-        description:
-          "Track Shiyu Defense and Deadly Assault progress with star counts and season reset timers.",
-        features: [
-          "2 endgame modes",
-          "Star count",
-          "Days until reset",
-          "Auto-select ending soonest",
-        ],
-        inputType: "key",
-      },
-      {
-        id: "banner",
-        name: "Banner",
-        description:
-          "Current Signal Search banner with S-rank character or W-Engine icon, countdown badge, and blink animation.",
-        features: [
-          "Character / W-Engine icon",
-          "Countdown badge",
-          "Cycle banners",
-          "Blink animation",
-        ],
-        inputType: "key+dial",
-      },
-    ],
+      "ZZZ also runs on the unified common actions, covering battery charge, banners, endgame, daily rewards, and shared multi-game utilities.",
+    availability: "Unified common action set",
+    coreActions,
+    utilityActions: multiGameUtilities,
+    exclusiveActions: [],
   },
 ];
 
-export const crossGameActions: CrossGameActionDef[] = [
-  {
-    id: "daily-reward",
-    name: "Daily Reward",
-    description:
-      "Shows today's HoYoLAB check-in reward with a preview of the item. Tap to claim it directly from your Stream Deck.",
-    features: ["Today's reward preview", "One-tap claim", "Done overlay"],
-    inputType: "key",
-  },
-  {
-    id: "redeem-code",
-    name: "Redeem Code",
-    description:
-      "Automatically detects and redeems all available promo codes for your account with live progress tracking.",
-    features: ["Auto-detect new codes", "Batch redeem", "Live progress", "Per-account tracking"],
-    inputType: "key",
-  },
-  {
-    id: "stamina-overview",
-    name: "Stamina Overview",
-    description:
-      "Multi-game stamina overview for your Stream Deck+ encoder. Shows up to three games side-by-side with rotate to focus and tap to refresh.",
-    features: ["Up to 3 games", "Rotate to focus", "Tap to refresh"],
-    inputType: "dial",
-  },
-  {
-    id: "wish-tracker",
-    name: "Wish Tracker",
-    description:
-      "Manual pity counter for all games on the encoder. Rotate to increment, press for +10, and tap the display to switch game or reset.",
-    features: ["Pity counter", "Rotate / press", "Multi-game", "Tap to reset"],
-    inputType: "dial",
-  },
-  {
-    id: "patch-countdown",
-    name: "Patch Countdown",
-    description:
-      "Multi-game version countdown showing time remaining until each game's next patch. Configure up to three game slots with color-coded badges.",
-    features: ["Up to 3 games", "Days & hours", "Color-coded badges", "Tap to refresh"],
-    inputType: "key+dial",
-  },
-];
-
-/** Total action count: 7 (GI) + 3 (HSR) + 3 (ZZZ) + 5 (cross-game) = 18 */
 export const TOTAL_ACTIONS =
-  games.reduce((sum, g) => sum + g.actions.length, 0) + crossGameActions.length;
+  coreActions.length + multiGameUtilities.length + genshinExclusiveActions.length;

@@ -1,26 +1,27 @@
 ---
-import { games } from "../data/actions";
+import * as actionData from "../data/actions";
 import type { InputType } from "../data/actions";
 
-const gameGradients: Record<string, string> = {
-  gi: "gradient-genshin",
-  hsr: "gradient-hsr",
-  zzz: "gradient-zzz",
+type SupportedGame = "gi" | "hsr" | "zzz";
+
+type WebsiteActionDef = {
+  id: string;
+  name: string;
+  description: string;
+  features: string[];
+  inputType: InputType;
+  supportedGames?: SupportedGame[];
 };
 
-const gameAccents: Record<string, string> = {
-  gi: "accent-gi",
-  hsr: "accent-hsr",
-  zzz: "accent-zzz",
+type InputBadge = { label: string; icon: string };
+
+const gameCodes: Record<SupportedGame, string> = {
+  gi: "GI",
+  hsr: "HSR",
+  zzz: "ZZZ",
 };
 
-const pillClasses: Record<string, string> = {
-  gi: "pill pill-gi",
-  hsr: "pill pill-hsr",
-  zzz: "pill pill-zzz",
-};
-
-const inputBadges: Record<InputType, { label: string; icon: string }[]> = {
+const inputBadges: Record<InputType, InputBadge[]> = {
   key: [
     { label: "Key", icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="3"/><circle cx="12" cy="14" r="2.5"/></svg>` },
   ],
@@ -32,104 +33,222 @@ const inputBadges: Record<InputType, { label: string; icon: string }[]> = {
     { label: "Dial", icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>` },
   ],
 };
+
+const sharedCoreActions: WebsiteActionDef[] = [
+  {
+    id: "stamina",
+    name: "Stamina",
+    description:
+      "One unified stamina key for Resin, Trailblaze Power, or Battery Charge. Pick game in settings, press refresh.",
+    features: ["GI / HSR / ZZZ", "Tap refresh", "Game-specific art"],
+    inputType: "key",
+    supportedGames: ["gi", "hsr", "zzz"],
+  },
+  {
+    id: "banner",
+    name: "Wish Banner",
+    description:
+      "Unified banner action for all supported games with both key and Stream Deck+ dial layouts.",
+    features: ["Key + dial", "Current 5★ pools", "Countdown timer"],
+    inputType: "key+dial",
+    supportedGames: ["gi", "hsr", "zzz"],
+  },
+  {
+    id: "endgame",
+    name: "Endgame",
+    description:
+      "Unified endgame tracker that switches between each game's active challenge modes and reset windows.",
+    features: ["Per-game modes", "Star progress", "Ending-soonest view"],
+    inputType: "key",
+    supportedGames: ["gi", "hsr", "zzz"],
+  },
+  {
+    id: "daily-reward",
+    name: "Daily Reward",
+    description:
+      "See today's HoYoLAB login reward and claim it directly from key for selected game.",
+    features: ["In-key claim", "Reward preview", "Done overlay"],
+    inputType: "key",
+    supportedGames: ["gi", "hsr", "zzz"],
+  },
+  {
+    id: "redeem-code",
+    name: "Redeem Code",
+    description:
+      "Redeem available promo codes for selected game and watch progress directly on key.",
+    features: ["Batch redeem", "Live status grid", "Per-game codes"],
+    inputType: "key",
+    supportedGames: ["gi", "hsr", "zzz"],
+  },
+];
+
+const sharedUtilityActions: WebsiteActionDef[] = [
+  {
+    id: "stamina-overview",
+    name: "Stamina Overview",
+    description:
+      "Stream Deck+ overview for up to three game stamina meters in one dial display.",
+    features: ["Dial only", "Up to 3 slots", "Rotate focus"],
+    inputType: "dial",
+    supportedGames: ["gi", "hsr", "zzz"],
+  },
+  {
+    id: "wish-tracker",
+    name: "Wish Tracker",
+    description:
+      "Manual pity counter for Stream Deck+ with rotate, press, tap, long-touch gestures.",
+    features: ["Dial only", "+1 / +10", "Tap switch / hold reset"],
+    inputType: "dial",
+    supportedGames: ["gi", "hsr", "zzz"],
+  },
+  {
+    id: "patch-countdown",
+    name: "Patch Countdown",
+    description:
+      "Version countdown rows for multiple games on either key or dial layouts.",
+    features: ["Key + dial", "Up to 3 games", "Refresh tap"],
+    inputType: "key+dial",
+    supportedGames: ["gi", "hsr", "zzz"],
+  },
+];
+
+const genshin = (actionData.games as unknown as Array<{
+  id: SupportedGame;
+  exclusiveActions: WebsiteActionDef[];
+}>).find((game) => game.id === "gi");
 ---
 
-<section id="games" class="relative px-6 py-16 lg:py-20">
-  <div class="mx-auto max-w-6xl">
-    <!-- Section header -->
-    <div class="mb-20 text-center" data-animate="fade-up">
-      <p class="mb-3 text-xs font-semibold tracking-[0.2em] uppercase text-muted-foreground/60">
-        Actions
+<section id="games" class="section-space">
+  <div class="section-frame">
+    <div class="section-heading-block" data-animate="fade-up">
+      <p class="section-label">Actions</p>
+      <h2 class="section-title">Shared actions first, game-specific where still matters.</h2>
+      <p class="section-copy">
+        HoYo Deck now runs on common action layer across all supported games. Genshin keeps
+        small set of dedicated extras.
       </p>
-      <h2 class="mb-4 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-        Supported Games
-      </h2>
-      <p class="mx-auto max-w-lg text-sm leading-relaxed text-muted-foreground/70">
-        Each game has dedicated actions tailored to its unique mechanics.
-        Configure them per account and track everything in real time.
-      </p>
-      <div class="mt-5 flex items-center justify-center gap-3">
-        <img src="/icons/gi.webp" alt="Genshin Impact" class="size-10 rounded-md object-contain opacity-70 transition-opacity hover:opacity-100" />
-        <img src="/icons/hsr.webp" alt="Honkai: Star Rail" class="size-10 rounded-md object-contain opacity-70 transition-opacity hover:opacity-100" />
-        <img src="/icons/zzz.webp" alt="Zenless Zone Zero" class="size-10 rounded-md object-contain opacity-70 transition-opacity hover:opacity-100" />
-      </div>
     </div>
 
-    <!-- Game sections -->
-    <div class="flex flex-col gap-28">
-      {
-        games.map((game, gameIndex) => (
-          <div class={`relative ${gameAccents[game.id]}`}>
-            {/* Game banner header */}
-            <div
-              class={`relative mb-10 overflow-hidden rounded-2xl ${gameGradients[game.id]}`}
-              data-animate="fade-up"
-              style={`--stagger-delay: ${gameIndex * 0.1}s`}
-            >
-              {/* Banner background image */}
-              <div
-                class="absolute inset-0 bg-cover bg-center opacity-25"
-                style={`background-image: url('/banners/${game.id}.webp'); mask-image: linear-gradient(to right, transparent 0%, black 30%, black 70%, transparent 100%);`}
-              />
-
-              {/* Content overlay */}
-              <div class="relative flex items-center gap-5 px-8 py-10 sm:px-10 sm:py-12">
-                <img
-                  src={`/icons/${game.id}.webp`}
-                  alt={game.name}
-                  class="size-14 shrink-0 rounded-lg object-contain sm:size-16"
-                />
-                <div>
-                  <h3 class="mb-1 text-2xl font-bold text-foreground sm:text-3xl">
-                    {game.name}
-                  </h3>
-                  <p class="max-w-lg text-sm leading-relaxed text-muted-foreground/80">
-                    {game.description}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Actions grid */}
-            <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {game.actions.map((action, actionIndex) => (
-                <div
-                  class="action-card flex flex-col gap-4 rounded-xl border border-white/6 bg-white/[0.02] p-6"
-                  data-animate="fade-up"
-                  style={`--stagger-delay: ${gameIndex * 0.05 + actionIndex * 0.06}s`}
-                >
-                  {/* Action header */}
-                  <div class="flex items-center gap-2">
-                    <h4 class="text-base font-semibold tracking-tight text-foreground">
-                      {action.name}
-                    </h4>
-                    <div class="flex items-center gap-1">
-                      {inputBadges[action.inputType].map(({ label, icon }) => (
-                        <span class="input-badge">
-                          <Fragment set:html={icon} />
-                          {label}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Description */}
-                  <p class="text-sm leading-relaxed text-muted-foreground/70">
-                    {action.description}
-                  </p>
-
-                  {/* Feature pills */}
-                  <div class="mt-auto flex flex-wrap gap-2 pt-1">
-                    {action.features.map((feature) => (
-                      <span class={pillClasses[game.id]}>{feature}</span>
+    <div class="shared-actions-layout">
+      <div class="shared-action-block" data-animate="fade-up" style="--stagger-delay: 0.04s">
+        <p class="game-action-section-label">Shared core actions</p>
+        <div class="library-action-stack shared-stack">
+          {sharedCoreActions.map((action: WebsiteActionDef) => (
+            <div class="library-action-card compact-card">
+              <div class="library-action-header">
+                <div class="action-title-block">
+                  <h4 class="library-action-title">{action.name}</h4>
+                  <div class="supported-games-row">
+                    {(action.supportedGames ?? ["gi", "hsr", "zzz"]).map((game: SupportedGame) => (
+                      <img src={`/icons/${game}.webp`} alt={gameCodes[game]} title={gameCodes[game]} />
                     ))}
                   </div>
                 </div>
-              ))}
+
+                <div class="action-input-row">
+                  {inputBadges[action.inputType].map(({ label, icon }: InputBadge) => (
+                    <span class="input-badge">
+                      <Fragment set:html={icon} />
+                      {label}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              <p class="library-action-copy">{action.description}</p>
+
+              <div class="action-tag-row">
+                {action.features.map((feature: string) => (
+                  <span class="pill">{feature}</span>
+                ))}
+              </div>
             </div>
-          </div>
-        ))
-      }
+          ))}
+        </div>
+      </div>
+
+      <div class="shared-action-block" data-animate="fade-up" style="--stagger-delay: 0.08s">
+        <p class="game-action-section-label">Shared Stream Deck+ utilities</p>
+        <div class="library-action-stack shared-stack">
+          {sharedUtilityActions.map((action: WebsiteActionDef) => (
+            <div class="library-action-card compact-card compact-card-muted">
+              <div class="library-action-header">
+                <div class="action-title-block">
+                  <h4 class="library-action-title">{action.name}</h4>
+                  <div class="supported-games-row">
+                    {(action.supportedGames ?? ["gi", "hsr", "zzz"]).map((game: SupportedGame) => (
+                      <img src={`/icons/${game}.webp`} alt={gameCodes[game]} title={gameCodes[game]} />
+                    ))}
+                  </div>
+                </div>
+
+                <div class="action-input-row">
+                  {inputBadges[action.inputType].map(({ label, icon }: InputBadge) => (
+                    <span class="input-badge">
+                      <Fragment set:html={icon} />
+                      {label}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              <p class="library-action-copy">{action.description}</p>
+
+              <div class="action-tag-row">
+                {action.features.map((feature: string) => (
+                  <span class="pill">{feature}</span>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
+
+    {genshin ? (
+      <div class="genshin-exclusive-section" data-animate="fade-up" style="--stagger-delay: 0.14s">
+        <div class="section-heading-block section-heading-compact">
+          <p class="section-label">Genshin extras</p>
+          <h3 class="shared-actions-title">Dedicated Genshin-only actions.</h3>
+          <p class="shared-actions-copy">
+            Remaining purpose-built keys that still make sense as Genshin-specific experiences.
+          </p>
+        </div>
+
+        <div class="library-action-stack shared-stack">
+          {genshin.exclusiveActions.map((action: WebsiteActionDef) => (
+            <div class="library-action-card compact-card compact-card-highlight">
+              <div class="library-action-header">
+                <div class="action-title-block">
+                  <h4 class="library-action-title">{action.name}</h4>
+                  <div class="supported-games-row">
+                    {(action.supportedGames ?? ["gi"]).map((game: SupportedGame) => (
+                      <img src={`/icons/${game}.webp`} alt={gameCodes[game]} title={gameCodes[game]} />
+                    ))}
+                  </div>
+                </div>
+
+                <div class="action-input-row">
+                  {inputBadges[action.inputType].map(({ label, icon }: InputBadge) => (
+                    <span class="input-badge">
+                      <Fragment set:html={icon} />
+                      {label}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              <p class="library-action-copy">{action.description}</p>
+
+              <div class="action-tag-row">
+                {action.features.map((feature: string) => (
+                  <span class="pill pill-gi">{feature}</span>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    ) : null}
   </div>
 </section>

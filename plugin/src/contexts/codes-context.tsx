@@ -8,11 +8,7 @@ import {
   useMemo,
 } from "react";
 import { queryOptions, useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-  useSettings,
-  useGlobalSettings,
-  useWillAppear,
-} from "@fcannizzaro/streamdeck-react";
+import { useSettings, useGlobalSettings, useWillAppear } from "@fcannizzaro/streamdeck-react";
 import streamDeck from "@elgato/streamdeck";
 import type { JsonObject } from "@elgato/utils";
 import type { RedeemCodeSettings, GlobalSettings, GameId } from "@hoyodeck/shared/types";
