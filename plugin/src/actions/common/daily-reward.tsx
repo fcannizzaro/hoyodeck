@@ -128,6 +128,7 @@ export const dailyRewardAction = defineAction<DailyRewardSettings & JsonObject>(
   wrapper: DailyRewardWrapper,
   info: {
     name: "Daily Reward",
+    disableCaching: true,
     icon: "imgs/actions/common/reward-icon",
     tooltip: "View and claim HoYoLAB daily check-in reward",
     states: [{ image: "imgs/actions/common/reward-state", titleAlignment: "middle" }],

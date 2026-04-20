@@ -76,3 +76,11 @@ export const REDEEM_URLS: Record<string, string> = {
   hsr: "https://sg-hkrpg-api.hoyolab.com/common/apicdkey/api/webExchangeCdkey",
   zzz: "https://public-operation-nap.hoyoverse.com/common/apicdkey/api/webExchangeCdkey",
 };
+
+/**
+ * Token refresh endpoint — generates a new cookie_token_v2 from a valid stoken_v2.
+ * Used to keep code redemption working after cookie_token_v2 expires (~days)
+ * while the longer-lived stoken_v2 is still valid.
+ */
+export const TOKEN_REFRESH_URL =
+  "https://sg-public-api.hoyolab.com/account/ma-passport/token/getBySToken";

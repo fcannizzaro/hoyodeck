@@ -14,26 +14,26 @@
     "cli": "bfr --env -- bun run src/cli.ts"
   },
   "dependencies": {
-    "@elgato/streamdeck": "^2.0.4",
-    "@elgato/utils": "^0.4.4",
+    "@elgato/streamdeck": "^2.1.0",
+    "@elgato/utils": "^0.4.5",
     "@fcannizzaro/streamdeck-react": "^0.3.0",
     "@fontsource/inter": "^5.2.8",
     "@hoyodeck/shared": "workspace:*",
     "@nativewindow/webview": "^1.0.6",
     "@takumi-rs/core": "latest",
-    "@tanstack/react-query": "^5.97.0",
+    "@tanstack/react-query": "^5.99.2",
     "react": "^19.2.5",
     "ws": "latest",
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@elgato/cli": "^1.7.3",
+    "@elgato/cli": "^1.7.4",
     "@tailwindcss/vite": "^4.2.2",
     "@types/node": "^25.6.0",
     "@types/react": "^19.1.0",
     "@vitejs/plugin-react": "^6.0.1",
     "tailwindcss": "^4.2.2",
-    "vite": "^8.0.8"
+    "vite": "^8.0.9"
   },
   "engines": {
     "node": ">=20"

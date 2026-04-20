@@ -152,6 +152,7 @@ export const expeditionAction = defineAction<GenshinActionSettings & JsonObject>
   wrapper: createActionWrapper(GAME, ["gi:daily-note"]),
   info: {
     name: "[GI] Expeditions",
+    disableCaching: true,
     icon: "imgs/actions/gi/expeditions-icon",
     tooltip: "Display completed expeditions",
     states: [{ image: "imgs/actions/gi/expeditions-state", titleAlignment: "middle" }],

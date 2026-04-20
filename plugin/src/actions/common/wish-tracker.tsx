@@ -241,6 +241,7 @@ export const wishTrackerAction = defineAction<WishTrackerSettings & JsonObject>(
   dial: WishTrackerDial,
   info: {
     name: "Wish Tracker",
+    disableCaching: true,
     icon: "imgs/actions/common/wish-tracker-icon",
     tooltip: "Manual banner wish/pity counter for all HoYoverse games",
     states: [{ image: "imgs/actions/gi/5-star", titleAlignment: "middle" }],

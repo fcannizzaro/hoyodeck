@@ -1,5 +1,14 @@
-import { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  useRef,
+} from "react";
 import { useAction } from "@fcannizzaro/streamdeck-react";
+import streamDeck from "@elgato/streamdeck";
 import type { GameId } from "@hoyodeck/shared/types";
 import type { HoyolabClient } from "@/api/hoyolab/client";
 import { dataController } from "@/services/data-controller";
@@ -23,6 +32,12 @@ interface DataContextValue {
   getData: <T extends DataType>(dataType: T) => DataEntry<DataTypeMap[T]> | undefined;
   /** Get the HoyolabClient for write operations (e.g. check-in) */
   getClient: () => HoyolabClient | null;
+  /**
+   * Refresh cookie_token_v2 using stoken_v2 for the resolved account.
+   * Returns a fresh HoyolabClient with updated cookies, or null if refresh
+   * is not possible (e.g. no stoken_v2 stored for this account).
+   */
+  refreshCookieToken: () => Promise<HoyolabClient | null>;
 }
 
 // ─── Context ──────────────────────────────────────────────────────
@@ -63,6 +78,65 @@ export function DataProvider({ game, dataTypes, children }: DataProviderProps) {
   // deps ensures re-registration + a fresh fetch once the UID is available.
   const resolvedUid = account.status === "resolved" ? account.account.uids[game] : undefined;
 
+  // ── Clear stale entries when the game or action changes ─────────
+  //
+  // When the recycling pool reuses a root that was configured for a
+  // different game (e.g. GI root recycled for HSR), `entries` still
+  // holds data keyed by the old game's DataTypes (e.g. "gi:daily-note").
+  // The new key component asks for "hsr:daily-note" which doesn't exist
+  // in entries — but the old keys linger as garbage.
+  //
+  // Clearing entries eagerly on game/action change ensures:
+  // 1. The component sees a clean loading state immediately
+  // 2. The subsequent register() → cached data push fills entries
+  //    with the correct game's data (no stale cross-game keys)
+  const prevGameRef = useRef(game);
+  const prevActionRef = useRef(actionId);
+
+  if (game !== prevGameRef.current || actionId !== prevActionRef.current) {
+    const oldGame = prevGameRef.current;
+    const oldAction = prevActionRef.current;
+    prevGameRef.current = game;
+    prevActionRef.current = actionId;
+
+    // Log the transition for debugging recycling issues
+    if (game !== oldGame) {
+      streamDeck.logger.info(
+        `[DataProvider] ${actionId} | game changed: ${oldGame} → ${game} (root recycled cross-game), clearing stale entries`,
+      );
+      debug.log(
+        "[DataProvider]",
+        actionId,
+        "| game changed:",
+        oldGame,
+        "→",
+        game,
+        "| clearing stale entries | had keys:",
+        Object.keys(entries),
+      );
+    }
+    if (actionId !== oldAction) {
+      streamDeck.logger.debug(
+        `[DataProvider] ${actionId} | action changed: ${oldAction} → ${actionId} (root recycled), clearing entries`,
+      );
+      debug.log(
+        "[DataProvider]",
+        actionId,
+        "| action changed:",
+        oldAction,
+        "→",
+        actionId,
+        "| clearing entries",
+      );
+    }
+
+    // Synchronous state reset during render (React allows this pattern
+    // for state that must be consistent with props/context changes).
+    // This avoids the "stale entries → wrong getData() → loading flash"
+    // scenario that occurs when relying solely on the async effect cleanup.
+    setEntries({});
+  }
+
   // Register / unregister with the singleton
   useEffect(() => {
     if (account.status !== "resolved") {
@@ -79,6 +153,9 @@ export function DataProvider({ game, dataTypes, children }: DataProviderProps) {
 
     const { accountId } = account;
 
+    streamDeck.logger.debug(
+      `[DataProvider] ${actionId} | registering | account: ${accountId} | game: ${game} | uid: ${resolvedUid ?? "(none)"} | types: ${dataTypes.join(", ")}`,
+    );
     debug.log(
       "[DataProvider]",
       actionId,
@@ -91,6 +168,11 @@ export function DataProvider({ game, dataTypes, children }: DataProviderProps) {
       "| types:",
       dataTypes,
     );
+
+    // Clear entries at the start of each registration cycle.
+    // This ensures we don't carry over stale data from a previous
+    // game/account when the effect re-runs due to dep changes.
+    setEntries({});
 
     const listener = (update: DataUpdate) => {
       debug.log(
@@ -125,10 +207,11 @@ export function DataProvider({ game, dataTypes, children }: DataProviderProps) {
     void dataController.requestUpdate(accountId, game);
 
     return () => {
+      streamDeck.logger.debug(`[DataProvider] ${actionId} | unregistering (game: ${game})`);
       debug.log("[DataProvider]", actionId, "| unregistering");
       dataController.unregister(actionId);
     };
-  }, [actionId, resolvedAccountId, resolvedUid, dataTypesKey]);
+  }, [actionId, resolvedAccountId, resolvedUid, game, dataTypesKey]);
 
   const requestUpdate = useCallback(async () => {
     if (!resolvedAccountId) return;
@@ -147,14 +230,20 @@ export function DataProvider({ game, dataTypes, children }: DataProviderProps) {
     return dataController.getClient(account.account);
   }, [resolvedAccountId]);
 
+  const refreshCookieToken = useCallback(async (): Promise<HoyolabClient | null> => {
+    if (!resolvedAccountId) return null;
+    return dataController.refreshCookieToken(resolvedAccountId);
+  }, [resolvedAccountId]);
+
   const value = useMemo<DataContextValue>(
     () => ({
       entries,
       requestUpdate,
       getData,
       getClient,
+      refreshCookieToken,
     }),
-    [entries, requestUpdate, getData, getClient],
+    [entries, requestUpdate, getData, getClient, refreshCookieToken],
   );
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;

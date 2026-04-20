@@ -206,6 +206,7 @@ export const bannerAction = defineAction<UnifiedBannerSettings & JsonObject>({
   wrapper: BannerWrapper,
   info: {
     name: "Wish Banner",
+    disableCaching: true,
     icon: "imgs/actions/common/banner-icon",
     tooltip: "Display current banner countdown for any HoYoverse game",
     states: [{ image: "imgs/actions/gi/5-star", titleAlignment: "middle" }],

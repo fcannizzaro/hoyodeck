@@ -252,6 +252,7 @@ export const endgameAction = defineAction<UnifiedEndgameSettings & JsonObject>({
   wrapper: EndgameWrapper,
   info: {
     name: "Endgame",
+    disableCaching: true,
     icon: "imgs/actions/common/endgame-icon",
     tooltip: "Display endgame challenge progress (Spiral Abyss, Memory of Chaos, Shiyu Defense…)",
     states: [{ image: "imgs/actions/gi/5-star", titleAlignment: "middle" }],

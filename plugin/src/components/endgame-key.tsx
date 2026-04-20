@@ -6,6 +6,7 @@ import {
   useInterval,
   cn,
 } from "@fcannizzaro/streamdeck-react";
+import streamDeck from "@elgato/streamdeck";
 import type { JsonObject } from "@elgato/utils";
 import type { GlobalSettings, GameId } from "@hoyodeck/shared/types";
 import type { DataType } from "@/services/data-controller.types";
@@ -14,6 +15,7 @@ import { useData } from "@/contexts/data-context";
 import { useLocalImageDataUri } from "@/hooks/use-local-image-data-uri";
 import { PlaceholderKey } from "@/components/placeholder-key";
 import { Badge } from "@/components/badge";
+import { debug } from "@/utils/debug";
 
 // ─── Types ────────────────────────────────────────────────────────
 
@@ -152,6 +154,7 @@ export function EndgameKey({ game, modes, defaultMode, formatData }: EndgameKeyP
   // ─── Placeholder ────────────────────────────────────────────
 
   if (account.status !== "resolved") {
+    debug.log("[EndgameKey]", game, "| rendering placeholder:", account.status);
     return <PlaceholderKey game={game} status={account.status} />;
   }
 
@@ -160,6 +163,17 @@ export function EndgameKey({ game, modes, defaultMode, formatData }: EndgameKeyP
   const data = entry?.status === "ok" ? entry.data : null;
 
   if (!data) {
+    debug.log(
+      "[EndgameKey]",
+      game,
+      "| rendering loading state | mode:",
+      mode,
+      "| entry status:",
+      entry?.status ?? "undefined",
+    );
+    streamDeck.logger.debug(
+      `[EndgameKey] ${game} | no data for mode=${mode} (entry: ${entry?.status ?? "undefined"}) — showing loading`,
+    );
     return (
       <div className="flex items-center justify-center w-full h-full">
         <img src={bgDataUri} width={144} height={144} />
@@ -169,6 +183,7 @@ export function EndgameKey({ game, modes, defaultMode, formatData }: EndgameKeyP
 
   // ─── Render ─────────────────────────────────────────────────
 
+  debug.log("[EndgameKey]", game, "| rendering with data | mode:", mode);
   const { progressText, timerText } = formatData(mode, data);
 
   const scrollText = needsScroll

@@ -13,6 +13,8 @@ export const GameIdSchema = z.enum(["gi", "hsr", "zzz"]);
 export interface GameConfig {
   id: GameId;
   name: string;
+  battleChronicleUrl: string;
+  loginButtonSelector?: string;
   staminaMax: number;
   staminaField: string;
   staminaName: string;

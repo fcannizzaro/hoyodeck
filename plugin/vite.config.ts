@@ -15,7 +15,9 @@ export default defineConfig({
   },
   define: {
     __DEBUG__: process.env.DEBUG === "1" ? "true" : "false",
-    __CODE_SERVER_URL__: JSON.stringify(process.env.CODE_SERVER_URL ?? "http://localhost:3000"),
+    __CODE_SERVER_URL__: JSON.stringify(
+      process.env.CODE_SERVER_URL ?? "https://hoyodeck.fclab.dev",
+    ),
   },
   plugins: [
     esmExternalRequirePlugin({ external: builtins }),

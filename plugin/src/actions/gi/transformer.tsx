@@ -76,6 +76,7 @@ export const transformerAction = defineAction<GenshinActionSettings & JsonObject
   wrapper: createActionWrapper(GAME, ["gi:daily-note"]),
   info: {
     name: "[GI] Transformer",
+    disableCaching: true,
     icon: "imgs/actions/gi/transformer-icon",
     tooltip: "Display Parametric Transformer cooldown",
     states: [{ image: "imgs/actions/gi/4-star", titleAlignment: "middle" }],

@@ -2,8 +2,9 @@ import streamDeck from "@elgato/streamdeck";
 import type { JsonObject } from "@elgato/utils";
 import { HoyolabClient } from "@/api/hoyolab/client";
 import { isValidAuth } from "@/api/hoyolab/auth";
-import type { GlobalSettings, HoyoAuth, GameId } from "@hoyodeck/shared/types";
-import { HOYOLAB_GAME_IDS } from "@/api/types/game-record";
+import { isAuthError } from "@/api/types/common";
+import type { AuthStatus, GlobalSettings, HoyoAuth, GameId } from "@hoyodeck/shared/types";
+import { HOYOLAB_GAME_IDS, type GameRecordCardResponse } from "@/api/types/game-record";
 import { dataController } from "@/services/data-controller";
 import { debug } from "@/utils/debug";
 
@@ -34,7 +35,7 @@ async function validateAccount(settings: GlobalSettings): Promise<void> {
     return;
   }
 
-  let authStatus: "valid" | "invalid" = "invalid";
+  let authStatus: AuthStatus = account.authStatus;
   let uids = account.uids;
   let nicknames = account.nicknames;
 
@@ -42,21 +43,22 @@ async function validateAccount(settings: GlobalSettings): Promise<void> {
     try {
       debug.log("[AuthValidator] validating auth for:", accountId);
       const client = new HoyolabClient(account.auth as HoyoAuth);
-      // Lightweight call that requires valid auth but no UID
-      await client.getCheckInInfo("gi");
+      const response = await client.getGameRecordCard((account.auth as HoyoAuth).ltuid_v2);
       authStatus = "valid";
-      debug.log("[AuthValidator] auth valid, fetching game roles...");
-
-      // Auto-fetch game UIDs and nicknames
-      const roles = await fetchGameRoles(client, account.auth as HoyoAuth);
+      const roles = extractGameRoles(response);
       uids = roles.uids;
       nicknames = roles.nicknames;
-      debug.log("[AuthValidator] game roles fetched | uids:", uids, "| nicknames:", nicknames);
+      debug.log("[AuthValidator] auth valid | linked games:", Object.keys(uids));
     } catch (error) {
-      authStatus = "invalid";
-      debug.log("[AuthValidator] auth validation failed:", error);
+      if (isAuthError(error)) {
+        authStatus = "invalid";
+        debug.log("[AuthValidator] auth invalid:", error);
+      } else {
+        debug.log("[AuthValidator] validation request failed, keeping previous status:", error);
+      }
     }
   } else {
+    authStatus = "invalid";
     debug.log("[AuthValidator] auth cookies incomplete for:", accountId);
   }
 
@@ -76,8 +78,8 @@ async function validateAccount(settings: GlobalSettings): Promise<void> {
     accountId,
     "| authStatus:",
     authStatus,
-    "| uids:",
-    uids,
+    "| linked games:",
+    Object.keys(uids),
   );
 
   await dataController.writeGlobalSettings({
@@ -90,30 +92,23 @@ async function validateAccount(settings: GlobalSettings): Promise<void> {
 }
 
 /**
- * Fetch all linked game roles (UIDs + nicknames) from the game record card API.
- * Returns empty objects on failure so auth validation is not blocked.
+ * Extract linked game roles (UIDs + nicknames) from the game record card API.
  */
-async function fetchGameRoles(
-  client: HoyolabClient,
-  auth: HoyoAuth,
-): Promise<{ uids: Partial<Record<GameId, string>>; nicknames: Partial<Record<GameId, string>> }> {
-  try {
-    const response = await client.getGameRecordCard(auth.ltuid_v2);
-    const uids: Partial<Record<GameId, string>> = {};
-    const nicknames: Partial<Record<GameId, string>> = {};
+function extractGameRoles(response: GameRecordCardResponse): {
+  uids: Partial<Record<GameId, string>>;
+  nicknames: Partial<Record<GameId, string>>;
+} {
+  const uids: Partial<Record<GameId, string>> = {};
+  const nicknames: Partial<Record<GameId, string>> = {};
 
-    for (const card of response.list) {
-      if (!card.has_role) continue;
-      const gameId = HOYOLAB_GAME_IDS[card.game_id];
-      if (gameId) {
-        uids[gameId] = card.game_role_id;
-        nicknames[gameId] = card.nickname;
-      }
+  for (const card of response.list) {
+    if (!card.has_role) continue;
+    const gameId = HOYOLAB_GAME_IDS[card.game_id];
+    if (gameId) {
+      uids[gameId] = card.game_role_id;
+      nicknames[gameId] = card.nickname;
     }
-
-    return { uids, nicknames };
-  } catch (error) {
-    streamDeck.logger.warn("[AuthValidator] Failed to fetch game UIDs:", error);
-    return { uids: {}, nicknames: {} };
   }
+
+  return { uids, nicknames };
 }

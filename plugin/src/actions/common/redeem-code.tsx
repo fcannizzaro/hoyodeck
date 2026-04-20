@@ -254,6 +254,7 @@ export const redeemCodeAction = defineAction<RedeemCodeSettings & JsonObject>({
   wrapper: RedeemCodeWrapper,
   info: {
     name: "Redeem Code",
+    disableCaching: true,
     icon: "imgs/actions/common/redeem-icon",
     tooltip: "Redeem HoYoverse gift codes via the manager",
     states: [{ image: "imgs/actions/common/reward-state", titleAlignment: "middle" }],

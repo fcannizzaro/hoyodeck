@@ -7,6 +7,7 @@ export const GAMES: Record<GameId, GameConfig> = {
   gi: {
     id: "gi",
     name: "Genshin Impact",
+    battleChronicleUrl: "https://act.hoyolab.com/app/community-game-records-sea/index.html#/ys",
     staminaMax: 200,
     staminaField: "current_resin",
     staminaName: "Resin",
@@ -28,6 +29,8 @@ export const GAMES: Record<GameId, GameConfig> = {
   hsr: {
     id: "hsr",
     name: "Honkai: Star Rail",
+    battleChronicleUrl: "https://act.hoyolab.com/app/community-game-records-sea/index.html#/hsr",
+    loginButtonSelector: ".hsr_unlogin-btn",
     staminaMax: 300,
     staminaField: "current_stamina",
     staminaName: "Trailblaze Power",
@@ -49,6 +52,8 @@ export const GAMES: Record<GameId, GameConfig> = {
   zzz: {
     id: "zzz",
     name: "Zenless Zone Zero",
+    battleChronicleUrl: "https://act.hoyolab.com/app/zzz-game-record/index.html#/zzz",
+    loginButtonSelector: ".login-action-button",
     staminaMax: 240,
     staminaField: "energy",
     staminaName: "Battery",

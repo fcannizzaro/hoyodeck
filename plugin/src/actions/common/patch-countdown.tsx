@@ -207,6 +207,7 @@ export const patchCountdownAction = defineAction<PatchCountdownSettings & JsonOb
   wrapper: PatchCountdownWrapper,
   info: {
     name: "Patch Countdown",
+    disableCaching: true,
     icon: "imgs/actions/common/patch-countdown-icon",
     tooltip: "Time remaining until each game's next version update",
     states: [{ image: "imgs/actions/common/patch-countdown-state", titleAlignment: "middle" }],

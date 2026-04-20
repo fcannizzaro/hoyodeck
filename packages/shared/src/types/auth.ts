@@ -10,6 +10,12 @@ export const HoyoAuthSchema = z.object({
   cookie_token_v2: z.string().min(1),
   account_mid_v2: z.string().min(1),
   account_id_v2: z.string().min(1),
+  /**
+   * Session token (v2). Optional for backward compatibility with accounts
+   * created before this field was captured. When present, enables automatic
+   * refresh of the shorter-lived cookie_token_v2 used by code redemption.
+   */
+  stoken_v2: z.string().min(1).optional(),
 });
 
 /** Full auth — all 6 fields required for both API and code redemption */

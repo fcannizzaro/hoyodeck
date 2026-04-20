@@ -13,6 +13,15 @@ import hoyolabLogo from "../assets/hoyo.webp";
 /** All game IDs in display order */
 const GAME_IDS: GameId[] = ["gi", "hsr", "zzz"];
 
+function getInitialSelectedGames(account?: HoyoAccount): GameId[] {
+  if (!account) return [];
+  return GAME_IDS.filter((game) => Boolean(account.uids?.[game]));
+}
+
+function getPrimaryGame(selectedGames: GameId[]): GameId | null {
+  return GAME_IDS.find((game) => selectedGames.includes(game)) ?? null;
+}
+
 /**
  * Format a game role for display: "nickname (UID)" or just the UID.
  */
@@ -42,12 +51,17 @@ export function AccountForm({ account, onSave, onCancel }: AccountFormProps) {
   const [name, setName] = useState(account?.name ?? "");
   const [cookies, setCookies] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [selectedGames, setSelectedGames] = useState<GameId[]>(() =>
+    getInitialSelectedGames(account),
+  );
 
   /** Auth obtained from the native webview login flow */
   const [loginAuth, setLoginAuth] = useState<HoyoAuth | null>(null);
 
   const pendingLogin = globalSettings.pendingLogin as PendingLogin | undefined;
   const isPolling = pendingLogin?.status === "polling";
+  const primaryGame = getPrimaryGame(selectedGames);
+  const primaryGameConfig = primaryGame ? GAMES[primaryGame] : null;
 
   // ─── Watch pendingLogin state changes from the plugin ──────────
 
@@ -80,14 +94,27 @@ export function AccountForm({ account, onSave, onCancel }: AccountFormProps) {
       setError(pendingLogin.message);
       saveGlobalSettings({ pendingLogin: undefined });
     }
-  }, [pendingLogin, saveGlobalSettings]);
+  }, [pendingLogin, saveGlobalSettings, name, account, onSave]);
 
   // ─── Handlers ──────────────────────────────────────────────────
 
   const handleLoginWithHoyolab = useCallback(() => {
+    if (!primaryGame) {
+      setError("Select at least one game before opening HoYoLAB");
+      return;
+    }
+
     setError(null);
-    saveGlobalSettings({ pendingLogin: { status: "requested" } });
-  }, [saveGlobalSettings]);
+    saveGlobalSettings({ pendingLogin: { status: "requested", game: primaryGame } });
+  }, [primaryGame, saveGlobalSettings]);
+
+  const handleToggleGame = useCallback((game: GameId) => {
+    setSelectedGames((current) =>
+      current.includes(game)
+        ? current.filter((currentGame) => currentGame !== game)
+        : [...current, game],
+    );
+  }, []);
 
   const handleSave = useCallback(() => {
     if (!name.trim()) {
@@ -130,6 +157,38 @@ export function AccountForm({ account, onSave, onCancel }: AccountFormProps) {
     <div className="flex flex-col gap-2.5 p-2.5 border border-sd-border rounded bg-sd-input/30">
       <Input label="Account Name" value={name} placeholder="e.g. Main, Alt EU" onChange={setName} />
 
+      <div className="flex flex-col gap-1.5">
+        <div>
+          <p className="text-[11px] font-medium text-sd-text">Games you play</p>
+          <p className="text-[11px] text-sd-secondary leading-relaxed">
+            Select at least one game before logging in. HoYo Deck will open the first selected
+            game's Battle Chronicle and auto-detect every linked UID after saving.
+          </p>
+        </div>
+
+        <div className="flex flex-col gap-1.5">
+          {GAME_IDS.map((game) => {
+            const checked = selectedGames.includes(game);
+
+            return (
+              <label
+                key={game}
+                className="flex items-center gap-2 rounded border border-sd-border bg-sd-input/30 px-2 py-1.5 cursor-pointer"
+              >
+                <input
+                  type="checkbox"
+                  checked={checked}
+                  onChange={() => handleToggleGame(game)}
+                  className="w-4 h-4 accent-sd-focus"
+                />
+                <GameIcon game={game} />
+                <span className="text-sm text-sd-text">{GAMES[game].name}</span>
+              </label>
+            );
+          })}
+        </div>
+      </div>
+
       {/* After successful webview login, show success + game UIDs */}
       {loginAuth ? (
         <>
@@ -151,8 +210,7 @@ export function AccountForm({ account, onSave, onCancel }: AccountFormProps) {
           {/* Login with HoYoLAB button */}
           <button
             onClick={handleLoginWithHoyolab}
-            className="flex items-center justify-center gap-1.5 w-full px-4 py-2 rounded text-xs text-white cursor-pointer border-none transition-opacity hover:opacity-90 active:opacity-80"
-            style={{ backgroundColor: "#1B1D2A" }}
+            className="flex items-center justify-center gap-1.5 w-full px-4 py-2 rounded text-xs text-white cursor-pointer border-none transition-opacity bg-[#1B1D2A] hover:opacity-90 active:opacity-80"
           >
             {isPolling ? (
               "Waiting for login..."
@@ -170,7 +228,9 @@ export function AccountForm({ account, onSave, onCancel }: AccountFormProps) {
             />
           ) : (
             <p className="text-[11px] text-sd-secondary">
-              Opens a browser window. Cookies will be auto-detected after you log in.
+              {primaryGameConfig
+                ? `Opens ${primaryGameConfig.name} Battle Chronicle. Cookies will be auto-detected after you log in.`
+                : "Select a game above to open the right HoYoLAB page."}
             </p>
           )}
 
@@ -188,7 +248,11 @@ export function AccountForm({ account, onSave, onCancel }: AccountFormProps) {
             placeholder={
               account ? "Paste new cookies to update..." : "Paste your HoYoLAB cookies here..."
             }
-            info="Open hoyolab.com, then open DevTools (F12) → Application → Cookies. Locate these cookies: ltoken_v2, ltuid_v2, ltmid_v2, cookie_token_v2, account_mid_v2, account_id_v2 and paste them below as key=value; pairs."
+            info={
+              primaryGameConfig
+                ? `Open ${primaryGameConfig.name} Battle Chronicle (${primaryGameConfig.battleChronicleUrl}), then open DevTools (F12) → Application → Cookies. Locate these cookies: ltoken_v2, ltuid_v2, ltmid_v2, cookie_token_v2, account_mid_v2, account_id_v2 and paste them below as key=value; pairs.`
+                : "Select a game above, then open its Battle Chronicle page. In DevTools (F12) → Application → Cookies, locate ltoken_v2, ltuid_v2, ltmid_v2, cookie_token_v2, account_mid_v2, account_id_v2 and paste them below as key=value; pairs."
+            }
             onChange={setCookies}
           />
         </>

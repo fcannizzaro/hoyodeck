@@ -1,11 +1,11 @@
 import streamDeck from "@elgato/streamdeck";
 import type { JsonObject } from "@elgato/utils";
-import type { GlobalSettings } from "@hoyodeck/shared/types";
+import { getGameConfig } from "@hoyodeck/shared/games";
+import type { GlobalSettings, GameId } from "@hoyodeck/shared/types";
 import { extractAuthFromCookies, isValidAuth, type HoyoAuth } from "@/api/hoyolab/auth";
 import { dataController } from "@/services/data-controller";
 
-/** HoYoLAB URL to load in the login webview */
-const HOYOLAB_URL = "https://act.hoyolab.com/app/community-game-records-sea/index.html#/ys";
+const DEFAULT_LOGIN_GAME: GameId = "gi";
 
 /** Cookie poll interval (ms) */
 const POLL_INTERVAL_MS = 1_000;
@@ -47,6 +47,8 @@ export function registerLoginHandler(): void {
 
 async function startLoginFlow(settings: GlobalSettings): Promise<void> {
   let detectedAuth: HoyoAuth | null = null;
+  const loginGame = settings.pendingLogin?.game ?? DEFAULT_LOGIN_GAME;
+  const gameConfig = getGameConfig(loginGame);
 
   try {
     const { NativeWindow, ensureRuntime } = await import("@nativewindow/webview");
@@ -55,11 +57,11 @@ async function startLoginFlow(settings: GlobalSettings): Promise<void> {
 
     // Update status to 'polling'
     await updateGlobalSettings(settings, {
-      pendingLogin: { status: "polling" },
+      pendingLogin: { status: "polling", game: loginGame },
     });
 
     const win = new NativeWindow({
-      title: "Login — HoYoLAB",
+      title: `Login — ${gameConfig.name}`,
       width: 500,
       height: 700,
       resizable: false,
@@ -67,6 +69,13 @@ async function startLoginFlow(settings: GlobalSettings): Promise<void> {
       allowedHosts: ALLOWED_HOSTS,
       incognito: true,
     });
+
+    if (gameConfig.loginButtonSelector) {
+      win.onPageLoad((event) => {
+        if (event !== "finished") return;
+        injectAutoLoginClick(win, gameConfig.loginButtonSelector!);
+      });
+    }
 
     // Poll cookies on a fixed interval
     const pollTimer = setInterval(() => void checkCookies(), POLL_INTERVAL_MS);
@@ -98,27 +107,74 @@ async function startLoginFlow(settings: GlobalSettings): Promise<void> {
       if (detectedAuth) {
         streamDeck.logger.info("[HoyolabLogin] Auth cookies detected");
         void readAndUpdate(() => ({
-          pendingLogin: { status: "success" as const, auth: detectedAuth! },
+          pendingLogin: { status: "success" as const, auth: detectedAuth!, game: loginGame },
         }));
       } else {
         void readAndUpdate((current) => {
           if (current.pendingLogin?.status === "polling") {
-            return { pendingLogin: { status: "cancelled" as const } };
+            return { pendingLogin: { status: "cancelled" as const, game: loginGame } };
           }
           return {};
         });
       }
     });
 
-    win.loadUrl(HOYOLAB_URL);
+    win.loadUrl(gameConfig.battleChronicleUrl);
   } catch (error) {
     const message = error instanceof Error ? error.message : "Failed to open login window";
     streamDeck.logger.error("[HoyolabLogin] Failed to start:", error);
     const current = await readGlobalSettings();
     await updateGlobalSettings(current, {
-      pendingLogin: { status: "error", message },
+      pendingLogin: { status: "error", message, game: loginGame },
     });
   }
+}
+
+function injectAutoLoginClick(
+  win: { evaluateJs: (script: string) => void },
+  selector: string,
+): void {
+  const selectorJson = JSON.stringify(selector);
+
+  win.evaluateJs(`
+    (() => {
+      const selector = ${selectorJson};
+      const globalKey = "__hoyodeckAutoLoginTimers";
+      const root = window;
+      const timers = (root[globalKey] ??= {});
+
+      if (timers[selector]) {
+        clearInterval(timers[selector]);
+        delete timers[selector];
+      }
+
+      let attempts = 0;
+      const maxAttempts = 40;
+      const intervalMs = 250;
+
+      const tryClick = () => {
+        attempts += 1;
+
+        const button = document.querySelector(selector);
+        if (button instanceof HTMLElement) {
+          button.click();
+          clearInterval(timers[selector]);
+          delete timers[selector];
+          return;
+        }
+
+        if (attempts >= maxAttempts) {
+          clearInterval(timers[selector]);
+          delete timers[selector];
+        }
+      };
+
+      tryClick();
+      if (!timers[selector]) {
+        timers[selector] = setInterval(tryClick, intervalMs);
+      }
+    })();
+  `);
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────

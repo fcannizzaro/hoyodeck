@@ -30,11 +30,11 @@ export interface BannerBadgeOptions {
 
 /** Transient state for the native webview login flow. PI writes 'requested'; plugin drives the rest. */
 export type PendingLogin =
-  | { status: "requested" }
-  | { status: "polling" }
-  | { status: "success"; auth: HoyoAuth }
-  | { status: "cancelled" }
-  | { status: "error"; message: string };
+  | { status: "requested"; game: GameId }
+  | { status: "polling"; game: GameId }
+  | { status: "success"; auth: HoyoAuth; game: GameId }
+  | { status: "cancelled"; game?: GameId }
+  | { status: "error"; message: string; game?: GameId };
 
 // ─── Global Settings ──────────────────────────────────────────────
 

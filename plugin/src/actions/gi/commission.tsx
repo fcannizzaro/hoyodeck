@@ -103,6 +103,7 @@ export const commissionAction = defineAction<GenshinActionSettings & JsonObject>
   wrapper: createActionWrapper(GAME, ["gi:daily-note"]),
   info: {
     name: "[GI] Commissions",
+    disableCaching: true,
     icon: "imgs/actions/gi/commissions-icon",
     tooltip: "Display remaining daily commissions",
     states: [{ image: "imgs/actions/gi/commissions-bg", titleAlignment: "middle" }],

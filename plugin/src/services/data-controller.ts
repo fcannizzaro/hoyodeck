@@ -297,6 +297,9 @@ class DataControllerImpl {
     debug.log("[DataController] requestUpdate", accountId, game, "| types:", typesNeeded);
     if (typesNeeded.length === 0) {
       debug.log("[DataController] requestUpdate", accountId, game, "| no active types");
+      streamDeck.logger.debug(
+        `[DataController] requestUpdate ${accountId}/${game} — no active subscription types, skipping`,
+      );
       return;
     }
 
@@ -304,6 +307,9 @@ class DataControllerImpl {
     const existing = this.inflight.get(key);
     if (existing) {
       debug.log("[DataController] requestUpdate", accountId, game, "| dedup — joining inflight");
+      streamDeck.logger.debug(
+        `[DataController] requestUpdate ${accountId}/${game} — joining inflight (dedup)`,
+      );
       await existing;
       // Inflight may not have fetched our types (registered after it started).
       // Check if any needed types are still missing from the store.
@@ -317,11 +323,17 @@ class DataControllerImpl {
           game,
           "| follow-up — types missing after inflight",
         );
+        streamDeck.logger.debug(
+          `[DataController] requestUpdate ${accountId}/${game} — follow-up fetch needed (types still missing after dedup)`,
+        );
         return this.requestUpdate(accountId, game);
       }
       return;
     }
 
+    streamDeck.logger.debug(
+      `[DataController] requestUpdate ${accountId}/${game} — starting fetch for: ${typesNeeded.join(", ")}`,
+    );
     const promise = this.fetchAndNotify(accountId, game, typesNeeded).finally(() => {
       this.inflight.delete(key);
     });
@@ -360,6 +372,64 @@ class DataControllerImpl {
     }
 
     streamDeck.logger.debug(`[DataController] Invalidated account ${accountId}`);
+  }
+
+  /**
+   * Refresh the cookie_token_v2 for an account using its stoken_v2.
+   *
+   * The code redemption API validates cookie_token_v2 which expires after
+   * a few days. This method uses the longer-lived stoken_v2 to obtain a
+   * fresh cookie_token_v2, persists it to global settings, and rebuilds
+   * the cached HoyolabClient.
+   *
+   * @returns A fresh HoyolabClient with updated cookies, or null if refresh is not possible
+   */
+  async refreshCookieToken(accountId: AccountId): Promise<HoyolabClient | null> {
+    const account = this.resolveAccount(accountId);
+    if (!account || !isValidAuth(account.auth)) return null;
+
+    const auth = account.auth as HoyoAuth;
+    if (!auth.stoken_v2) {
+      debug.log("[DataController] refreshCookieToken | no stoken_v2 for", accountId);
+      return null;
+    }
+
+    try {
+      const client = this.getClient(account);
+      if (!client) return null;
+
+      debug.log("[DataController] refreshCookieToken | refreshing for", accountId);
+      const newCookieToken = await client.refreshCookieToken();
+      if (!newCookieToken) return null;
+
+      // Persist updated auth to global settings
+      const settings = this.cachedSettings;
+      if (!settings) return null;
+
+      const updatedAuth: HoyoAuth = { ...auth, cookie_token_v2: newCookieToken };
+      const updatedAccount = { ...account, auth: updatedAuth };
+
+      await this.writeGlobalSettings({
+        ...settings,
+        accounts: {
+          ...settings.accounts,
+          [accountId]: updatedAccount,
+        },
+      });
+
+      // Rebuild client with fresh cookies
+      const freshClient = new HoyolabClient(updatedAuth);
+      this.clientCache.set(accountId, freshClient);
+
+      debug.log("[DataController] refreshCookieToken | success for", accountId);
+      return freshClient;
+    } catch (error) {
+      streamDeck.logger.warn(
+        `[DataController] cookie_token_v2 refresh failed for ${accountId}:`,
+        error,
+      );
+      return null;
+    }
   }
 
   /**
@@ -476,7 +546,8 @@ class DataControllerImpl {
       a.ltmid_v2 === b.ltmid_v2 &&
       a.cookie_token_v2 === b.cookie_token_v2 &&
       a.account_mid_v2 === b.account_mid_v2 &&
-      a.account_id_v2 === b.account_id_v2
+      a.account_id_v2 === b.account_id_v2 &&
+      a.stoken_v2 === b.stoken_v2
     );
   }
 
@@ -684,10 +755,12 @@ class DataControllerImpl {
     entry: DataEntry<unknown>,
   ): void {
     debug.log("[DataController] notifyListeners", accountId, dataType, "| status:", entry.status);
+    let notifiedCount = 0;
     for (const reg of this.registrations.values()) {
       if (reg.accountId !== accountId) continue;
       if (!reg.dataTypes.includes(dataType)) continue;
 
+      notifiedCount++;
       try {
         reg.listener({
           accountId,
@@ -697,6 +770,19 @@ class DataControllerImpl {
       } catch (err) {
         streamDeck.logger.error(`[DataController] Listener error for ${reg.actionId}:`, err);
       }
+    }
+    debug.log(
+      "[DataController] notifyListeners",
+      accountId,
+      dataType,
+      "| notified:",
+      notifiedCount,
+      "listeners",
+    );
+    if (notifiedCount === 0) {
+      streamDeck.logger.debug(
+        `[DataController] notifyListeners ${accountId}/${dataType} — 0 listeners found (data fetched but no one subscribed)`,
+      );
     }
   }
 

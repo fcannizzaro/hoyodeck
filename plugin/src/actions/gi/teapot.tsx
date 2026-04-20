@@ -57,6 +57,7 @@ export const teapotAction = defineAction<GenshinActionSettings & JsonObject>({
   wrapper: createActionWrapper(GAME, ["gi:daily-note"]),
   info: {
     name: "[GI] Teapot",
+    disableCaching: true,
     icon: "imgs/actions/gi/teapot-icon",
     tooltip: "Display Serenitea Pot realm currency",
     states: [{ image: "imgs/actions/gi/teapot-state", titleAlignment: "middle" }],

@@ -1,5 +1,6 @@
-import { createContext, useContext, useMemo, useRef } from "react";
+import { createContext, useContext, useEffect, useMemo, useRef } from "react";
 import { useSettings, useGlobalSettings, useAction } from "@fcannizzaro/streamdeck-react";
+import streamDeck from "@elgato/streamdeck";
 import type { JsonObject } from "@elgato/utils";
 import type { AccountId, GlobalSettings, HoyoAccount, GameId } from "@hoyodeck/shared/types";
 import { debug } from "@/utils/debug";
@@ -92,7 +93,28 @@ export function AccountProvider({ game, children }: AccountProviderProps) {
   // Track whether we already auto-persisted to avoid repeated writes
   const autoPersistedRef = useRef<AccountId | undefined>(undefined);
   const prevStatusRef = useRef<string | undefined>(undefined);
+  const prevGameRef = useRef(game);
 
+  // Reset auto-persist tracking when the game changes (root recycled cross-game)
+  if (game !== prevGameRef.current) {
+    streamDeck.logger.debug(
+      `[AccountProvider] ${actionId} | game changed: ${prevGameRef.current} → ${game} (root recycled), resetting auto-persist`,
+    );
+    debug.log(
+      "[AccountProvider]",
+      actionId,
+      "| game changed:",
+      prevGameRef.current,
+      "→",
+      game,
+      "| resetting auto-persist ref",
+    );
+    prevGameRef.current = game;
+    autoPersistedRef.current = undefined;
+    prevStatusRef.current = undefined;
+  }
+
+  // Pure account resolution — no side effects
   const value = useMemo<AccountContextValue>(() => {
     const accounts = globalSettings.accounts ?? {};
     const accountCount = Object.keys(accounts).length;
@@ -114,9 +136,6 @@ export function AccountProvider({ game, children }: AccountProviderProps) {
     );
 
     if (result.status !== "resolved") {
-      // Reset auto-persist tracking when account is no longer resolved
-      autoPersistedRef.current = undefined;
-
       if (prevStatusRef.current !== result.status) {
         debug.log(
           "[AccountProvider]",
@@ -128,17 +147,7 @@ export function AccountProvider({ game, children }: AccountProviderProps) {
         );
         prevStatusRef.current = result.status;
       }
-
       return result;
-    }
-
-    const { account } = result;
-
-    // Auto-persist accountId when auto-selected (single candidate, no stored id)
-    if (!settings.accountId && account.id && autoPersistedRef.current !== account.id) {
-      debug.log("[AccountProvider]", actionId, "| auto-persisting accountId:", account.id);
-      autoPersistedRef.current = account.id;
-      setSettings({ accountId: account.id });
     }
 
     if (prevStatusRef.current !== "resolved") {
@@ -148,13 +157,34 @@ export function AccountProvider({ game, children }: AccountProviderProps) {
         "| status changed:",
         prevStatusRef.current,
         "→ resolved | account:",
-        account.id,
+        result.account.id,
       );
       prevStatusRef.current = "resolved";
     }
 
     return result;
   }, [settings.accountId, globalSettings, game]);
+
+  // Auto-persist accountId in a useEffect — keeps useMemo pure.
+  //
+  // Previously this lived inside useMemo, which is a React anti-pattern:
+  // calling setSettings() (which triggers scheduleRerender → render())
+  // during a memo computation can cause nested reconciliation that
+  // disrupts effect execution order on recycled roots.
+  useEffect(() => {
+    if (value.status !== "resolved") {
+      autoPersistedRef.current = undefined;
+      return;
+    }
+
+    const { account } = value;
+
+    if (!settings.accountId && account.id && autoPersistedRef.current !== account.id) {
+      debug.log("[AccountProvider]", actionId, "| auto-persisting accountId:", account.id);
+      autoPersistedRef.current = account.id;
+      setSettings({ accountId: account.id });
+    }
+  }, [value, settings.accountId, setSettings, actionId]);
 
   return <AccountContext.Provider value={value}>{children}</AccountContext.Provider>;
 }

@@ -1,4 +1,5 @@
 import { defineAction, useKeyDown, useSettings } from "@fcannizzaro/streamdeck-react";
+import streamDeck from "@elgato/streamdeck";
 import type { JsonObject } from "@elgato/utils";
 import type { StaminaSettings, GameId } from "@hoyodeck/shared/types";
 import { GAMES } from "@hoyodeck/shared/games";
@@ -11,6 +12,7 @@ import { DataProvider } from "@/contexts/data-context";
 import { useLocalImageDataUri } from "@/hooks/use-local-image-data-uri";
 import { PlaceholderKey } from "@/components/placeholder-key";
 import { StaminaKey } from "@/components/stamina-key";
+import { debug } from "@/utils/debug";
 import type { DataType } from "@/services/data-controller.types";
 
 // ─── Per-game config ──────────────────────────────────────────────
@@ -67,12 +69,22 @@ function UnifiedStaminaKey() {
   });
 
   if (account.status !== "resolved") {
+    debug.log("[StaminaKey]", game, "| rendering placeholder:", account.status);
     return <PlaceholderKey game={game} status={account.status} />;
   }
 
   const dailyNote = dailyNoteEntry?.status === "ok" ? dailyNoteEntry.data : null;
 
   if (!dailyNote) {
+    debug.log(
+      "[StaminaKey]",
+      game,
+      "| rendering loading state | entry status:",
+      dailyNoteEntry?.status ?? "undefined",
+    );
+    streamDeck.logger.debug(
+      `[StaminaKey] ${game} | no data yet (entry: ${dailyNoteEntry?.status ?? "undefined"}) — showing loading`,
+    );
     return (
       <div className="flex items-center justify-center w-full h-full">
         <img src={baseDataUri} width={144} height={144} />
@@ -80,6 +92,7 @@ function UnifiedStaminaKey() {
     );
   }
 
+  debug.log("[StaminaKey]", game, "| rendering with data");
   return (
     <StaminaKey
       baseImage={baseDataUri}
@@ -116,6 +129,7 @@ export const staminaAction = defineAction<StaminaSettings & JsonObject>({
   wrapper: StaminaWrapper,
   info: {
     name: "Stamina",
+    disableCaching: true,
     icon: "imgs/actions/common/stamina-icon",
     tooltip: "Display and refresh game stamina (Resin, Trailblaze Power, Battery)",
     states: [{ image: "imgs/actions/gi/3-star", titleAlignment: "middle" }],
