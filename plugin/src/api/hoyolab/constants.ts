@@ -1,3 +1,5 @@
+import type { GameId } from "@hoyodeck/shared/types";
+
 /**
  * HoYoLAB API base URLs
  */
@@ -69,18 +71,28 @@ export const ZZZ = {
 
 /**
  * Code redemption URLs per game (global/OS servers).
- * Each game uses the same path but a different base host.
+ * HSR uses the risk-checked POST endpoint while GI/ZZZ still use GET.
  */
-export const REDEEM_URLS: Record<string, string> = {
-  gi: "https://sg-hk4e-api.hoyolab.com/common/apicdkey/api/webExchangeCdkey",
-  hsr: "https://sg-hkrpg-api.hoyolab.com/common/apicdkey/api/webExchangeCdkey",
+export const REDEEM_URLS: Record<GameId, string> = {
+  gi: "https://sg-hk4e-api.hoyoverse.com/common/apicdkey/api/webExchangeCdkey",
+  hsr: "https://sg-hkrpg-api.hoyoverse.com/common/apicdkey/api/webExchangeCdkeyRisk",
   zzz: "https://public-operation-nap.hoyoverse.com/common/apicdkey/api/webExchangeCdkey",
 };
 
 /**
- * Token refresh endpoint — generates a new cookie_token_v2 from a valid stoken_v2.
- * Used to keep code redemption working after cookie_token_v2 expires (~days)
- * while the longer-lived stoken_v2 is still valid.
+ * Redemption request method per game.
  */
-export const TOKEN_REFRESH_URL =
-  "https://sg-public-api.hoyolab.com/account/ma-passport/token/getBySToken";
+export const REDEEM_METHODS: Record<GameId, "GET" | "POST"> = {
+  gi: "GET",
+  hsr: "POST",
+  zzz: "GET",
+};
+
+/**
+ * Headers observed on working web redemption requests.
+ * These differ from the general Battle Chronicle API headers.
+ */
+export const REDEEM_HEADERS = {
+  "x-rpc-app_version": "2.34.1",
+  "x-rpc-client_type": "4",
+} as const;

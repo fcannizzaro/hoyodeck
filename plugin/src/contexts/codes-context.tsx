@@ -139,7 +139,7 @@ export function CodesProvider({ children }: CodesProviderProps) {
   const [settings] = useSettings<RedeemCodeSettings & JsonObject>();
   const [globalSettings, setGlobalSettings] = useGlobalSettings<GlobalSettings & JsonObject>();
   const account = useAccount();
-  const { getClient, refreshCookieToken } = useData();
+  const { getClient } = useData();
   const queryClient = useQueryClient();
 
   const game = (settings.game ?? "gi") as GameId;
@@ -247,24 +247,12 @@ export function CodesProvider({ children }: CodesProviderProps) {
    * Run the redemption loop inline — redeems all available codes
    * sequentially, updating `redeemProgress` state for each code
    * so the key component can visualize live progress.
-   *
-   * Before starting, attempts to refresh cookie_token_v2 using
-   * stoken_v2 to prevent "Please log in" errors from expired tokens.
    */
   const redeemAll = useCallback(async () => {
     if (isRedeeming) return;
     if (!resolvedAccount || !uid) return;
 
-    // Try to refresh cookie_token_v2 before redemption.
-    // The redemption API uses cookie_token_v2 which expires faster (~days)
-    // than ltoken_v2 used by all other actions. Refreshing proactively
-    // prevents the "Please log in to your account first" error.
-    let client = getClient();
-    const refreshedClient = await refreshCookieToken();
-    if (refreshedClient) {
-      client = refreshedClient;
-      streamDeck.logger.info("[RedeemCode] cookie_token_v2 refreshed successfully");
-    }
+    const client = getClient();
 
     if (!client) return;
 
@@ -361,7 +349,6 @@ export function CodesProvider({ children }: CodesProviderProps) {
     uid,
     game,
     getClient,
-    refreshCookieToken,
     queryClient,
     localClaimed,
     persistOneClaimed,

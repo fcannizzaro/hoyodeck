@@ -32,12 +32,6 @@ interface DataContextValue {
   getData: <T extends DataType>(dataType: T) => DataEntry<DataTypeMap[T]> | undefined;
   /** Get the HoyolabClient for write operations (e.g. check-in) */
   getClient: () => HoyolabClient | null;
-  /**
-   * Refresh cookie_token_v2 using stoken_v2 for the resolved account.
-   * Returns a fresh HoyolabClient with updated cookies, or null if refresh
-   * is not possible (e.g. no stoken_v2 stored for this account).
-   */
-  refreshCookieToken: () => Promise<HoyolabClient | null>;
 }
 
 // ─── Context ──────────────────────────────────────────────────────
@@ -230,20 +224,14 @@ export function DataProvider({ game, dataTypes, children }: DataProviderProps) {
     return dataController.getClient(account.account);
   }, [resolvedAccountId]);
 
-  const refreshCookieToken = useCallback(async (): Promise<HoyolabClient | null> => {
-    if (!resolvedAccountId) return null;
-    return dataController.refreshCookieToken(resolvedAccountId);
-  }, [resolvedAccountId]);
-
   const value = useMemo<DataContextValue>(
     () => ({
       entries,
       requestUpdate,
       getData,
       getClient,
-      refreshCookieToken,
     }),
-    [entries, requestUpdate, getData, getClient, refreshCookieToken],
+    [entries, requestUpdate, getData, getClient],
   );
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;

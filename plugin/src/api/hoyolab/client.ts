@@ -7,8 +7,9 @@ import {
   GENSHIN,
   STAR_RAIL,
   ZZZ,
+  REDEEM_HEADERS,
+  REDEEM_METHODS,
   REDEEM_URLS,
-  TOKEN_REFRESH_URL,
 } from "./constants";
 import { type ApiResponse, HoyolabApiError, isSuccess } from "../types/common";
 import type {
@@ -470,6 +471,7 @@ export class HoyolabClient {
   async redeemCode(game: GameId, code: string, uid: string): Promise<void> {
     const redeemUrl = REDEEM_URLS[game];
     if (!redeemUrl) throw new Error(`No redemption URL for game: ${game}`);
+    const method = REDEEM_METHODS[game];
 
     const region = getRegionFromUid(uid, game);
     const gameBiz: Record<GameId, string> = {
@@ -478,59 +480,20 @@ export class HoyolabClient {
       zzz: "nap_global",
     };
 
+    const payload = {
+      uid,
+      region,
+      cdkey: code,
+      game_biz: gameBiz[game],
+      lang: "en",
+    };
+
     await this.request<unknown>(redeemUrl, "", {
-      query: {
-        uid,
-        region,
-        cdkey: code,
-        game_biz: gameBiz[game],
-        lang: "en",
-      },
+      method,
+      query: method === "GET" ? payload : undefined,
+      body: method === "POST" ? payload : undefined,
       useDS: false,
+      headers: REDEEM_HEADERS,
     });
-  }
-
-  // ============================================
-  // Token Refresh
-  // ============================================
-
-  /**
-   * Refresh cookie_token_v2 using the longer-lived stoken_v2.
-   *
-   * The code redemption API (webExchangeCdkey) validates cookie_token_v2
-   * which expires after ~3-7 days, while stoken_v2 lasts much longer.
-   * This method calls HoYoLAB's token refresh endpoint to obtain a
-   * fresh cookie_token_v2 without requiring the user to re-login.
-   *
-   * @returns The new cookie_token_v2 value, or null if stoken_v2 is unavailable
-   * @throws {HoyolabApiError} If the refresh request fails (e.g. stoken expired)
-   */
-  async refreshCookieToken(): Promise<string | null> {
-    if (!this.auth.stoken_v2) return null;
-
-    const response = await fetch(TOKEN_REFRESH_URL, {
-      method: "POST",
-      headers: {
-        ...COMMON_HEADERS,
-        "Content-Type": "application/json",
-        Cookie: `stoken_v2=${this.auth.stoken_v2}; ltmid_v2=${this.auth.ltmid_v2}`,
-      },
-      body: JSON.stringify({ dst_token_types: [4] }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-    }
-
-    const json = (await response.json()) as ApiResponse<{
-      tokens: Array<{ token_type: number; token: string }>;
-    }>;
-
-    if (!isSuccess(json)) {
-      throw new HoyolabApiError(json.retcode, json.message);
-    }
-
-    const cookieToken = json.data.tokens.find((t) => t.token_type === 4);
-    return cookieToken?.token ?? null;
   }
 }

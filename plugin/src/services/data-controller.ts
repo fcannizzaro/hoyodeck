@@ -375,64 +375,6 @@ class DataControllerImpl {
   }
 
   /**
-   * Refresh the cookie_token_v2 for an account using its stoken_v2.
-   *
-   * The code redemption API validates cookie_token_v2 which expires after
-   * a few days. This method uses the longer-lived stoken_v2 to obtain a
-   * fresh cookie_token_v2, persists it to global settings, and rebuilds
-   * the cached HoyolabClient.
-   *
-   * @returns A fresh HoyolabClient with updated cookies, or null if refresh is not possible
-   */
-  async refreshCookieToken(accountId: AccountId): Promise<HoyolabClient | null> {
-    const account = this.resolveAccount(accountId);
-    if (!account || !isValidAuth(account.auth)) return null;
-
-    const auth = account.auth as HoyoAuth;
-    if (!auth.stoken_v2) {
-      debug.log("[DataController] refreshCookieToken | no stoken_v2 for", accountId);
-      return null;
-    }
-
-    try {
-      const client = this.getClient(account);
-      if (!client) return null;
-
-      debug.log("[DataController] refreshCookieToken | refreshing for", accountId);
-      const newCookieToken = await client.refreshCookieToken();
-      if (!newCookieToken) return null;
-
-      // Persist updated auth to global settings
-      const settings = this.cachedSettings;
-      if (!settings) return null;
-
-      const updatedAuth: HoyoAuth = { ...auth, cookie_token_v2: newCookieToken };
-      const updatedAccount = { ...account, auth: updatedAuth };
-
-      await this.writeGlobalSettings({
-        ...settings,
-        accounts: {
-          ...settings.accounts,
-          [accountId]: updatedAccount,
-        },
-      });
-
-      // Rebuild client with fresh cookies
-      const freshClient = new HoyolabClient(updatedAuth);
-      this.clientCache.set(accountId, freshClient);
-
-      debug.log("[DataController] refreshCookieToken | success for", accountId);
-      return freshClient;
-    } catch (error) {
-      streamDeck.logger.warn(
-        `[DataController] cookie_token_v2 refresh failed for ${accountId}:`,
-        error,
-      );
-      return null;
-    }
-  }
-
-  /**
    * Notify all actions registered to a deleted account and unregister them.
    * Each action's onAccountRemoved callback is called so it can show "Select Account".
    */
@@ -546,8 +488,7 @@ class DataControllerImpl {
       a.ltmid_v2 === b.ltmid_v2 &&
       a.cookie_token_v2 === b.cookie_token_v2 &&
       a.account_mid_v2 === b.account_mid_v2 &&
-      a.account_id_v2 === b.account_id_v2 &&
-      a.stoken_v2 === b.stoken_v2
+      a.account_id_v2 === b.account_id_v2
     );
   }
 

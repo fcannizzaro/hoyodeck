@@ -8,7 +8,6 @@ const AUTH_KEYS: (keyof HoyoAuth)[] = [
   "cookie_token_v2",
   "account_mid_v2",
   "account_id_v2",
-  "stoken_v2",
 ];
 
 /**
@@ -39,7 +38,6 @@ export function isValidAuth(auth: unknown): auth is HoyoAuth {
  * Build a cookie string from an auth object.
  * Includes all 6 required auth tokens so both the standard API
  * (ltoken_v2) and the redemption API (cookie_token_v2) work.
- * Conditionally includes stoken_v2 when present for token refresh.
  */
 export function buildCookieString(auth: HoyoAuth): string {
   const pairs = [
@@ -50,10 +48,6 @@ export function buildCookieString(auth: HoyoAuth): string {
     `account_mid_v2=${auth.account_mid_v2}`,
     `account_id_v2=${auth.account_id_v2}`,
   ];
-
-  if (auth.stoken_v2) {
-    pairs.push(`stoken_v2=${auth.stoken_v2}`);
-  }
 
   return pairs.join("; ");
 }
