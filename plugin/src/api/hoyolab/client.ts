@@ -38,12 +38,12 @@ import type { GameId } from "@hoyodeck/shared/types";
 import { getGameConfig } from "@hoyodeck/shared/games";
 
 /**
- * HoYoLAB API client with V2 authentication
+ * HoYoLAB API client
  */
 export class HoyolabClient {
   private readonly cookieString: string;
 
-  constructor(readonly auth: HoyoAuth) {
+  constructor(auth: HoyoAuth) {
     this.cookieString = buildCookieString(auth);
   }
 

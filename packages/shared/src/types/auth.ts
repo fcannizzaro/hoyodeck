@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 /**
- * V2 Authentication schema
+ * Authentication schema
  */
 export const HoyoAuthSchema = z.object({
   ltoken_v2: z.string().min(1),

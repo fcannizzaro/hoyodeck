@@ -1,7 +1,8 @@
-import { validateAuth } from "@/api/hoyolab/auth";
+import { extractAuthFromCookies, validateAuth } from "@/api/hoyolab/auth";
 import { HoyolabClient } from "@/api/hoyolab/client";
 import type { GameId } from "@hoyodeck/shared/types";
 import { GAMES } from "@hoyodeck/shared/games";
+import { parseCookies } from "@hoyodeck/shared/cookies";
 
 // ============================================
 // Help & Usage
@@ -40,8 +41,8 @@ Endpoints:
     deadly-assault <uid>      Deadly Assault data
 
 Environment:
-  HOYOLAB_COOKIE    Raw cookie string (ltoken_v2=xxx; ltuid_v2=yyy; ltmid_v2=zzz)
-                    Loaded from .env automatically by Bun.
+  HOYOLAB_COOKIE    Raw cookie string containing the auth cookies used by HoYo Deck
+  Loaded from .env automatically by Bun.
 
 Examples:
   bun run cli genshin daily-note 600123456
@@ -116,23 +117,23 @@ function parseArgs(argv: string[]) {
 // ============================================
 
 function getAuthFromEnv() {
-  const parsed = {
-    ltoken_v2: process.env.LTOKEN,
-    ltuid_v2: process.env.LTUID,
-    ltmid_v2: process.env.LTMID,
-  };
+  const rawCookie = process.env.HOYOLAB_COOKIE?.trim();
 
-  if (!parsed.ltoken_v2 || !parsed.ltuid_v2 || !parsed.ltmid_v2) {
+  if (!rawCookie) {
     console.error(
-      "Error: Missing authentication environment variables. Ensure LTOKEN, LTUID, and LTMID are set.",
+      "Error: Missing authentication environment variable. Ensure HOYOLAB_COOKIE is set.",
     );
     process.exit(1);
   }
 
   try {
-    return validateAuth(parsed);
+    const parsedCookies = parseCookies(rawCookie);
+    const extracted = extractAuthFromCookies(parsedCookies);
+    return validateAuth(extracted);
   } catch {
-    console.error("Error: Invalid cookie. Ensure ltoken_v2, ltuid_v2, and ltmid_v2 are present.");
+    console.error(
+      "Error: Invalid cookie. Ensure HOYOLAB_COOKIE contains ltoken_v2, ltuid_v2, ltmid_v2, cookie_token_v2, account_mid_v2, and account_id_v2.",
+    );
     process.exit(1);
   }
 }
