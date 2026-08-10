@@ -2,13 +2,13 @@ default:
     @just --list
 
 build:
-    bun run build
+    pnpm build
 
 dev:
-    bun run dev
+    pnpm dev
 
 typecheck:
-    bun run typecheck
+    pnpm typecheck
 
 link:
-    cd plugin && bun run link
+    pnpm --dir plugin run link

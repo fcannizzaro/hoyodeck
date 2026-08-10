@@ -6,20 +6,27 @@ import { GAMES } from "@hoyodeck/shared/games";
  */
 export function getRegionFromUid(uid: string, game: GameId): string {
   const gameConfig = GAMES[game];
-  const prefix = uid.charAt(0);
 
-  // For ZZZ, use first two digits
+  // CN ZZZ UIDs currently have eight digits; global UIDs have ten.
   if (game === "zzz") {
-    const zzPrefix = uid.substring(0, 2);
-    const region = gameConfig.regions[zzPrefix];
+    if (uid.length === 8) return "prod_gf_cn";
+
+    const region = gameConfig.regions[uid.slice(0, -8)];
     if (region) return region;
   }
 
+  // GI can now have ten-digit Asia UIDs (18xxxxxxxx), so use every
+  // digit before the final eight-digit account number as the prefix.
+  const prefix = uid.slice(0, -8);
   const region = gameConfig.regions[prefix];
 
   if (!region) {
-    // Default to USA for unknown regions
-    return Object.values(gameConfig.regions)[0] ?? "os_usa";
+    const globalFallbacks: Record<GameId, string> = {
+      gi: "os_usa",
+      hsr: "prod_official_usa",
+      zzz: "prod_gf_us",
+    };
+    return globalFallbacks[game];
   }
 
   return region;

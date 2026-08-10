@@ -1,12 +1,17 @@
 import type { AccountId, AuthStatus, HoyoAuth } from "./auth";
 import type { GameId } from "./game";
 
+/** HoYo account ecosystem used for API and login routing. */
+export type HoyoRegion = "global" | "cn";
+
 /** A single HoYoLAB account with per-game UIDs */
 export interface HoyoAccount {
   /** Stable unique ID (UUID v4) */
   id: AccountId;
   /** User-defined display name (e.g. "Main", "Alt EU") */
   name: string;
+  /** HoYoLAB (global) or MiYouShe (China). Missing on legacy accounts means global. */
+  region?: HoyoRegion;
   /** Parsed HoYoLAB auth cookies */
   auth: HoyoAuth;
   /** Auth validation status (set by plugin after API call) */

@@ -53,7 +53,7 @@ function DailyRewardKey() {
 
     if (claimOnClick) {
       try {
-        await client.claimCheckIn(game);
+        await client.claimCheckIn(game, account.account.uids[game]);
       } catch (error) {
         if (error instanceof HoyolabApiError && error.retcode === -5003) {
           // Already claimed

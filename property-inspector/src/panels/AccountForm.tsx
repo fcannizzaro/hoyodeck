@@ -4,10 +4,17 @@ import { Input } from "../components/Input";
 import { GameIcon } from "../components/GameIcon";
 import { TextArea } from "../components/TextArea";
 import { Button } from "../components/Button";
+import { Select } from "../components/Select";
 import { StatusMessage } from "../components/StatusMessage";
 import { parseCookies, extractAuthFromCookies, isValidAuth } from "@hoyodeck/shared/cookies";
 import { GAMES } from "@hoyodeck/shared/games";
-import type { GameId, HoyoAccount, HoyoAuth, PendingLogin } from "@hoyodeck/shared/types";
+import type {
+  GameId,
+  HoyoAccount,
+  HoyoAuth,
+  HoyoRegion,
+  PendingLogin,
+} from "@hoyodeck/shared/types";
 import hoyolabLogo from "../assets/hoyo.webp";
 
 /** All game IDs in display order */
@@ -49,6 +56,7 @@ export function AccountForm({ account, onSave, onCancel }: AccountFormProps) {
   const { globalSettings, saveGlobalSettings } = useStreamDeck();
 
   const [name, setName] = useState(account?.name ?? "");
+  const [region, setRegion] = useState<HoyoRegion>(account?.region ?? "global");
   const [cookies, setCookies] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [selectedGames, setSelectedGames] = useState<GameId[]>(() =>
@@ -62,6 +70,12 @@ export function AccountForm({ account, onSave, onCancel }: AccountFormProps) {
   const isPolling = pendingLogin?.status === "polling";
   const primaryGame = getPrimaryGame(selectedGames);
   const primaryGameConfig = primaryGame ? GAMES[primaryGame] : null;
+  const serviceName = region === "cn" ? "MiYouShe" : "HoYoLAB";
+  const battleChronicleUrl = primaryGameConfig
+    ? region === "cn"
+      ? primaryGameConfig.cnBattleChronicleUrl
+      : primaryGameConfig.battleChronicleUrl
+    : null;
 
   // ─── Watch pendingLogin state changes from the plugin ──────────
 
@@ -70,6 +84,7 @@ export function AccountForm({ account, onSave, onCancel }: AccountFormProps) {
 
     if (pendingLogin.status === "success") {
       const auth = pendingLogin.auth;
+      const loginRegion = pendingLogin.region ?? "global";
       setError(null);
       saveGlobalSettings({ pendingLogin: undefined });
 
@@ -78,6 +93,7 @@ export function AccountForm({ account, onSave, onCancel }: AccountFormProps) {
         onSave({
           id: account?.id ?? crypto.randomUUID(),
           name: name.trim(),
+          region: loginRegion,
           auth,
           authStatus: "unknown",
           uids: account?.uids ?? {},
@@ -87,6 +103,7 @@ export function AccountForm({ account, onSave, onCancel }: AccountFormProps) {
       }
 
       // Otherwise show success state and let user fill in name + press Add
+      setRegion(loginRegion);
       setLoginAuth(auth);
     } else if (pendingLogin.status === "cancelled") {
       saveGlobalSettings({ pendingLogin: undefined });
@@ -105,8 +122,15 @@ export function AccountForm({ account, onSave, onCancel }: AccountFormProps) {
     }
 
     setError(null);
-    saveGlobalSettings({ pendingLogin: { status: "requested", game: primaryGame } });
-  }, [primaryGame, saveGlobalSettings]);
+    saveGlobalSettings({ pendingLogin: { status: "requested", game: primaryGame, region } });
+  }, [primaryGame, region, saveGlobalSettings]);
+
+  const handleRegionChange = useCallback((value: string) => {
+    setRegion(value as HoyoRegion);
+    setLoginAuth(null);
+    setCookies("");
+    setError(null);
+  }, []);
 
   const handleToggleGame = useCallback((game: GameId) => {
     setSelectedGames((current) =>
@@ -123,7 +147,9 @@ export function AccountForm({ account, onSave, onCancel }: AccountFormProps) {
     }
 
     // Priority: loginAuth (from webview) > parsed cookies > existing auth (edit mode)
-    let auth: HoyoAuth | undefined = loginAuth ?? account?.auth;
+    const accountRegion = account?.region ?? "global";
+    const canReuseExistingAuth = account && accountRegion === region;
+    let auth: HoyoAuth | undefined = loginAuth ?? (canReuseExistingAuth ? account.auth : undefined);
     if (cookies.trim()) {
       const parsed = parseCookies(cookies.trim());
       const extracted = extractAuthFromCookies(parsed);
@@ -144,18 +170,30 @@ export function AccountForm({ account, onSave, onCancel }: AccountFormProps) {
     onSave({
       id: account?.id ?? crypto.randomUUID(),
       name: name.trim(),
+      region,
       auth,
       authStatus: hasNewAuth ? "unknown" : (account?.authStatus ?? "unknown"),
       uids: account?.uids ?? {},
       nicknames: account?.nicknames,
     });
-  }, [name, cookies, loginAuth, account, onSave]);
+  }, [name, region, cookies, loginAuth, account, onSave]);
 
   // ─── Render ────────────────────────────────────────────────────
 
   return (
     <div className="flex flex-col gap-2.5 p-2.5 border border-sd-border rounded bg-sd-input/30">
       <Input label="Account Name" value={name} placeholder="e.g. Main, Alt EU" onChange={setName} />
+
+      <Select
+        label="Service"
+        value={region}
+        options={[
+          { value: "global", label: "HoYoLAB (Global)" },
+          { value: "cn", label: "MiYouShe (China)" },
+        ]}
+        info="Choose the service where this account is registered. Existing accounts default to Global."
+        onChange={handleRegionChange}
+      />
 
       <div className="flex flex-col gap-1.5">
         <div>
@@ -202,9 +240,8 @@ export function AccountForm({ account, onSave, onCancel }: AccountFormProps) {
         <>
           {/* Real-Time Notes reminder */}
           <p className="text-[11px] text-sd-secondary leading-relaxed">
-            Make sure <strong>Real-Time Notes</strong> is enabled on{" "}
-            <span className="text-white">HoYoLAB → Settings</span> for each game you play, otherwise
-            the plugin won't be able to read your in-game data.
+            Make sure <strong>Real-Time Notes</strong> is enabled in {serviceName} for each game you
+            play, otherwise the plugin won't be able to read your in-game data.
           </p>
 
           {/* Login with HoYoLAB button */}
@@ -216,21 +253,22 @@ export function AccountForm({ account, onSave, onCancel }: AccountFormProps) {
               "Waiting for login..."
             ) : (
               <>
-                Login with <img src={hoyolabLogo} alt="HoYoLAB" className="h-3.5" />
+                Login with <img src={hoyolabLogo} alt={serviceName} className="h-3.5" />{" "}
+                {serviceName}
               </>
             )}
           </button>
 
           {isPolling ? (
             <StatusMessage
-              message="A browser window has been opened. Log in to HoYoLAB and your cookies will be detected automatically."
+              message={`A browser window has been opened. Log in to ${serviceName} and your cookies will be detected automatically.`}
               type="info"
             />
           ) : (
             <p className="text-[11px] text-sd-secondary">
               {primaryGameConfig
-                ? `Opens ${primaryGameConfig.name} Battle Chronicle. Cookies will be auto-detected after you log in.`
-                : "Select a game above to open the right HoYoLAB page."}
+                ? `Opens ${primaryGameConfig.name} on ${serviceName}. Cookies will be auto-detected after you log in.`
+                : `Select a game above to open the right ${serviceName} page.`}
             </p>
           )}
 
@@ -249,9 +287,9 @@ export function AccountForm({ account, onSave, onCancel }: AccountFormProps) {
               account ? "Paste new cookies to update..." : "Paste your HoYoLAB cookies here..."
             }
             info={
-              primaryGameConfig
-                ? `Open ${primaryGameConfig.name} Battle Chronicle (${primaryGameConfig.battleChronicleUrl}), then open DevTools (F12) → Application → Cookies. Locate these cookies: ltoken_v2, ltuid_v2, ltmid_v2, cookie_token_v2, account_mid_v2, account_id_v2 and paste them below as key=value; pairs.`
-                : "Select a game above, then open its Battle Chronicle page. In DevTools (F12) → Application → Cookies, locate ltoken_v2, ltuid_v2, ltmid_v2, cookie_token_v2, account_mid_v2, account_id_v2 and paste them below as key=value; pairs."
+              primaryGameConfig && battleChronicleUrl
+                ? `Open ${primaryGameConfig.name} on ${serviceName} (${battleChronicleUrl}), then open DevTools (F12) → Application → Cookies. Locate these cookies: ltoken_v2, ltuid_v2, ltmid_v2, cookie_token_v2, account_mid_v2, account_id_v2 and paste them below as key=value; pairs.`
+                : `Select a game above, then open its ${serviceName} page. In DevTools (F12) → Application → Cookies, locate ltoken_v2, ltuid_v2, ltmid_v2, cookie_token_v2, account_mid_v2, account_id_v2 and paste them below as key=value; pairs.`
             }
             onChange={setCookies}
           />

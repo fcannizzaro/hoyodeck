@@ -145,6 +145,7 @@ export function CodesProvider({ children }: CodesProviderProps) {
   const game = (settings.game ?? "gi") as GameId;
   const resolvedAccount = account.status === "resolved" ? account.account : null;
   const uid = resolvedAccount?.uids[game];
+  const isCnAccount = (resolvedAccount?.region ?? "global") === "cn";
 
   const [, setClaimedTick] = useState(0);
   const [redeemProgress, setRedeemProgress] = useState<Map<string, CodeRedeemProgress>>(new Map());
@@ -236,11 +237,15 @@ export function CodesProvider({ children }: CodesProviderProps) {
     [game, uid, setGlobalSettings],
   );
 
-  const { data: codes = [], refetch: refetchCodes } = useQuery(codesQueryOptions(game));
+  const { data: fetchedCodes = [], refetch: refetchCodes } = useQuery({
+    ...codesQueryOptions(game),
+    enabled: !isCnAccount,
+  });
+  const codes = isCnAccount ? [] : fetchedCodes;
 
   // Fetch on key appear (e.g. profile switch, plugin reload)
   useWillAppear(() => {
-    void refetchCodes();
+    if (!isCnAccount) void refetchCodes();
   });
 
   /**
@@ -251,6 +256,7 @@ export function CodesProvider({ children }: CodesProviderProps) {
   const redeemAll = useCallback(async () => {
     if (isRedeeming) return;
     if (!resolvedAccount || !uid) return;
+    if (isCnAccount) return;
 
     const client = getClient();
 
@@ -346,6 +352,7 @@ export function CodesProvider({ children }: CodesProviderProps) {
   }, [
     isRedeeming,
     resolvedAccount,
+    isCnAccount,
     uid,
     game,
     getClient,

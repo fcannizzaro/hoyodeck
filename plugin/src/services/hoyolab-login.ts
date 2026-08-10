@@ -1,7 +1,7 @@
 import streamDeck from "@elgato/streamdeck";
 import type { JsonObject } from "@elgato/utils";
 import { getGameConfig } from "@hoyodeck/shared/games";
-import type { GlobalSettings, GameId } from "@hoyodeck/shared/types";
+import type { GlobalSettings, GameId, HoyoRegion } from "@hoyodeck/shared/types";
 import { extractAuthFromCookies, isValidAuth, type HoyoAuth } from "@/api/hoyolab/auth";
 import { dataController } from "@/services/data-controller";
 
@@ -11,7 +11,7 @@ const DEFAULT_LOGIN_GAME: GameId = "gi";
 const POLL_INTERVAL_MS = 1_000;
 
 /** Domains allowed for navigation in the login webview */
-const ALLOWED_HOSTS = ["*.hoyolab.com"];
+const ALLOWED_HOSTS = ["*.hoyolab.com", "*.hoyoverse.com", "*.miyoushe.com", "*.mihoyo.com"];
 
 // ─── Public API ───────────────────────────────────────────────────
 
@@ -48,7 +48,9 @@ export function registerLoginHandler(): void {
 async function startLoginFlow(settings: GlobalSettings): Promise<void> {
   let detectedAuth: HoyoAuth | null = null;
   const loginGame = settings.pendingLogin?.game ?? DEFAULT_LOGIN_GAME;
+  const loginRegion: HoyoRegion = settings.pendingLogin?.region ?? "global";
   const gameConfig = getGameConfig(loginGame);
+  const serviceName = loginRegion === "cn" ? "MiYouShe" : "HoYoLAB";
 
   try {
     const { NativeWindow, ensureRuntime } = await import("@nativewindow/webview");
@@ -57,11 +59,11 @@ async function startLoginFlow(settings: GlobalSettings): Promise<void> {
 
     // Update status to 'polling'
     await updateGlobalSettings(settings, {
-      pendingLogin: { status: "polling", game: loginGame },
+      pendingLogin: { status: "polling", game: loginGame, region: loginRegion },
     });
 
     const win = new NativeWindow({
-      title: `Login — ${gameConfig.name}`,
+      title: `${serviceName} Login — ${gameConfig.name}`,
       width: 500,
       height: 700,
       resizable: false,
@@ -105,27 +107,40 @@ async function startLoginFlow(settings: GlobalSettings): Promise<void> {
     win.onClose(() => {
       if (pollTimer) clearInterval(pollTimer);
       if (detectedAuth) {
-        streamDeck.logger.info("[HoyolabLogin] Auth cookies detected");
+        streamDeck.logger.info(`[HoyolabLogin] ${serviceName} auth cookies detected`);
         void readAndUpdate(() => ({
-          pendingLogin: { status: "success" as const, auth: detectedAuth!, game: loginGame },
+          pendingLogin: {
+            status: "success" as const,
+            auth: detectedAuth!,
+            game: loginGame,
+            region: loginRegion,
+          },
         }));
       } else {
         void readAndUpdate((current) => {
           if (current.pendingLogin?.status === "polling") {
-            return { pendingLogin: { status: "cancelled" as const, game: loginGame } };
+            return {
+              pendingLogin: {
+                status: "cancelled" as const,
+                game: loginGame,
+                region: loginRegion,
+              },
+            };
           }
           return {};
         });
       }
     });
 
-    win.loadUrl(gameConfig.battleChronicleUrl);
+    win.loadUrl(
+      loginRegion === "cn" ? gameConfig.cnBattleChronicleUrl : gameConfig.battleChronicleUrl,
+    );
   } catch (error) {
     const message = error instanceof Error ? error.message : "Failed to open login window";
     streamDeck.logger.error("[HoyolabLogin] Failed to start:", error);
     const current = await readGlobalSettings();
     await updateGlobalSettings(current, {
-      pendingLogin: { status: "error", message, game: loginGame },
+      pendingLogin: { status: "error", message, game: loginGame, region: loginRegion },
     });
   }
 }

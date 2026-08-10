@@ -22,3 +22,16 @@ interface GameRecordCard {
 export interface GameRecordCardResponse {
   list: GameRecordCard[];
 }
+
+/** A linked role returned by MiYouShe's cookie-binding endpoint. */
+export interface MiyousheGameRole {
+  game_biz: string;
+  game_uid: string;
+  nickname: string;
+  region: string;
+  level: number;
+}
+
+export interface MiyousheGameRolesResponse {
+  list: MiyousheGameRole[];
+}

@@ -20,8 +20,8 @@ export class GenshinController extends BaseGameController {
         "gi:check-in",
         async () => {
           const [info, rewards] = await Promise.all([
-            client.getCheckInInfo("gi"),
-            client.getCheckInRewards("gi"),
+            client.getCheckInInfo("gi", uid),
+            client.getCheckInRewards("gi", uid),
           ]);
           return { info, rewards };
         },

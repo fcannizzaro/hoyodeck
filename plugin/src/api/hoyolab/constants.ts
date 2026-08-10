@@ -1,17 +1,25 @@
-import type { GameId } from "@hoyodeck/shared/types";
+import type { GameId, HoyoRegion } from "@hoyodeck/shared/types";
 
 /**
  * HoYoLAB API base URLs
  */
 export const API_URLS = {
-  /** Battle Chronicle API (real-time notes, spiral abyss, etc.) */
-  BATTLE_CHRONICLE: "https://bbs-api-os.hoyolab.com",
-
-  /** Enhancement calculator API */
-  CALCULATOR: "https://sg-public-api.hoyolab.com",
-
-  /** Account API */
-  ACCOUNT: "https://sg-public-api.hoyolab.com",
+  global: {
+    /** Battle Chronicle API (real-time notes, spiral abyss, etc.) */
+    BATTLE_CHRONICLE: "https://bbs-api-os.hoyolab.com",
+    /** Event and calculator API */
+    CALCULATOR: "https://sg-public-api.hoyolab.com",
+    /** Account API */
+    ACCOUNT: "https://sg-public-api.hoyolab.com",
+  },
+  cn: {
+    /** MiYouShe game-record API */
+    BATTLE_CHRONICLE: "https://api-takumi-record.mihoyo.com",
+    /** CN game-record event API */
+    CALCULATOR: "https://api-takumi-record.mihoyo.com",
+    /** MiYouShe account binding API */
+    ACCOUNT: "https://api-takumi.mihoyo.com",
+  },
 } as const;
 
 /**
@@ -28,6 +36,25 @@ export const COMMON_HEADERS = {
   Origin: "https://act.hoyolab.com",
   Referer: "https://act.hoyolab.com/",
 } as const;
+
+/** Headers required by MiYouShe's app-style game-record endpoints. */
+export const CN_COMMON_HEADERS = {
+  "User-Agent":
+    "Mozilla/5.0 (Linux; Android 13; M2101K9C Build/TKQ1.220829.002; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/108.0.5359.128 Mobile Safari/537.36 miHoYoBBS/2.70.1",
+  Accept: "application/json, text/plain, */*",
+  "Accept-Language": "zh-CN,zh;q=0.9",
+  "x-rpc-app_version": "2.11.1",
+  "x-rpc-client_type": "5",
+  "x-rpc-language": "zh-cn",
+  "X-Requested-With": "com.mihoyo.hyperion",
+  Origin: "https://webstatic.mihoyo.com",
+  Referer: "https://webstatic.mihoyo.com/",
+} as const;
+
+/** Return the API base URL group for a persisted account region. */
+export function getApiUrls(region: HoyoRegion) {
+  return API_URLS[region];
+}
 
 /**
  * Genshin Impact specific constants

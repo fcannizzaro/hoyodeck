@@ -42,7 +42,7 @@ async function validateAccount(settings: GlobalSettings): Promise<void> {
   if (isValidAuth(account.auth)) {
     try {
       debug.log("[AuthValidator] validating auth for:", accountId);
-      const client = new HoyolabClient(account.auth as HoyoAuth);
+      const client = new HoyolabClient(account.auth as HoyoAuth, account.region ?? "global");
       const response = await client.getGameRecordCard((account.auth as HoyoAuth).ltuid_v2);
       authStatus = "valid";
       const roles = extractGameRoles(response);
