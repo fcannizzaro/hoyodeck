@@ -28,7 +28,7 @@ A Stream Deck plugin for HoYoverse games. Track your Genshin Impact, Honkai: Sta
 
 ### Cross-Game
 
-- **Daily Reward** — HoYoLAB daily check-in for any game, with one-press claiming
+- **Daily Reward** — HoYoLAB or MiYouShe daily check-in for any game, with one-press claiming
 - **Redeem Codes** — Redeem HoYoverse gift codes across all games, with available code count overlay
 
 ## Installation
@@ -50,32 +50,32 @@ git clone https://github.com/fcannizzaro/hoyodeck.git
 cd hoyodeck
 
 # Install dependencies
-bun install
+pnpm install
 
 # Open the plugin directory
 cd plugin
 
 # Link the plugin for local development
-bun run link
+pnpm run link
 
 # Start development mode (watch + rebuild)
-bun run dev
+pnpm dev
 ```
 
 ## Setup
 
 ### Authentication
 
-The plugin requires HoYoLAB authentication to access your game data.
+The plugin supports both **HoYoLAB (Global)** and **MiYouShe (China)** accounts. Choose the service in account settings before logging in or pasting cookies.
 
-1. **Log in to HoYoLAB**
-   - Go to [hoyolab.com](https://www.hoyolab.com) and log in with your account
+1. **Log in to your service**
+   - Use [HoYoLAB](https://www.hoyolab.com) for global accounts or [MiYouShe](https://www.miyoushe.com) for CN accounts
 
 2. **Extract Cookies**
    - Open browser DevTools (F12)
    - Go to the Network tab
    - Refresh the page
-   - Find any request to `hoyolab.com`
+   - Find a request to the selected service
    - Copy the entire `Cookie` header value
 
 3. **Configure Plugin**
@@ -84,7 +84,7 @@ The plugin requires HoYoLAB authentication to access your game data.
    - Paste the cookie string and parse it
    - Your game UIDs will be resolved automatically
 
-The plugin supports **multiple accounts** — each action can be bound to a different HoYoLAB account.
+The plugin supports **multiple accounts and mixed regions** — each action can be bound to a different Global or CN account. CN gift-code redemption is only available in-game because MiYouShe does not expose a web redemption endpoint.
 
 ## Actions
 
@@ -118,10 +118,10 @@ The plugin supports **multiple accounts** — each action can be bound to a diff
 
 ### Cross-Game (2 actions)
 
-| Action           | Description                                                                  |
-| ---------------- | ---------------------------------------------------------------------------- |
-| **Daily Reward** | Today's HoYoLAB check-in reward for GI, HSR, or ZZZ. Press to claim.         |
-| **Redeem Codes** | Shows available code count. Press to redeem all codes for the selected game. |
+| Action           | Description                                                                   |
+| ---------------- | ----------------------------------------------------------------------------- |
+| **Daily Reward** | Today's HoYoLAB/MiYouShe check-in reward for GI, HSR, or ZZZ. Press to claim. |
+| **Redeem Codes** | Shows and redeems codes for Global accounts. CN redemption is in-game only.   |
 
 ## Requirements
 
@@ -140,8 +140,8 @@ The plugin supports **multiple accounts** — each action can be bound to a diff
 | Data Fetching      | TanStack Query 5                                                                                 |
 | Validation         | Zod 4                                                                                            |
 | Bundler            | Vite 8 (Rolldown)                                                                                |
-| Monorepo           | Turborepo + Bun workspaces                                                                       |
-| Package Manager    | Bun                                                                                              |
+| Monorepo           | Turborepo + pnpm workspaces                                                                      |
+| Package Manager    | pnpm 11                                                                                          |
 
 ## Development
 
@@ -198,11 +198,11 @@ The plugin uses a **React-on-Stream-Deck** architecture via [`@fcannizzaro/strea
 
 ### Scripts
 
-| Script              | Description                         |
-| ------------------- | ----------------------------------- |
-| `bun run dev`       | Start all workspaces in watch mode  |
-| `bun run build`     | Type-check and build all workspaces |
-| `bun run typecheck` | Type-check all workspaces           |
+| Script           | Description                         |
+| ---------------- | ----------------------------------- |
+| `pnpm dev`       | Start all workspaces in watch mode  |
+| `pnpm build`     | Type-check and build all workspaces |
+| `pnpm typecheck` | Type-check all workspaces           |
 
 ## Contributing
 
@@ -227,30 +227,30 @@ Data flows like this: the **plugin** polls the HoYoLAB API on a 5-minute interva
 git clone https://github.com/<your-username>/hoyodeck.git
 cd hoyodeck
 
-# 2. Install dependencies (Bun is required)
-bun install
+# 2. Install dependencies
+pnpm install
 
 # 3. Link the plugin for local Stream Deck development
 cd plugin
-bun run link
+pnpm run link
 cd ..
 
 # 4. Start development mode (watches all workspaces)
-bun run dev
+pnpm dev
 ```
 
-> **Prerequisites:** [Bun](https://bun.sh) (v1.3+), Node.js 24+, and the [Stream Deck](https://developer.elgato.com/documentation/stream-deck/) desktop app.
+> **Prerequisites:** [pnpm](https://pnpm.io) 11+, Node.js 24+, and the [Stream Deck](https://developer.elgato.com/documentation/stream-deck/) desktop app.
 
 ### Available Scripts
 
 Run these from the **repository root**:
 
-| Script              | Description                                    |
-| ------------------- | ---------------------------------------------- |
-| `bun run dev`       | Start all workspaces in watch mode (Turborepo) |
-| `bun run build`     | Type-check and build all workspaces            |
-| `bun run typecheck` | Type-check all workspaces without building     |
-| `bun run format`    | Format code with oxfmt                         |
+| Script           | Description                                    |
+| ---------------- | ---------------------------------------------- |
+| `pnpm dev`       | Start all workspaces in watch mode (Turborepo) |
+| `pnpm build`     | Type-check and build all workspaces            |
+| `pnpm typecheck` | Type-check all workspaces without building     |
+| `pnpm format`    | Format code with oxfmt                         |
 
 ### Submitting Changes
 
@@ -261,8 +261,8 @@ Run these from the **repository root**:
 2. **Make your changes** — keep commits focused and descriptive
 3. **Verify your work** before pushing:
    ```bash
-   bun run typecheck   # must pass with no errors
-   bun run build       # must build successfully
+   pnpm typecheck   # must pass with no errors
+   pnpm build       # must build successfully
    ```
 4. **Push** your branch and open a **Pull Request** against `main`
 

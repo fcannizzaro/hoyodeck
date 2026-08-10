@@ -1,6 +1,6 @@
 import { extractAuthFromCookies, validateAuth } from "@/api/hoyolab/auth";
 import { HoyolabClient } from "@/api/hoyolab/client";
-import type { GameId } from "@hoyodeck/shared/types";
+import type { GameId, HoyoRegion } from "@hoyodeck/shared/types";
 import { GAMES } from "@hoyodeck/shared/games";
 import { parseCookies } from "@hoyodeck/shared/cookies";
 
@@ -9,7 +9,7 @@ import { parseCookies } from "@hoyodeck/shared/cookies";
 // ============================================
 
 const USAGE = `
-Usage: bun run cli <game> <endpoint> [uid] [options]
+Usage: pnpm cli <game> <endpoint> [uid] [options]
 
 Games:
   genshin|gi      Genshin Impact
@@ -42,14 +42,17 @@ Endpoints:
 
 Environment:
   HOYOLAB_COOKIE    Raw cookie string containing the auth cookies used by HoYo Deck
-  Loaded from .env automatically by Bun.
+  Loaded from the repository .env file automatically by Node.js.
+
+Options:
+  --region=global|cn  API region (default: global)
 
 Examples:
-  bun run cli genshin daily-note 600123456
-  bun run cli genshin abyss 600123456 --schedule=2
-  bun run cli genshin check-in-info
-  bun run cli starrail daily-note 600123456
-  bun run cli zzz daily-note 1012345678
+  pnpm cli genshin daily-note 600123456
+  pnpm cli genshin abyss 600123456 --schedule=2
+  pnpm cli genshin check-in-info
+  pnpm cli starrail daily-note 600123456
+  pnpm cli zzz daily-note 1012345678
 `.trim();
 
 // ============================================
@@ -148,8 +151,8 @@ function requireUid(uid: string | undefined, game: GameId): string {
     process.exit(1);
   }
 
-  if (!/^\d{9,10}$/.test(uid)) {
-    console.error(`Error: Invalid UID "${uid}". Must be 9-10 digits.`);
+  if (!/^\d{8,10}$/.test(uid)) {
+    console.error(`Error: Invalid UID "${uid}". Must be 8-10 digits.`);
     process.exit(1);
   }
 
@@ -187,14 +190,14 @@ const ENDPOINTS: Record<string, Record<string, EndpointHandler>> = {
     "stygian-onslaught": async (client, uid, _, game) => {
       return client.getGenshinStygianOnslaught(requireUid(uid, game));
     },
-    "check-in-info": async (client) => {
-      return client.getCheckInInfo("gi");
+    "check-in-info": async (client, uid) => {
+      return client.getCheckInInfo("gi", uid);
     },
-    "check-in-rewards": async (client) => {
-      return client.getCheckInRewards("gi");
+    "check-in-rewards": async (client, uid) => {
+      return client.getCheckInRewards("gi", uid);
     },
-    "check-in-claim": async (client) => {
-      return client.claimCheckIn("gi");
+    "check-in-claim": async (client, uid) => {
+      return client.claimCheckIn("gi", uid);
     },
     "act-calendar": async (client, uid, _, game) => {
       return client.getGenshinActCalendar(requireUid(uid, game));
@@ -219,14 +222,14 @@ const ENDPOINTS: Record<string, Record<string, EndpointHandler>> = {
     "act-calendar": async (client, uid, _, game) => {
       return client.getStarRailActCalendar(requireUid(uid, game));
     },
-    "check-in-info": async (client) => {
-      return client.getCheckInInfo("hsr");
+    "check-in-info": async (client, uid) => {
+      return client.getCheckInInfo("hsr", uid);
     },
-    "check-in-rewards": async (client) => {
-      return client.getCheckInRewards("hsr");
+    "check-in-rewards": async (client, uid) => {
+      return client.getCheckInRewards("hsr", uid);
     },
-    "check-in-claim": async (client) => {
-      return client.claimCheckIn("hsr");
+    "check-in-claim": async (client, uid) => {
+      return client.claimCheckIn("hsr", uid);
     },
   },
   zzz: {
@@ -239,14 +242,14 @@ const ENDPOINTS: Record<string, Record<string, EndpointHandler>> = {
     "deadly-assault": async (client, uid, _, game) => {
       return client.getZZZDeadlyAssault(requireUid(uid, game));
     },
-    "check-in-info": async (client) => {
-      return client.getCheckInInfo("zzz");
+    "check-in-info": async (client, uid) => {
+      return client.getCheckInInfo("zzz", uid);
     },
-    "check-in-rewards": async (client) => {
-      return client.getCheckInRewards("zzz");
+    "check-in-rewards": async (client, uid) => {
+      return client.getCheckInRewards("zzz", uid);
     },
-    "check-in-claim": async (client) => {
-      return client.claimCheckIn("zzz");
+    "check-in-claim": async (client, uid) => {
+      return client.claimCheckIn("zzz", uid);
     },
   },
 };
@@ -258,7 +261,12 @@ const ENDPOINTS: Record<string, Record<string, EndpointHandler>> = {
 async function main() {
   const { game, endpointsKey, endpoint, uid, flags } = parseArgs(process.argv);
   const auth = getAuthFromEnv();
-  const client = new HoyolabClient(auth);
+  const regionFlag = flags.region ?? "global";
+  if (regionFlag !== "global" && regionFlag !== "cn") {
+    console.error(`Error: Invalid region "${regionFlag}". Use global or cn.`);
+    process.exit(1);
+  }
+  const client = new HoyolabClient(auth, regionFlag as HoyoRegion);
 
   const gameEndpoints = ENDPOINTS[endpointsKey];
   if (!gameEndpoints) {

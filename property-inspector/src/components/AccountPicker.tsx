@@ -55,7 +55,7 @@ export function AccountPicker({ game, label = "Account" }: AccountPickerProps) {
     { value: "", label: "Select account..." },
     ...filteredAccounts.map((a) => ({
       value: a.id,
-      label: `${a.name}${a.authStatus === "invalid" ? " (invalid)" : ""}`,
+      label: `${a.name} · ${(a.region ?? "global") === "cn" ? "CN" : "Global"}${a.authStatus === "invalid" ? " (invalid)" : ""}`,
     })),
   ];
 

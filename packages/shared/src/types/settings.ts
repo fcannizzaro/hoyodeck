@@ -1,5 +1,5 @@
 import type { AccountId, HoyoAuth } from "./auth";
-import type { HoyoAccount } from "./account";
+import type { HoyoAccount, HoyoRegion } from "./account";
 import type { GameId } from "./game";
 import type { CodeRedeemResult } from "./codes";
 
@@ -30,11 +30,11 @@ export interface BannerBadgeOptions {
 
 /** Transient state for the native webview login flow. PI writes 'requested'; plugin drives the rest. */
 export type PendingLogin =
-  | { status: "requested"; game: GameId }
-  | { status: "polling"; game: GameId }
-  | { status: "success"; auth: HoyoAuth; game: GameId }
-  | { status: "cancelled"; game?: GameId }
-  | { status: "error"; message: string; game?: GameId };
+  | { status: "requested"; game: GameId; region: HoyoRegion }
+  | { status: "polling"; game: GameId; region: HoyoRegion }
+  | { status: "success"; auth: HoyoAuth; game: GameId; region: HoyoRegion }
+  | { status: "cancelled"; game?: GameId; region?: HoyoRegion }
+  | { status: "error"; message: string; game?: GameId; region?: HoyoRegion };
 
 // ─── Global Settings ──────────────────────────────────────────────
 

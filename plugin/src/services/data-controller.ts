@@ -352,7 +352,7 @@ class DataControllerImpl {
     const existing = this.clientCache.get(account.id);
     if (existing) return existing;
 
-    const client = new HoyolabClient(account.auth as HoyoAuth);
+    const client = new HoyolabClient(account.auth as HoyoAuth, account.region ?? "global");
     this.clientCache.set(account.id, client);
     return client;
   }
@@ -436,6 +436,12 @@ class DataControllerImpl {
           `[DataController] Auth changed for account ${accountId}, invalidating`,
         );
         this.invalidateAccount(accountId as AccountId);
+      }
+
+      if ((oldAccount.region ?? "global") !== (newAccount.region ?? "global")) {
+        debug.log("[DataController] globalSettingsChanged | region changed:", accountId);
+        this.invalidateAccount(accountId as AccountId);
+        structureChanged = true;
       }
 
       if (!this.uidsEqual(oldAccount.uids, newAccount.uids)) {

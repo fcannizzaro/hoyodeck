@@ -15,8 +15,8 @@ This document defines the TypeScript coding standards for the HoYo Deck Stream D
 
 You can use
 
-- `bun run typecheck` to check types across all workspace packages (`@hoyodeck/shared`, `plugin`, `property-inspector`)
-- `bun run build` to build the plugin and property inspector
+- `pnpm typecheck` to check types across all workspace packages (`@hoyodeck/shared`, `plugin`, `property-inspector`)
+- `pnpm build` to build the plugin and property inspector
 
 The monorepo has three workspace packages:
 

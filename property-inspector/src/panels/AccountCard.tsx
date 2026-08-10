@@ -35,7 +35,12 @@ export function AccountCard({ account, onEdit, onDelete }: AccountCardProps) {
     <div className="flex flex-col gap-1.5 p-2.5 border border-sd-border rounded bg-sd-input/50">
       {/* Header: name + status */}
       <div className="flex items-center justify-between">
-        <span className="font-medium text-sd-text">{account.name}</span>
+        <div className="flex items-center gap-1.5">
+          <span className="font-medium text-sd-text">{account.name}</span>
+          <span className="text-[9px] uppercase text-sd-secondary bg-sd-bg px-1 py-0.5 rounded">
+            {(account.region ?? "global") === "cn" ? "CN" : "Global"}
+          </span>
+        </div>
         <span className={`text-[11px] ${status.color}`}>
           {status.symbol} {status.label}
         </span>

@@ -21,8 +21,8 @@ export class HSRController extends BaseGameController {
         "hsr:check-in",
         async () => {
           const [info, rewards] = await Promise.all([
-            client.getCheckInInfo("hsr"),
-            client.getCheckInRewards("hsr"),
+            client.getCheckInInfo("hsr", uid),
+            client.getCheckInRewards("hsr", uid),
           ]);
           return { info, rewards };
         },

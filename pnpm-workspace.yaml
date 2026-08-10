@@ -1,0 +1,7 @@
+packages:
+  - "packages/*"
+  - "plugin"
+  - "property-inspector"
+confirmModulesPurge: false
+allowBuilds:
+  esbuild: true

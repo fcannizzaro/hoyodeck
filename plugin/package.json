@@ -11,7 +11,7 @@
     "package": "streamdeck pack --force-update-check  -f ./com.fcannizzaro.hoyodeck.sdPlugin",
     "link": "streamdeck link com.fcannizzaro.hoyodeck.sdPlugin",
     "typecheck": "tsc --noEmit",
-    "cli": "bfr --env -- bun run src/cli.ts"
+    "cli": "node --env-file-if-exists=../.env --import tsx src/cli.ts"
   },
   "dependencies": {
     "@elgato/streamdeck": "^2.1.0",
@@ -33,6 +33,7 @@
     "@types/react": "^19.1.0",
     "@vitejs/plugin-react": "^6.0.1",
     "tailwindcss": "^4.2.2",
+    "tsx": "^4.20.5",
     "vite": "^8.0.9"
   },
   "engines": {

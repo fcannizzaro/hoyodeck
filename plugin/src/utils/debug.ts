@@ -2,7 +2,7 @@
  * Compile-time debug logger.
  *
  * All calls are stripped from production builds when __DEBUG__ is false.
- * Enable with: DEBUG=1 bun run build
+ * Enable with: DEBUG=1 pnpm build
  *
  * Usage:
  *   import { debug } from '@/utils/debug';

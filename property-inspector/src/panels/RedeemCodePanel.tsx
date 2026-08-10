@@ -111,6 +111,12 @@ export function RedeemCodePanel() {
 
       <AccountPicker game={game} />
 
+      {(account?.region ?? "global") === "cn" && (
+        <p className="text-[11px] text-sd-secondary mt-1">
+          MiYouShe does not provide a CN web redemption endpoint. Redeem gift codes in-game.
+        </p>
+      )}
+
       {/* Results list */}
       {displayItems.length > 0 && (
         <div className="flex flex-col gap-1.5 mt-2">
@@ -135,7 +141,7 @@ export function RedeemCodePanel() {
       )}
 
       {/* Empty state */}
-      {uid && displayItems.length === 0 && (
+      {uid && (account?.region ?? "global") !== "cn" && displayItems.length === 0 && (
         <p className="text-[11px] text-sd-secondary mt-2">
           No codes have been redeemed yet. Press the key to start.
         </p>

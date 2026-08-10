@@ -19,8 +19,8 @@ export class ZZZController extends BaseGameController {
         "zzz:check-in",
         async () => {
           const [info, rewards] = await Promise.all([
-            client.getCheckInInfo("zzz"),
-            client.getCheckInRewards("zzz"),
+            client.getCheckInInfo("zzz", uid),
+            client.getCheckInRewards("zzz", uid),
           ]);
           return { info, rewards };
         },
