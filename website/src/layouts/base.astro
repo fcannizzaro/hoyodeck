@@ -62,7 +62,7 @@ const {
     { threshold: 0.08 },
   );
 
-  const revealIfVisible = (el) => {
+  const revealIfVisible = (el: Element) => {
     const rect = el.getBoundingClientRect();
     const visible = rect.top < window.innerHeight * 0.92 && rect.bottom > 0;
 
