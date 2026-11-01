@@ -206,7 +206,7 @@ export interface StarRailChallenge {
   max_floor: string;
   battle_num: number;
   has_data?: boolean;
-  max_floor_detail?: unknown | null;
+  max_floor_detail?: unknown;
   max_floor_id: number;
   all_floor_detail: StarRailFloorDetail[];
   groups: StarRailChallengeGroup[];
@@ -251,7 +251,7 @@ export interface StarRailChallengePeakRecord {
   mob_infos: unknown[];
   has_challenge_record: boolean;
   battle_num: number;
-  boss_record: unknown | null;
+  boss_record: unknown;
   mob_records: StarRailChallengePeakMobRecord[];
   boss_stars: number;
   mob_stars: number;

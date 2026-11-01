@@ -19,7 +19,8 @@
     "streamdeck-react": {
       "source": "fcannizzaro/streamdeck-react",
       "sourceType": "github",
-      "computedHash": "f3d8abb8dd1f99177ce80073aff421ba6168515d754f1f662ac8e0a879e21287"
+      "skillPath": "skills/streamdeck-react/SKILL.md",
+      "computedHash": "863f2198cce983c23917d73d76020fe2bb48e7d1bea982e3dd00b338a57bcace"
     },
     "tailwind-design-system": {
       "source": "wshobson/agents",

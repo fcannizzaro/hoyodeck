@@ -85,9 +85,9 @@ export interface ZZZShiyuDefense {
   hadal_begin_time: ZZZDateComponents | null;
   hadal_end_time: ZZZDateComponents | null;
   pass_fifth_floor: boolean;
-  brief: unknown | null;
-  fitfh_layer_detail: unknown | null;
-  fourth_layer_detail: unknown | null;
+  brief: unknown;
+  fitfh_layer_detail: unknown;
+  fourth_layer_detail: unknown;
   begin_time: string;
   end_time: string;
 }

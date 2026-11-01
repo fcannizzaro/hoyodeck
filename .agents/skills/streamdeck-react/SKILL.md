@@ -758,9 +758,7 @@ const plugin = createPlugin({
   fonts: [
     // ...your fonts
   ],
-  actions: [
-    /* ... */
-  ],
+  actions: [/* ... */],
 });
 ```
 
@@ -785,6 +783,142 @@ const plugin = createPlugin({
 - **Element highlighting** -- hover a node in the Elements tree to highlight it with a cyan overlay on the Stream Deck hardware.
 - **Multi-plugin support** -- discovers and switches between multiple running plugins.
 - **Automatic production stripping** -- all devtools code, the `ws` dependency, and instrumentation hooks are removed from the bundle when `NODE_ENV=production` (non-watch builds). Zero overhead in release builds.
+
+## MCP Server (AI Agent Inspection)
+
+A development-only [Model Context Protocol](https://modelcontextprotocol.io/) server that lets AI agents inspect the running plugin. When enabled, the plugin starts an HTTP server on `localhost` (port range 39500-39599) using the Streamable HTTP transport.
+
+### Enabling
+
+```ts
+const plugin = createPlugin({
+  mcp: true, // starts the MCP server (port derived from plugin UUID)
+  fonts: [
+    // ...your fonts
+  ],
+  actions: [/* ... */],
+});
+```
+
+To use a specific port:
+
+```ts
+const plugin = createPlugin({
+  mcp: { port: 39550 },
+  // ...
+});
+```
+
+### Dependencies
+
+`@modelcontextprotocol/sdk` and `zod` are optional peer dependencies — install them only when enabling MCP:
+
+```bash
+npm install -D @modelcontextprotocol/sdk zod
+```
+
+### Tools
+
+The MCP server exposes 9 tools in two categories:
+
+**Inspection tools:**
+
+| Tool                | Description                                                                                                                                       |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `listKeys`          | Lists all visible actions with UUID, surface type (`key`/`dial`/`touch`), grid coordinates, and device info.                                      |
+| `keyPreview`        | Captures screenshot(s) of a specific key. Writes PNG files to `screenshot-mcp/` and returns relative path(s).                                     |
+| `dialPreview`       | Same as `keyPreview` but for encoder dial surfaces.                                                                                               |
+| `touchStripPreview` | Captures per-segment screenshot(s) of a touch strip. Provide any encoder UUID on the target device.                                               |
+| `queryLogs`         | Searches captured console output. Supports case-insensitive substring and `/regex/` patterns. Optional `actionUuid` filter and `limit` (max 200). |
+
+Preview tools accept: `uuid` (string), `column` (number), `row` (number), `count?` (1-10, for multi-frame animation capture with ~100ms intervals).
+
+Screenshots are written to `screenshot-mcp/` in the project root as PNG files (e.g. `screenshot-mcp/key-0-1-1.png`). The tool returns relative file paths — agents read the images from disk rather than receiving base64 data.
+
+**Interaction tools (simulate hardware input):**
+
+| Tool         | Description                                                                                                               |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------- |
+| `pressKey`   | Simulates a full key press (keyDown + keyUp with 50ms delay). Keys only. Params: `uuid`, `column`, `row`.                 |
+| `rotateDial` | Simulates encoder rotation. Params: `uuid`, `column`, `row`, `ticks` (positive = clockwise, negative = counterclockwise). |
+| `pressDial`  | Simulates a full dial press (dialDown + dialUp with 50ms delay). Params: `uuid`, `column`, `row`.                         |
+| `tapTouch`   | Simulates a touch tap on encoder surface. Params: `uuid`, `column`, `row`, `tapX` (0-199), `tapY` (0-99), `hold?`.        |
+
+Interaction tools dispatch events through `registry.dispatch()` — the same path used by real SDK events. Component hooks (`useKeyDown`, `useDialRotate`, `useTouchTap`, etc.) cannot distinguish simulated from physical input. Event payloads use empty settings (`{}`) since simulated events don't originate from the SDK.
+
+### Port Assignment
+
+Uses the same djb2-hash strategy as devtools but in port range **39500-39599** (devtools uses 39400-39499). Both MCP and devtools can run simultaneously without port collisions.
+
+The startup log shows the assigned port:
+
+```
+[@fcannizzaro/streamdeck-react] MCP server listening on http://127.0.0.1:39523/mcp
+```
+
+A `GET /health` endpoint returns `{"status":"ok","protocol":"mcp"}` for discovery.
+
+### Production Stripping
+
+Like devtools, all MCP code is **automatically removed from production builds**. The Vite plugin replaces the dynamic `import("./mcp/index.js")` with a no-op module when `NODE_ENV=production` (non-watch builds). Zero overhead in release bundles.
+
+### Agent MCP Configuration Prompt
+
+When a user enables the MCP server in their plugin (`mcp: true` or `mcp: { port: <number> }`), you **should proactively offer to generate or update the MCP client configuration file** for their agent/IDE. Ask the user which tool they use (Cursor, Claude Desktop, Windsurf, or other) and whether the agent runs inside Docker.
+
+Use the port from the startup log or compute it from the plugin UUID. If the user hasn't started the plugin yet, remind them to run it first (`npx vite build --watch`) and check the log for the actual port.
+
+#### Standard (agent runs on the same machine)
+
+The host is always `127.0.0.1` when the agent and the Stream Deck plugin run on the same machine:
+
+**Cursor** (`.cursor/mcp.json` in the project root):
+
+```json
+{
+  "mcpServers": {
+    "streamdeck": {
+      "url": "http://127.0.0.1:<PORT>/mcp"
+    }
+  }
+}
+```
+
+**Claude Desktop** (`claude_desktop_config.json`):
+
+```json
+{
+  "mcpServers": {
+    "streamdeck": {
+      "url": "http://127.0.0.1:<PORT>/mcp"
+    }
+  }
+}
+```
+
+#### Docker (agent runs in a container)
+
+When the agent runs inside a Docker container and the Stream Deck plugin runs on the host machine, use `host.docker.internal` instead of `127.0.0.1` to reach the host's localhost from inside the container:
+
+```json
+{
+  "mcpServers": {
+    "streamdeck": {
+      "url": "http://host.docker.internal:<PORT>/mcp"
+    }
+  }
+}
+```
+
+On Linux, `host.docker.internal` may not resolve by default. The user needs to add `--add-host=host.docker.internal:host-gateway` to their `docker run` command, or add `extra_hosts: ["host.docker.internal:host-gateway"]` to their `docker-compose.yml` service.
+
+#### Decision Flow
+
+1. Check if the user already has an MCP config file (`.cursor/mcp.json`, etc.).
+2. If it exists, **append** the `streamdeck` entry without overwriting other servers.
+3. If it doesn't exist, **create** the file with just the `streamdeck` entry.
+4. Ask the user if the agent runs in Docker — if yes, use `host.docker.internal`; if no, use `127.0.0.1`.
+5. Remind the user to add `screenshot-mcp/` to their `.gitignore`.
 
 ## Detailed References
 

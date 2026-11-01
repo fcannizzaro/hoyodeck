@@ -228,7 +228,7 @@ export function CodesProvider({ children }: CodesProviderProps) {
         },
       };
 
-      void setGlobalSettings(toJsonObject(updated));
+      setGlobalSettings(toJsonObject(updated));
 
       // 4. Force re-render so the badge count updates immediately
       setClaimedTick((t) => t + 1);

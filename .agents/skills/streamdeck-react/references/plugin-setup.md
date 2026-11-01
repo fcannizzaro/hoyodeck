@@ -32,6 +32,7 @@ interface PluginConfig {
   devicePixelRatio?: number; // Default: 1
   onActionError?: (uuid: string, actionId: string, error: Error) => void;
   devtools?: boolean; // Default: false
+  mcp?: boolean | { port: number }; // Default: false
   debug?: boolean; // Default: NODE_ENV !== 'production'
   imageCacheMaxBytes?: number; // Default: 16777216 (16 MB)
   touchStripCacheMaxBytes?: number; // Default: 8388608 (8 MB)
@@ -55,6 +56,7 @@ interface PluginConfig {
 | `devicePixelRatio`        | No       | Device pixel ratio used by the Takumi renderer. Default: `1`.                                                                                                                             |
 | `onActionError`           | No       | Called when a component throws in any action root.                                                                                                                                        |
 | `devtools`                | No       | Enable the devtools server. Port derived from plugin UUID (39400-39499).                                                                                                                  |
+| `mcp`                     | No       | Enable the MCP server for AI agent inspection. `true` uses a deterministic port (39500-39599); `{ port: number }` uses an explicit port. Requires `@modelcontextprotocol/sdk` and `zod`.  |
 | `debug`                   | No       | Enable render counters, duplicate detection, and depth warnings. Defaults to non-production.                                                                                              |
 | `imageCacheMaxBytes`      | No       | Max bytes for the key/dial image cache (LRU). Set to 0 to disable. Default: 16 MB.                                                                                                        |
 | `touchStripCacheMaxBytes` | No       | Max bytes for the TouchStrip raw buffer cache (LRU). Set to 0 to disable. Default: 8 MB.                                                                                                  |

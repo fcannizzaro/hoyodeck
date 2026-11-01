@@ -292,7 +292,7 @@ export interface GenshinTheaterScheduleInfo {
  * A single Imaginarium Theater season entry
  */
 export interface GenshinTheaterEntry {
-  detail: unknown | null;
+  detail: unknown;
   stat: GenshinTheaterStat;
   schedule: GenshinTheaterScheduleInfo;
   has_data: boolean;

@@ -278,9 +278,7 @@ The `nativeModules` option lets you register additional NAPI-RS (or other native
 
 ```ts
 streamDeckReact({
-  manifest: {
-    /* ... */
-  },
+  manifest: {/* ... */},
   nativeModules: [
     {
       importSpecifier: "@mypkg/native-core",

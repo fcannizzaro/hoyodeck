@@ -171,7 +171,7 @@ Complete public API exported from `@fcannizzaro/streamdeck-react`.
 
 | Export                        | Kind      | Description                                                                                                   |
 | ----------------------------- | --------- | ------------------------------------------------------------------------------------------------------------- |
-| `PluginConfig`                | Interface | Configuration for `createPlugin()`.                                                                           |
+| `PluginConfig`                | Interface | Configuration for `createPlugin()`. Includes `devtools`, `mcp`, `coordinator`, `theme`, and more.             |
 | `FontConfig`                  | Interface | Font file descriptor: `name`, `data`, `weight`, `style`.                                                      |
 | `GoogleFontVariant`           | Interface | Google Font variant options: `weight?`, `style?`. Used with `googleFont()`.                                   |
 | `ActionConfig`                | Interface | Configuration for `defineAction()`.                                                                           |

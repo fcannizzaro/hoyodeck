@@ -93,7 +93,7 @@ async function startLoginFlow(settings: GlobalSettings): Promise<void> {
      */
     const checkCookies = async () => {
       try {
-        const cookies = await win.getCookies();
+        const cookies = win.getCookies();
         const cookieRecord: Record<string, string> = {};
         for (const c of cookies) {
           cookieRecord[c.name] = c.value;
