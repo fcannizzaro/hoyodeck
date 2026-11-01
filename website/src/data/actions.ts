@@ -60,8 +60,8 @@ export const coreActions: ActionDef[] = [
     id: "redeem-code",
     name: "Redeem Code",
     description:
-      "Redeem available promo codes for the selected game and watch progress directly on the key.",
-    features: ["Batch redeem", "Live status grid", "Per-game codes"],
+      "View available promo codes for the selected game and redeem manually on the official website.",
+    features: ["Available codes", "Official redemption links", "Per-game codes"],
     inputType: "key",
     supportedGames: ["gi", "hsr", "zzz"],
   },

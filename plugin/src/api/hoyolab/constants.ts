@@ -1,5 +1,3 @@
-import type { GameId } from "@hoyodeck/shared/types";
-
 /**
  * HoYoLAB API base URLs
  */
@@ -67,32 +65,4 @@ export const ZZZ = {
     DEADLY_ASSAULT: "/event/game_record_zzz/api/zzz/mem_detail",
     GACHA_CALENDAR: "/event/game_record_zzz/api/zzz/gacha_calendar",
   },
-} as const;
-
-/**
- * Code redemption URLs per game (global/OS servers).
- * HSR uses the risk-checked POST endpoint while GI/ZZZ still use GET.
- */
-export const REDEEM_URLS: Record<GameId, string> = {
-  gi: "https://sg-hk4e-api.hoyoverse.com/common/apicdkey/api/webExchangeCdkey",
-  hsr: "https://sg-hkrpg-api.hoyoverse.com/common/apicdkey/api/webExchangeCdkeyRisk",
-  zzz: "https://public-operation-nap.hoyoverse.com/common/apicdkey/api/webExchangeCdkey",
-};
-
-/**
- * Redemption request method per game.
- */
-export const REDEEM_METHODS: Record<GameId, "GET" | "POST"> = {
-  gi: "GET",
-  hsr: "POST",
-  zzz: "GET",
-};
-
-/**
- * Headers observed on working web redemption requests.
- * These differ from the general Battle Chronicle API headers.
- */
-export const REDEEM_HEADERS = {
-  "x-rpc-app_version": "2.34.1",
-  "x-rpc-client_type": "4",
 } as const;

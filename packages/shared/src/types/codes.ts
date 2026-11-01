@@ -1,9 +1,6 @@
 /** Status of a code relative to a specific account */
 export type CodeStatus = "available" | "claimed" | "dismissed" | "expired";
 
-/** Live redemption progress for a single code */
-export type CodeRedeemProgress = "pending" | "loading" | "success" | "error";
-
 /** Outcome status for a redeemed code (persisted to globalSettings) */
 export type CodeRedeemStatus = "success" | "already_claimed" | "expired" | "error";
 

@@ -29,7 +29,7 @@ A Stream Deck plugin for HoYoverse games. Track your Genshin Impact, Honkai: Sta
 ### Cross-Game
 
 - **Daily Reward** — HoYoLAB daily check-in for any game, with one-press claiming
-- **Redeem Codes** — Redeem HoYoverse gift codes across all games, with available code count overlay
+- **Redeem Codes** — Browse HoYoverse gift codes across all games and redeem manually on the official website
 
 ## Installation
 
@@ -118,10 +118,10 @@ The plugin supports **multiple accounts** — each action can be bound to a diff
 
 ### Cross-Game (2 actions)
 
-| Action           | Description                                                                  |
-| ---------------- | ---------------------------------------------------------------------------- |
-| **Daily Reward** | Today's HoYoLAB check-in reward for GI, HSR, or ZZZ. Press to claim.         |
-| **Redeem Codes** | Shows available code count. Press to redeem all codes for the selected game. |
+| Action           | Description                                                                             |
+| ---------------- | --------------------------------------------------------------------------------------- |
+| **Daily Reward** | Today's HoYoLAB check-in reward for GI, HSR, or ZZZ. Press to claim.                    |
+| **Redeem Codes** | Shows available code count. Press to view all codes and open official redemption links. |
 
 ## Requirements
 

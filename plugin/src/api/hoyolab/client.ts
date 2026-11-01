@@ -1,16 +1,7 @@
 import type { HoyoAuth } from "./auth";
 import { buildCookieString } from "./auth";
 import { generateDS } from "./ds";
-import {
-  API_URLS,
-  COMMON_HEADERS,
-  GENSHIN,
-  STAR_RAIL,
-  ZZZ,
-  REDEEM_HEADERS,
-  REDEEM_METHODS,
-  REDEEM_URLS,
-} from "./constants";
+import { API_URLS, COMMON_HEADERS, GENSHIN, STAR_RAIL, ZZZ } from "./constants";
 import { type ApiResponse, HoyolabApiError, isSuccess } from "../types/common";
 import type {
   GenshinDailyNote,
@@ -455,45 +446,5 @@ export class HoyolabClient {
         query: { uid: ltuid },
       },
     );
-  }
-
-  // ============================================
-  // Code Redemption APIs
-  // ============================================
-
-  /**
-   * Redeem a gift code for a specific game and UID.
-   * @param game - The game to redeem for
-   * @param code - The redemption code string
-   * @param uid - The player's in-game UID
-   * @throws {HoyolabApiError} If redemption fails (already claimed, expired, etc.)
-   */
-  async redeemCode(game: GameId, code: string, uid: string): Promise<void> {
-    const redeemUrl = REDEEM_URLS[game];
-    if (!redeemUrl) throw new Error(`No redemption URL for game: ${game}`);
-    const method = REDEEM_METHODS[game];
-
-    const region = getRegionFromUid(uid, game);
-    const gameBiz: Record<GameId, string> = {
-      gi: "hk4e_global",
-      hsr: "hkrpg_global",
-      zzz: "nap_global",
-    };
-
-    const payload = {
-      uid,
-      region,
-      cdkey: code,
-      game_biz: gameBiz[game],
-      lang: "en",
-    };
-
-    await this.request<unknown>(redeemUrl, "", {
-      method,
-      query: method === "GET" ? payload : undefined,
-      body: method === "POST" ? payload : undefined,
-      useDS: false,
-      headers: REDEEM_HEADERS,
-    });
   }
 }

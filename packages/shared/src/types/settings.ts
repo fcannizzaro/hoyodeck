@@ -351,5 +351,6 @@ export interface PatchCountdownSettings extends GameActionSettings {
  */
 export interface RedeemCodeSettings extends GameActionSettings {
   game?: GameId;
+  /** @deprecated Codes are now redeemed manually on the official website. */
   autoRedeem?: boolean;
 }
