@@ -9,7 +9,7 @@ HoYo Deck is a TypeScript monorepo for a Stream Deck plugin, its property inspec
 - Keep changes scoped to the request. Reuse existing components and services before adding abstractions or dependencies.
 - Treat manifests, configuration, and source as evidence of current behavior. If this file disagrees with them, investigate and report the mismatch rather than copying a stale example.
 - Never put HoYoLAB cookies, tokens, account data, or `.env` values in logs, fixtures, commits, or responses. Use synthetic credentials in tests.
-- Commit each completed feature or fix with a short, descriptive message unless the user says otherwise. Push, publish, and deploy only when requested.
+- Commit each completed feature or fix unless the user says otherwise. Use a lowercase type prefix and a short, lowercase imperative description, such as `feat: add marketplace link`, `fix: prevent login races`, or `chore: update dependencies`. Use `feat` for new behavior, `fix` for bug fixes, `refactor` for restructuring, `docs` for documentation, and `chore` for maintenance and tooling. Push, publish, and deploy only when requested.
 
 ## Setup and commands
 
