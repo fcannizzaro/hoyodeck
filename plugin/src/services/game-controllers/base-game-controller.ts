@@ -1,5 +1,6 @@
 import streamDeck from "@elgato/streamdeck";
 import type { HoyolabClient } from "@/api/hoyolab/client";
+import type { CheckInInfo, CheckInRewards } from "@/api/types/check-in";
 import type { GameId } from "@hoyodeck/shared/types";
 import type { DataType, DataEntry } from "../data-controller.types";
 import { debug } from "@/utils/debug";
@@ -10,6 +11,16 @@ import { debug } from "@/utils/debug";
  */
 export abstract class BaseGameController {
   abstract readonly game: GameId;
+
+  protected async fetchCheckIn(
+    client: HoyolabClient,
+  ): Promise<{ info: CheckInInfo; rewards: CheckInRewards }> {
+    const [info, rewards] = await Promise.all([
+      client.getCheckInInfo(this.game),
+      client.getCheckInRewards(this.game),
+    ]);
+    return { info, rewards };
+  }
 
   /**
    * Fetch all requested data types for a given account.

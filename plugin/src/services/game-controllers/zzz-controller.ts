@@ -15,16 +15,7 @@ export class ZZZController extends BaseGameController {
       ["zzz:shiyu-defense", () => client.getZZZShiyuDefense(uid)],
       ["zzz:deadly-assault", () => client.getZZZDeadlyAssault(uid)],
       ["zzz:gacha-calendar", () => client.getZZZGachaCalendar(uid)],
-      [
-        "zzz:check-in",
-        async () => {
-          const [info, rewards] = await Promise.all([
-            client.getCheckInInfo("zzz"),
-            client.getCheckInRewards("zzz"),
-          ]);
-          return { info, rewards };
-        },
-      ],
+      ["zzz:check-in", () => this.fetchCheckIn(client)],
     ]);
   }
 }
