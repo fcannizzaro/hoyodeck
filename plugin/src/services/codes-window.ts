@@ -1,6 +1,7 @@
 import streamDeck from "@elgato/streamdeck";
 import type { GameId } from "@hoyodeck/shared/types";
 import { GAME_LABELS_EXTENDED } from "@hoyodeck/shared/games";
+import { dataController } from "@/services/data-controller";
 
 const REDEMPTION_PAGES: Record<GameId, string> = {
   gi: "https://genshin.hoyoverse.com/en/gift",
@@ -48,15 +49,25 @@ export async function showCodesWindow(game: GameId, codes: string[]): Promise<vo
     }
     const index = links.indexOf(message);
     if (index === -1) return;
-    void streamDeck.system.openUrl(message).then(
-      () => {
+    void streamDeck.system
+      .openUrl(message)
+      .then(async () => {
+        const settings = dataController.getCachedGlobalSettings();
+        if (!settings) throw new Error("Global settings are not available");
+        const redeemed = settings.redeemedCodes?.[game] ?? [];
+        await dataController.writeGlobalSettings({
+          ...settings,
+          redeemedCodes: {
+            ...settings.redeemedCodes,
+            [game]: [...new Set([...redeemed, codes[index]!])],
+          },
+        });
         if (!closed) win.evaluateJs(`markRedeemed(${index})`);
-      },
-      (error) => {
+      })
+      .catch((error) => {
         streamDeck.logger.error("[CodesWindow] Failed to open redemption page:", error);
         if (!closed) win.evaluateJs("document.getElementById('error').hidden = false");
-      },
-    );
+      });
   });
   win.loadHtml(`<!doctype html>
 <html lang="en"><head><meta charset="utf-8">

@@ -1,6 +1,8 @@
 import { beforeEach, expect, test, vi } from "vite-plus/test";
 
 const mocks = vi.hoisted(() => ({
+  settings: {} as { redeemedCodes?: Record<string, string[]> },
+  writeSettings: vi.fn(),
   html: vi.fn(),
   message: vi.fn(),
   openUrl: vi.fn(),
@@ -8,6 +10,12 @@ const mocks = vi.hoisted(() => ({
   hide: vi.fn(),
   close: vi.fn(),
   onClose: vi.fn(),
+}));
+vi.mock("../src/services/data-controller", () => ({
+  dataController: {
+    getCachedGlobalSettings: () => mocks.settings,
+    writeGlobalSettings: mocks.writeSettings,
+  },
 }));
 vi.mock("@elgato/streamdeck", () => ({
   default: { system: { openUrl: mocks.openUrl }, logger: { error: vi.fn() } },
@@ -28,6 +36,10 @@ import { showCodesWindow } from "../src/services/codes-window";
 
 beforeEach(() => {
   vi.clearAllMocks();
+  mocks.settings = {};
+  mocks.writeSettings.mockImplementation(async (settings) => {
+    mocks.settings = settings;
+  });
   mocks.openUrl.mockResolvedValue(undefined);
 });
 
@@ -72,10 +84,22 @@ test("marks only the clicked code after the browser opens", async () => {
   const onMessage = mocks.message.mock.calls[0]![0];
   onMessage("https://genshin.hoyoverse.com/en/gift?code=SECOND", "nativewindow://localhost");
   expect(mocks.evaluateJs).not.toHaveBeenCalled();
+  expect(mocks.writeSettings).not.toHaveBeenCalled();
   opened();
   await vi.waitFor(() =>
     expect(mocks.evaluateJs).toHaveBeenCalledExactlyOnceWith("markRedeemed(1)"),
   );
+});
+
+test("persists successive redemptions per game without losing other settings", async () => {
+  mocks.settings = { redeemedCodes: { hsr: ["OTHER"] } };
+  await showCodesWindow("gi", ["FIRST", "SECOND"]);
+  const onMessage = mocks.message.mock.calls[0]![0];
+  for (const code of ["FIRST", "SECOND", "FIRST"]) {
+    onMessage(`https://genshin.hoyoverse.com/en/gift?code=${code}`, "nativewindow://localhost");
+    await new Promise((resolve) => setTimeout(resolve, 0));
+  }
+  expect(mocks.settings.redeemedCodes).toEqual({ hsr: ["OTHER"], gi: ["FIRST", "SECOND"] });
 });
 
 test("keeps codes available when opening the browser fails", async () => {
@@ -90,6 +114,7 @@ test("keeps codes available when opening the browser fails", async () => {
       "document.getElementById('error').hidden = false",
     ),
   );
+  expect(mocks.writeSettings).not.toHaveBeenCalled();
 });
 
 test("closes through trusted IPC and ignores repeated close requests", async () => {

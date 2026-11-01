@@ -42,6 +42,8 @@ export type PendingLogin =
  * Global plugin settings stored by Stream Deck (V2 — multi-account)
  */
 export interface GlobalSettings {
+  /** Codes marked redeemed locally, shared by all actions for each game. */
+  redeemedCodes?: Partial<Record<GameId, string[]>>;
   /** Schema version for migration detection */
   version?: 2;
   /** All configured accounts, keyed by AccountId */
