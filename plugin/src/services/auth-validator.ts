@@ -4,7 +4,14 @@ import type { JsonObject } from "@elgato/utils";
 import { HoyolabClient } from "@/api/hoyolab/client";
 import { isValidAuth } from "@/api/hoyolab/auth";
 import { isAuthError } from "@/api/types/common";
-import type { AuthStatus, GlobalSettings, HoyoAuth, GameId } from "@hoyodeck/shared/types";
+import type {
+  AuthStatus,
+  GlobalSettings,
+  HoyoAuth,
+  HoyoAccount,
+  GameId,
+  GameRole,
+} from "@hoyodeck/shared/types";
 import { HOYOLAB_GAME_IDS, type GameRecordCardResponse } from "@/api/types/game-record";
 import { dataController } from "@/services/data-controller";
 import { debug } from "@/utils/debug";
@@ -14,20 +21,25 @@ import { debug } from "@/utils/debug";
  * Called once at plugin startup to register the listener.
  */
 export function registerAuthValidator(): void {
-  const inFlight = new Map<string, HoyoAuth | undefined>();
+  const inFlight = new Map<string, HoyoAccount | undefined>();
 
   streamDeck.settings.onDidReceiveGlobalSettings<JsonObject>((ev) => {
     const settings = ev.settings as unknown as GlobalSettings;
     const accountId = settings.pendingValidation;
     if (!accountId) return;
-    const auth = settings.accounts?.[accountId]?.auth;
-    if (inFlight.has(accountId) && isDeepStrictEqual(inFlight.get(accountId), auth)) return;
-    inFlight.set(accountId, auth);
+    const account = settings.accounts?.[accountId];
+    if (
+      inFlight.has(accountId) &&
+      isDeepStrictEqual(inFlight.get(accountId)?.auth, account?.auth) &&
+      inFlight.get(accountId)?.region === account?.region
+    )
+      return;
+    inFlight.set(accountId, account);
     debug.log("[AuthValidator] pendingValidation detected:", settings.pendingValidation);
     void validateAccount(settings)
       .catch((error) => streamDeck.logger.error("[AuthValidator] Validation failed:", error))
       .finally(() => {
-        if (inFlight.get(accountId) === auth) inFlight.delete(accountId);
+        if (inFlight.get(accountId) === account) inFlight.delete(accountId);
       });
   });
 }
@@ -52,11 +64,11 @@ async function validateAccount(settings: GlobalSettings): Promise<void> {
   if (isValidAuth(account.auth)) {
     try {
       debug.log("[AuthValidator] validating auth for:", accountId);
-      const client = new HoyolabClient(account.auth as HoyoAuth);
+      const client = new HoyolabClient(account.auth as HoyoAuth, account.region ?? "global");
       const response = await client.getGameRecordCard((account.auth as HoyoAuth).ltuid_v2);
       authStatus = "valid";
       roles = extractGameRoles(response);
-      debug.log("[AuthValidator] auth valid | linked games:", Object.keys(roles.uids));
+      debug.log("[AuthValidator] auth valid | linked games:", Object.keys(roles));
     } catch (error) {
       if (isAuthError(error)) {
         authStatus = "invalid";
@@ -72,10 +84,27 @@ async function validateAccount(settings: GlobalSettings): Promise<void> {
 
   const current = dataController.getCachedGlobalSettings() ?? settings;
   const currentAccount = current.accounts?.[accountId];
-  if (!currentAccount || !isDeepStrictEqual(currentAccount.auth, account.auth)) return;
+  if (
+    !currentAccount ||
+    !isDeepStrictEqual(currentAccount.auth, account.auth) ||
+    currentAccount.region !== account.region
+  )
+    return;
   authStatus ??= currentAccount.authStatus;
-  const uids = roles?.uids ?? currentAccount.uids;
-  const nicknames = roles?.nicknames ?? currentAccount.nicknames;
+  const uids = { ...currentAccount.uids };
+  const nicknames = { ...currentAccount.nicknames };
+  if (roles) {
+    for (const game of Object.keys(roles) as GameId[]) {
+      const available = roles[game]!;
+      const selected =
+        available.find((role) => role.uid === uids[game]) ??
+        (!uids[game] ? available[0] : undefined);
+      if (selected) {
+        uids[game] = selected.uid;
+        nicknames[game] = selected.nickname;
+      }
+    }
+  }
 
   // Merge into the latest settings so an API response cannot undo intervening edits.
   const updatedAccounts = {
@@ -84,7 +113,7 @@ async function validateAccount(settings: GlobalSettings): Promise<void> {
       ...currentAccount,
       authStatus,
       uids,
-      nicknames,
+      ...(roles ? { nicknames, roles } : {}),
     },
   };
 
@@ -110,21 +139,16 @@ async function validateAccount(settings: GlobalSettings): Promise<void> {
 /**
  * Extract linked game roles (UIDs + nicknames) from the game record card API.
  */
-function extractGameRoles(response: GameRecordCardResponse): {
-  uids: Partial<Record<GameId, string>>;
-  nicknames: Partial<Record<GameId, string>>;
-} {
-  const uids: Partial<Record<GameId, string>> = {};
-  const nicknames: Partial<Record<GameId, string>> = {};
-
+function extractGameRoles(response: GameRecordCardResponse): Partial<Record<GameId, GameRole[]>> {
+  const roles: Partial<Record<GameId, GameRole[]>> = {};
   for (const card of response.list) {
-    if (!card.has_role) continue;
-    const gameId = HOYOLAB_GAME_IDS[card.game_id];
-    if (gameId) {
-      uids[gameId] = card.game_role_id;
-      nicknames[gameId] = card.nickname;
-    }
+    const game = HOYOLAB_GAME_IDS[card.game_id];
+    if (!card.has_role || !game) continue;
+    (roles[game] ??= []).push({
+      uid: card.game_role_id,
+      nickname: card.nickname,
+      region: card.region,
+    });
   }
-
-  return { uids, nicknames };
+  return roles;
 }

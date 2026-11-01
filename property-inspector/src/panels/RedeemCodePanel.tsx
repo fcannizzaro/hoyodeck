@@ -25,7 +25,8 @@ export function RedeemCodePanel() {
       <p className="text-[11px] text-sd-secondary mt-2">
         Press the key to view all available codes. Choose Redeem beside a code to open the official
         website in your browser, then sign in and confirm redemption there. You can also copy a code
-        and redeem it in-game. No plugin account is required.
+        and redeem it in-game. MiYouShe (China) accounts should redeem codes in-game. No plugin
+        account is required.
       </p>
     </div>
   );

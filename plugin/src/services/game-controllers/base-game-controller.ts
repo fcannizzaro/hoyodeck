@@ -14,10 +14,11 @@ export abstract class BaseGameController {
 
   protected async fetchCheckIn(
     client: HoyolabClient,
+    uid: string,
   ): Promise<{ info: CheckInInfo; rewards: CheckInRewards }> {
     const [info, rewards] = await Promise.all([
-      client.getCheckInInfo(this.game),
-      client.getCheckInRewards(this.game),
+      client.getCheckInInfo(this.game, uid),
+      client.getCheckInRewards(this.game, uid),
     ]);
     return { info, rewards };
   }

@@ -1,4 +1,5 @@
 interface SelectProps {
+  disabled?: boolean;
   label: string;
   value: string;
   options: { value: string; label: string }[];
@@ -6,13 +7,15 @@ interface SelectProps {
   onChange: (value: string) => void;
 }
 
-export function Select({ label, value, options, info, onChange }: SelectProps) {
+export function Select({ label, value, options, info, onChange, disabled }: SelectProps) {
   return (
     <div className="flex flex-col gap-1">
       <label className="text-[11px] font-medium text-sd-secondary uppercase tracking-wider">
         {label}
       </label>
       <select
+        disabled={disabled}
+        aria-label={label}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         className="w-full px-2.5 py-2 bg-sd-input border border-sd-border rounded text-sd-text text-xs outline-none transition-colors focus:border-sd-focus"

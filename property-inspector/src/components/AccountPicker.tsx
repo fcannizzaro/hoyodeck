@@ -1,3 +1,4 @@
+import { roleLabel } from "../utils/role-label";
 import { useEffect, useMemo } from "react";
 import { useStreamDeck } from "../hooks/use-stream-deck";
 import { Select } from "./Select";
@@ -55,7 +56,7 @@ export function AccountPicker({ game, label = "Account" }: AccountPickerProps) {
     { value: "", label: "Select account..." },
     ...filteredAccounts.map((a) => ({
       value: a.id,
-      label: `${a.name}${a.authStatus === "invalid" ? " (invalid)" : ""}`,
+      label: `${a.name} · ${(a.region ?? "global") === "cn" ? "CN" : "Global"}${game && a.roles?.[game]?.find((role) => role.uid === a.uids[game]) ? ` · ${roleLabel(a.roles[game]!.find((role) => role.uid === a.uids[game])!)}` : ""}${a.authStatus === "invalid" ? " (invalid)" : ""}`,
     })),
   ];
 

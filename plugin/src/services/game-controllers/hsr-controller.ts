@@ -17,7 +17,7 @@ export class HSRController extends BaseGameController {
       ["hsr:apocalyptic-shadow", () => client.getStarRailApocalypticShadow(uid)],
       ["hsr:anomaly-arbitration", () => client.getStarRailAnomalyArbitration(uid)],
       ["hsr:act-calendar", () => client.getStarRailActCalendar(uid)],
-      ["hsr:check-in", () => this.fetchCheckIn(client)],
+      ["hsr:check-in", () => this.fetchCheckIn(client, uid)],
     ]);
   }
 }

@@ -16,7 +16,7 @@ export class GenshinController extends BaseGameController {
       ["gi:imaginarium-theater", () => client.getGenshinImaginariumTheater(uid)],
       ["gi:stygian-onslaught", () => client.getGenshinStygianOnslaught(uid)],
       ["gi:act-calendar", () => client.getGenshinActCalendar(uid)],
-      ["gi:check-in", () => this.fetchCheckIn(client)],
+      ["gi:check-in", () => this.fetchCheckIn(client, uid)],
     ]);
   }
 }

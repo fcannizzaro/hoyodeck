@@ -8,6 +8,8 @@ const mocks = vi.hoisted(() => ({
   open: vi.fn(),
   onClose: vi.fn(),
   runtime: vi.fn(),
+  close: vi.fn(),
+  load: vi.fn(),
 }));
 vi.mock("@elgato/streamdeck", () => ({
   default: {
@@ -26,7 +28,8 @@ vi.mock("@nativewindow/webview", () => ({
     }
     onClose = mocks.onClose;
     onPageLoad() {}
-    loadUrl() {}
+    loadUrl = mocks.load;
+    close = mocks.close;
     async getCookies() {
       return [];
     }
@@ -88,4 +91,20 @@ test("allows retry after the native runtime fails to initialize", async () => {
   await vi.waitFor(() => expect(current.pendingLogin?.status).toBe("error"));
   requestLogin();
   await vi.waitFor(() => expect(mocks.open).toHaveBeenCalledTimes(1));
+});
+
+test("opens the CN service and preserves its identity", async () => {
+  current = {
+    pendingLogin: { status: "requested", game: "gi", region: "cn", requestId: "cn-login" },
+  };
+  listener({ settings: structuredClone(current) });
+  await vi.waitFor(() => expect(mocks.load).toHaveBeenCalled());
+  expect(mocks.load.mock.calls[0]![0]).toContain("miyoushe.com");
+  expect(current.pendingLogin).toMatchObject({ region: "cn", requestId: "cn-login" });
+  current = {};
+  listener({ settings: current });
+  expect(mocks.close).toHaveBeenCalledOnce();
+  mocks.onClose.mock.calls[0]![0]();
+  await vi.advanceTimersByTimeAsync(0);
+  expect(current.pendingLogin).toBeUndefined();
 });

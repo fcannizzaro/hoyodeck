@@ -44,8 +44,8 @@ describe.each([
     const client = setup();
     const results = await controller.fetchAll(client, "600123456", [dataType]);
 
-    expect(client.getCheckInInfo).toHaveBeenCalledExactlyOnceWith(controller.game);
-    expect(client.getCheckInRewards).toHaveBeenCalledExactlyOnceWith(controller.game);
+    expect(client.getCheckInInfo).toHaveBeenCalledExactlyOnceWith(controller.game, "600123456");
+    expect(client.getCheckInRewards).toHaveBeenCalledExactlyOnceWith(controller.game, "600123456");
     expect([...results.keys()]).toEqual([dataType]);
     expect(results.get(dataType)).toMatchObject({ status: "ok", data: { info, rewards } });
   });

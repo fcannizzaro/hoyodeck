@@ -311,3 +311,11 @@ This project is not affiliated with, endorsed by, or associated with COGNOSPHERE
 ## License
 
 Apache 2.0
+
+### Multiple servers and China accounts
+
+Choose **HoYoLAB (Global)** or **MiYouShe (China)** when adding an account. Log in or paste cookies for that service, then save. HoYo Deck discovers linked characters for Genshin Impact, Honkai: Star Rail, and Zenless Zone Zero.
+
+After validation, edit the account to choose a character per game. The selector shows its server, nickname, and UID. Use **Add another region** on an account card to reuse its login in a separate entry, select the other characters, and give the entry a name such as "Main Europe". Assign each entry to the keys or dials that should show it. Existing entries keep their selected UIDs when refreshed.
+
+China accounts use MiYouShe game records and daily check-in. Redeem gift codes in-game for China accounts; the browser redemption flow is intended for Global accounts.

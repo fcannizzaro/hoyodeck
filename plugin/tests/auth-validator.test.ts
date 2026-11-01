@@ -127,3 +127,36 @@ test("keeps newer account data on a network error and permits another validation
   emit({ ...current, pendingValidation: account.id });
   await vi.waitFor(() => expect(mocks.fetch).toHaveBeenCalledTimes(2));
 });
+
+test("discovers multiple servers and preserves the selected character", async () => {
+  mocks.fetch.mockResolvedValue({
+    list: [
+      {
+        has_role: true,
+        game_id: 2,
+        game_role_id: "600123456",
+        nickname: "America",
+        region: "os_usa",
+      },
+      {
+        has_role: true,
+        game_id: 2,
+        game_role_id: "700123456",
+        nickname: "Europe",
+        region: "os_euro",
+      },
+    ],
+  });
+  emit({ ...current, accounts: { [account.id]: { ...account, uids: { gi: "600123456" } } } });
+  await vi.waitFor(() => expect(mocks.write).toHaveBeenCalledTimes(1));
+  expect(current.accounts?.[account.id]?.roles?.gi).toHaveLength(2);
+  expect(current.accounts?.[account.id]?.uids.gi).toBe("600123456");
+  emit({
+    ...current,
+    pendingValidation: account.id,
+    accounts: { [account.id]: { ...current.accounts![account.id]!, uids: { gi: "700123456" } } },
+  });
+  await vi.waitFor(() => expect(mocks.write).toHaveBeenCalledTimes(2));
+  expect(current.accounts?.[account.id]?.uids.gi).toBe("700123456");
+  expect(current.accounts?.[account.id]?.nicknames?.gi).toBe("Europe");
+});

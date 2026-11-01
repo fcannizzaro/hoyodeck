@@ -1,3 +1,4 @@
+import { isDeepStrictEqual } from "node:util";
 import streamDeck from "@elgato/streamdeck";
 import type { JsonObject } from "@elgato/utils";
 import type { AccountId, GlobalSettings, HoyoAccount, GameId } from "@hoyodeck/shared/types";
@@ -352,7 +353,11 @@ class DataControllerImpl {
     const existing = this.clientCache.get(account.id);
     if (existing) return existing;
 
-    const client = new HoyolabClient(account.auth as HoyoAuth);
+    const client = new HoyolabClient(
+      account.auth as HoyoAuth,
+      account.region ?? "global",
+      account.roles,
+    );
     this.clientCache.set(account.id, client);
     return client;
   }
@@ -438,7 +443,17 @@ class DataControllerImpl {
         this.invalidateAccount(accountId as AccountId);
       }
 
-      if (!this.uidsEqual(oldAccount.uids, newAccount.uids)) {
+      if ((oldAccount.region ?? "global") !== (newAccount.region ?? "global")) {
+        debug.log("[DataController] globalSettingsChanged | region changed:", accountId);
+        this.invalidateAccount(accountId as AccountId);
+        structureChanged = true;
+      }
+
+      if (
+        !this.uidsEqual(oldAccount.uids, newAccount.uids) ||
+        !isDeepStrictEqual(oldAccount.roles, newAccount.roles)
+      ) {
+        this.invalidateAccount(accountId);
         debug.log("[DataController] globalSettingsChanged | UIDs changed:", accountId);
         structureChanged = true;
       }
@@ -648,6 +663,8 @@ class DataControllerImpl {
       "| results:",
       [...results.entries()].map(([dt, e]) => `${dt}:${e.status}`),
     );
+
+    if (this.clientCache.get(accountId) !== client) return;
 
     // Store + notify
     for (const [dataType, entry] of results) {

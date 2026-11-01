@@ -14,6 +14,7 @@ export function AccountPanel() {
   const { globalSettings, saveGlobalSettings, saveSettings, settings } = useStreamDeck();
   const accounts = (globalSettings.accounts ?? {}) as Record<string, HoyoAccount>;
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [copy, setCopy] = useState<HoyoAccount | undefined>();
   const [showAddForm, setShowAddForm] = useState(false);
 
   const handleDelete = (id: string) => {
@@ -34,6 +35,7 @@ export function AccountPanel() {
       saveSettings({ accountId: account.id });
     }
     setShowAddForm(false);
+    setCopy(undefined);
     setEditingId(null);
   };
 
@@ -63,6 +65,14 @@ export function AccountPanel() {
               <AccountCard
                 key={account.id}
                 account={account}
+                onDuplicate={() => {
+                  setCopy({
+                    ...account,
+                    id: crypto.randomUUID(),
+                    name: `${account.name} - another region`,
+                  });
+                  setShowAddForm(true);
+                }}
                 onEdit={() => setEditingId(account.id)}
                 onDelete={() => handleDelete(account.id)}
               />
@@ -72,7 +82,15 @@ export function AccountPanel() {
       )}
 
       {showAddForm ? (
-        <AccountForm onSave={handleSave} onCancel={() => setShowAddForm(false)} />
+        <AccountForm
+          key={copy?.id ?? "new"}
+          account={copy}
+          onSave={handleSave}
+          onCancel={() => {
+            setShowAddForm(false);
+            setCopy(undefined);
+          }}
+        />
       ) : (
         <Button onClick={() => setShowAddForm(true)}>+ Add Account</Button>
       )}

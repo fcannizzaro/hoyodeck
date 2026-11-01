@@ -1,7 +1,7 @@
 import streamDeck from "@elgato/streamdeck";
 import type { JsonObject } from "@elgato/utils";
 import { getGameConfig } from "@hoyodeck/shared/games";
-import type { GlobalSettings, GameId } from "@hoyodeck/shared/types";
+import type { GlobalSettings, GameId, HoyoRegion } from "@hoyodeck/shared/types";
 import { extractAuthFromCookies, isValidAuth, type HoyoAuth } from "@/api/hoyolab/auth";
 import { dataController } from "@/services/data-controller";
 
@@ -11,9 +11,11 @@ const DEFAULT_LOGIN_GAME: GameId = "gi";
 const POLL_INTERVAL_MS = 1_000;
 
 /** Domains allowed for navigation in the login webview */
-const ALLOWED_HOSTS = ["*.hoyolab.com"];
+const ALLOWED_HOSTS = ["*.hoyolab.com", "*.hoyoverse.com", "*.miyoushe.com", "*.mihoyo.com"];
 
 let loginInProgress = false;
+let cancelLogin: (() => void) | undefined;
+let activeRequestId: string | undefined;
 
 // ─── Public API ───────────────────────────────────────────────────
 
@@ -42,7 +44,13 @@ export function registerLoginHandler(): void {
       }
     }
 
-    if (settings.pendingLogin?.status !== "requested" || loginInProgress) return;
+    if (loginInProgress) {
+      if (!settings.pendingLogin || settings.pendingLogin.requestId !== activeRequestId)
+        cancelLogin?.();
+      return;
+    }
+    if (settings.pendingLogin?.status !== "requested") return;
+    activeRequestId = settings.pendingLogin.requestId;
     loginInProgress = true;
     void startLoginFlow(settings).catch((error) => {
       streamDeck.logger.error("[HoyolabLogin] Failed to save login state:", error);
@@ -54,21 +62,30 @@ export function registerLoginHandler(): void {
 
 async function startLoginFlow(settings: GlobalSettings): Promise<void> {
   let detectedAuth: HoyoAuth | null = null;
+  const requestId = settings.pendingLogin?.requestId;
   const loginGame = settings.pendingLogin?.game ?? DEFAULT_LOGIN_GAME;
+  const loginRegion: HoyoRegion = settings.pendingLogin?.region ?? "global";
   const gameConfig = getGameConfig(loginGame);
+  const serviceName = loginRegion === "cn" ? "MiYouShe" : "HoYoLAB";
 
   try {
     const { NativeWindow, ensureRuntime } = await import("@nativewindow/webview");
     // Auto-install WebView2 on Windows 10 if needed
     ensureRuntime();
 
+    const pending = dataController.getCachedGlobalSettings()?.pendingLogin;
+    if (!pending || pending.status !== "requested" || pending.requestId !== requestId) {
+      loginInProgress = false;
+      return;
+    }
+
     // Update status to 'polling'
     await readAndUpdate(() => ({
-      pendingLogin: { status: "polling", game: loginGame },
+      pendingLogin: { status: "polling", game: loginGame, region: loginRegion, requestId },
     }));
 
     const win = new NativeWindow({
-      title: `Login — ${gameConfig.name}`,
+      title: `${serviceName} Login — ${gameConfig.name}`,
       width: 500,
       height: 700,
       resizable: false,
@@ -77,7 +94,7 @@ async function startLoginFlow(settings: GlobalSettings): Promise<void> {
       incognito: true,
     });
 
-    if (gameConfig.loginButtonSelector) {
+    if (loginRegion === "global" && gameConfig.loginButtonSelector) {
       win.onPageLoad((event) => {
         if (event !== "finished") return;
         injectAutoLoginClick(win, gameConfig.loginButtonSelector!);
@@ -112,11 +129,27 @@ async function startLoginFlow(settings: GlobalSettings): Promise<void> {
     win.onClose(() => {
       clearInterval(pollTimer);
       void readAndUpdate((current) => {
+        if (
+          current.pendingLogin?.requestId !== requestId ||
+          current.pendingLogin?.status !== "polling" ||
+          (current.pendingLogin.region ?? "global") !== loginRegion
+        )
+          return {};
         if (detectedAuth) {
-          return { pendingLogin: { status: "success", auth: detectedAuth, game: loginGame } };
+          return {
+            pendingLogin: {
+              status: "success",
+              auth: detectedAuth,
+              game: loginGame,
+              region: loginRegion,
+              requestId,
+            },
+          };
         }
         if (current.pendingLogin?.status === "polling") {
-          return { pendingLogin: { status: "cancelled", game: loginGame } };
+          return {
+            pendingLogin: { status: "cancelled", game: loginGame, region: loginRegion, requestId },
+          };
         }
         return {};
       })
@@ -124,16 +157,43 @@ async function startLoginFlow(settings: GlobalSettings): Promise<void> {
           streamDeck.logger.error("[HoyolabLogin] Failed to save login state:", error),
         )
         .finally(() => {
+          cancelLogin = undefined;
           loginInProgress = false;
+          const next = dataController.getCachedGlobalSettings();
+          if (
+            next?.pendingLogin?.status === "requested" &&
+            next.pendingLogin.requestId !== requestId
+          ) {
+            activeRequestId = next.pendingLogin.requestId;
+            loginInProgress = true;
+            void startLoginFlow(next).catch((error) =>
+              streamDeck.logger.error("[HoyolabLogin] Failed to save login state:", error),
+            );
+          }
         });
     });
 
-    win.loadUrl(gameConfig.battleChronicleUrl);
+    cancelLogin = () => win.close();
+    win.loadUrl(
+      loginRegion === "cn" ? gameConfig.cnBattleChronicleUrl : gameConfig.battleChronicleUrl,
+    );
   } catch (error) {
     const message = error instanceof Error ? error.message : "Failed to open login window";
     streamDeck.logger.error("[HoyolabLogin] Failed to start:", error);
     try {
-      await readAndUpdate(() => ({ pendingLogin: { status: "error", message, game: loginGame } }));
+      await readAndUpdate((current) =>
+        current.pendingLogin?.requestId === requestId
+          ? {
+              pendingLogin: {
+                status: "error",
+                message,
+                game: loginGame,
+                region: loginRegion,
+                requestId,
+              },
+            }
+          : {},
+      );
     } finally {
       loginInProgress = false;
     }
