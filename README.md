@@ -133,7 +133,7 @@ The plugin supports **multiple accounts** — each action can be bound to a diff
 
 | Layer              | Technology                                                                                       |
 | ------------------ | ------------------------------------------------------------------------------------------------ |
-| Runtime            | Node.js 24 via Stream Deck SDK 2                                                                 |
+| Runtime            | Node.js 24 via Stream Deck SDK 3                                                                 |
 | Language           | TypeScript 6 (strict mode)                                                                       |
 | Plugin Rendering   | React 19 → image via [Takumi](https://github.com/nicholasgasior/takumi-rs) (Rust-based renderer) |
 | Property Inspector | React 19 + Tailwind CSS 4 (single-file HTML)                                                     |
@@ -203,6 +203,16 @@ The plugin uses a **React-on-Stream-Deck** architecture via [`@fcannizzaro/strea
 | `bun run dev`       | Start all workspaces in watch mode  |
 | `bun run build`     | Type-check and build all workspaces |
 | `bun run typecheck` | Type-check all workspaces           |
+
+TypeScript stays on 6.0.3 because `@fcannizzaro/streamdeck-react` requires TypeScript 6
+and the website's `astro check` does not support TypeScript 7 yet. The website has
+its own dependency installation and lockfile under `website/`.
+
+The plugin enables the SDK 3 legacy settings-event behavior so startup settings
+reads still trigger pending login cleanup and account validation.
+
+After `bun run build`, run `cd plugin && bun run test` to check production startup
+against a local mock Stream Deck connection. These checks use synthetic settings.
 
 ## Contributing
 

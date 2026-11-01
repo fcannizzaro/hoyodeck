@@ -1,4 +1,5 @@
 import { createPlugin } from "@fcannizzaro/streamdeck-react";
+import streamDeck from "@elgato/streamdeck";
 
 // Import theme stylesheet (Tailwind v4 CSS with @theme tokens)
 import stylesheet from "./theme.css?inline";
@@ -30,6 +31,9 @@ import { patchCountdownAction } from "./actions/common/patch-countdown.tsx";
 // Import font
 import Inter from "@fontsource/inter/files/inter-latin-400-normal.woff";
 
+// Startup auth and login handlers depend on settings reads emitting events.
+streamDeck.settings.useLegacySettingsBehavior = true;
+
 // Register auth validation listener
 registerAuthValidator();
 
@@ -41,7 +45,7 @@ dataController.init();
 
 // Create plugin with React renderer
 const plugin = createPlugin({
-  devtools: true,
+  devtools: __DEBUG__,
   stylesheets: [stylesheet],
   wrapper: PluginWrapper,
   fonts: [
