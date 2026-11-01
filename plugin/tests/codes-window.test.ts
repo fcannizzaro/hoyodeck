@@ -151,3 +151,39 @@ test.each([true, false])(
     expect(mocks.evaluateJs).not.toHaveBeenCalled();
   },
 );
+
+test("marks a code already redeemed without opening the browser", async () => {
+  await showCodesWindow("gi", ["FIRST", "SECOND"]);
+  const html = mocks.html.mock.calls[0]![0];
+  expect(html).toContain('data-redeemed-index="1"');
+  expect(html).toContain("Mark SECOND as already redeemed");
+  const onMessage = mocks.message.mock.calls[0]![0];
+  onMessage("redeemed:1", "nativewindow://localhost");
+  await vi.waitFor(() => expect(mocks.evaluateJs).toHaveBeenCalledWith("markRedeemed(1)"));
+  expect(mocks.openUrl).not.toHaveBeenCalled();
+  expect(mocks.settings.redeemedCodes).toEqual({ gi: ["SECOND"] });
+});
+
+test("ignores untrusted and invalid already-redeemed messages", async () => {
+  await showCodesWindow("gi", ["FIRST"]);
+  const onMessage = mocks.message.mock.calls[0]![0];
+  onMessage("redeemed:0", "https://example.com");
+  onMessage("redeemed:1", "nativewindow://localhost");
+  onMessage("redeemed:-1", "nativewindow://localhost");
+  onMessage("redeemed:0junk", "nativewindow://localhost");
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  expect(mocks.writeSettings).not.toHaveBeenCalled();
+  expect(mocks.openUrl).not.toHaveBeenCalled();
+});
+
+test("keeps the item available when saving already-redeemed status fails", async () => {
+  mocks.writeSettings.mockRejectedValue(new Error("Settings unavailable"));
+  await showCodesWindow("gi", ["FIRST"]);
+  mocks.message.mock.calls[0]![0]("redeemed:0", "nativewindow://localhost");
+  await vi.waitFor(() =>
+    expect(mocks.evaluateJs).toHaveBeenCalledExactlyOnceWith(
+      "document.getElementById('error').hidden = false",
+    ),
+  );
+  expect(mocks.openUrl).not.toHaveBeenCalled();
+});

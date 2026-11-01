@@ -47,10 +47,11 @@ export async function showCodesWindow(game: GameId, codes: string[]): Promise<vo
       win.close();
       return;
     }
-    const index = links.indexOf(message);
+    const index = links.findIndex((link, i) => message === link || message === `redeemed:${i}`);
     if (index === -1) return;
-    void streamDeck.system
-      .openUrl(message)
+    const opening =
+      message === links[index] ? streamDeck.system.openUrl(message) : Promise.resolve();
+    void opening
       .then(async () => {
         const settings = dataController.getCachedGlobalSettings();
         if (!settings) throw new Error("Global settings are not available");
@@ -65,7 +66,10 @@ export async function showCodesWindow(game: GameId, codes: string[]): Promise<vo
         if (!closed) win.evaluateJs(`markRedeemed(${index})`);
       })
       .catch((error) => {
-        streamDeck.logger.error("[CodesWindow] Failed to open redemption page:", error);
+        streamDeck.logger.error(
+          "[CodesWindow] Failed to open redemption page or save redeemed code:",
+          error,
+        );
         if (!closed) win.evaluateJs("document.getElementById('error').hidden = false");
       });
   });
@@ -81,18 +85,20 @@ export async function showCodesWindow(game: GameId, codes: string[]): Promise<vo
   ul { list-style: none; padding: 0; margin: 24px 0; }
   li { display: flex; align-items: center; gap: 16px; padding: 12px 0; border-bottom: 1px solid #505050; }
   code { flex: 1; min-width: 0; overflow-wrap: anywhere; user-select: all; }
-  a { color: #ddd; padding: 8px 12px; background: #414141; border-radius: 4px; text-decoration: none; }
-  a:hover { background: #505050; }
-  a:focus-visible { outline: 2px solid #ddd; outline-offset: 3px; }
+  a, button { font: inherit; border: 0; cursor: pointer; color: #ddd; padding: 8px 12px; background: #414141; border-radius: 4px; text-decoration: none; }
+  a:hover, button:hover { background: #505050; }
+  a:focus-visible, button:focus-visible { outline: 2px solid #ddd; outline-offset: 3px; }
+  .actions { display: flex; flex-wrap: wrap; gap: 8px; }
+  @media (max-width: 440px) { li { flex-direction: column; align-items: flex-start; gap: 8px; } }
   li.redeemed code { text-decoration: line-through; color: #bbb; }
   .redeemed span { padding: 8px 12px; color: #bbb; }
   #error { color: #ffaaaa; }
 </style></head><body>
 <h1>${escapeHtml(title)}</h1>
 <p>Choose Redeem to open the official website in your browser. Sign in, select your character, and confirm redemption there. You can also select and copy a code to redeem in-game.</p>
-<p>Choosing Redeem marks the code as redeemed in this list. Confirm redemption on the official website. Codes may have expired or already been claimed.</p>
-<p id="error" role="alert" hidden>Could not open the browser. Copy the code and visit the game's official redemption website.</p>
-${codes.length ? `<ul>${codes.map((code, i) => `<li data-code-index="${i}"><code>${escapeHtml(code)}</code><a href="${escapeHtml(links[i]!)}" aria-label="Redeem ${escapeHtml(code)}">Redeem</a></li>`).join("")}</ul>` : "<p>No codes are available right now. Close this window and press the key to check again.</p>"}
+<p>Choosing Redeem marks the code as redeemed in this list. Confirm redemption on the official website. Use Already redeemed for codes you have claimed before. Codes may have expired.</p>
+<p id="error" role="alert" hidden>Could not open the browser or save the redeemed code. Please try again.</p>
+${codes.length ? `<ul>${codes.map((code, i) => `<li data-code-index="${i}"><code>${escapeHtml(code)}</code><div class="actions"><a href="${escapeHtml(links[i]!)}" aria-label="Redeem ${escapeHtml(code)}">Redeem</a><button type="button" data-redeemed-index="${i}" aria-label="Mark ${escapeHtml(code)} as already redeemed">Already redeemed</button></div></li>`).join("")}</ul>` : "<p>No codes are available right now. Close this window and press the key to check again.</p>"}
 <script>
   function markRedeemed(index) {
     const row = document.querySelector('[data-code-index="' + index + '"]');
@@ -101,7 +107,7 @@ ${codes.length ? `<ul>${codes.map((code, i) => `<li data-code-index="${i}"><code
     row.classList.add('redeemed');
     const status = document.createElement('span');
     status.textContent = 'Redeemed';
-    link.replaceWith(status);
+    row.querySelector('.actions').replaceWith(status);
     row.parentElement.appendChild(row);
     document.getElementById('error').hidden = true;
   }
@@ -109,10 +115,10 @@ ${codes.length ? `<ul>${codes.map((code, i) => `<li data-code-index="${i}"><code
     if (event.key === 'Escape') window.ipc.postMessage('close');
   });
   document.addEventListener('click', function(event) {
-    const link = event.target.closest('a');
-    if (!link) return;
+    const control = event.target.closest('a, button');
+    if (!control) return;
     event.preventDefault();
-    window.ipc.postMessage(link.href);
+    window.ipc.postMessage(control.tagName === 'A' ? control.href : 'redeemed:' + control.dataset.redeemedIndex);
   });
 </script></body></html>`);
 }
