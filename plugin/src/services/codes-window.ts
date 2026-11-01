@@ -29,7 +29,7 @@ export async function showCodesWindow(game: GameId, codes: string[]): Promise<vo
     width: 520,
     height: 640,
     resizable: true,
-    alwaysOnTop: true,
+    alwaysOnTop: false,
     allowedHosts: ["localhost"],
     trustedOrigins: [origin],
   });

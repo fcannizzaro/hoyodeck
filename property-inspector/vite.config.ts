@@ -8,7 +8,7 @@ export default defineConfig({
     tsconfigPaths: true,
   },
   envPrefix: ["VITE_", "PUBLIC_"],
-  plugins: lazyPlugins(() => [react(), tailwindcss(), viteSingleFile()]),
+  plugins: lazyPlugins(() => [react({ compiler: true }), tailwindcss(), viteSingleFile()]),
   build: {
     minify: true,
     outDir: "../plugin/com.fcannizzaro.hoyodeck.sdPlugin/ui",

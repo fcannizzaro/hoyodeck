@@ -8,6 +8,12 @@ minimumReleaseAgeExclude:
   - "@fcannizzaro/streamdeck-react@0.4.0"
   - "@tanstack/query-core@5.105.1"
   - "@tanstack/react-query@5.105.1"
+  - "@nativewindow/webview-darwin-arm64@1.0.7"
+  - "@nativewindow/webview-darwin-x64@1.0.7"
+  - "@nativewindow/webview-linux-arm64-gnu@1.0.7"
+  - "@nativewindow/webview-win32-arm64-msvc@1.0.7"
+  - "@nativewindow/webview-win32-x64-msvc@1.0.7"
+  - "@nativewindow/webview@1.0.7"
 
 overrides:
   react: ^19.3.1
