@@ -10,19 +10,28 @@ const root = fileURLToPath(new URL("../", import.meta.url));
 for (const initial of [
   { pendingLogin: { status: "polling", game: "gi" } },
   { pendingValidation: "deleted-account", accounts: {} },
+  {
+    pendingLogin: { status: "polling", game: "gi" },
+    pendingValidation: "deleted-account",
+    accounts: {},
+  },
 ]) {
-  test(`startup clears ${Object.keys(initial)[0]} without a property inspector update`, async () => {
+  const fields = ["pendingLogin", "pendingValidation"].filter((field) => field in initial);
+  test(`startup clears ${fields.join(" and ")} without a property inspector update`, async () => {
     const server = new WebSocketServer({ host: "127.0.0.1", port: 0 });
     await once(server, "listening");
     let child;
     let timer;
     let output = "";
     let reads = 0;
-    const field = Object.keys(initial)[0];
+    let settings = initial;
     try {
       await new Promise((resolve, reject) => {
         timer = setTimeout(
-          () => reject(new Error(`${field} was not cleared; settings reads=${reads}; ${output}`)),
+          () =>
+            reject(
+              new Error(`${fields.join(", ")} not cleared; settings reads=${reads}; ${output}`),
+            ),
           5000,
         );
         server.on("connection", (socket) =>
@@ -34,13 +43,16 @@ for (const initial of [
                 JSON.stringify({
                   event: "didReceiveGlobalSettings",
                   id: message.id,
-                  payload: { settings: initial },
+                  payload: { settings },
                 }),
               );
             }
-            if (message.event === "setGlobalSettings" && !(field in message.payload)) {
-              assert.ok(reads > 0);
-              resolve();
+            if (message.event === "setGlobalSettings") {
+              settings = message.payload;
+              if (fields.every((field) => !(field in settings))) {
+                assert.ok(reads > 0);
+                resolve();
+              }
             }
           }),
         );

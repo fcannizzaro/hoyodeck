@@ -13,6 +13,8 @@ const POLL_INTERVAL_MS = 1_000;
 /** Domains allowed for navigation in the login webview */
 const ALLOWED_HOSTS = ["*.hoyolab.com"];
 
+let loginInProgress = false;
+
 // ─── Public API ───────────────────────────────────────────────────
 
 /**
@@ -33,13 +35,18 @@ export function registerLoginHandler(): void {
     if (!initialized) {
       initialized = true;
       if (settings.pendingLogin && settings.pendingLogin.status !== "requested") {
-        void updateGlobalSettings(settings, { pendingLogin: undefined });
+        void readAndUpdate(() => ({ pendingLogin: undefined })).catch((error) => {
+          streamDeck.logger.error("[HoyolabLogin] Failed to clear login state:", error);
+        });
         return;
       }
     }
 
-    if (settings.pendingLogin?.status !== "requested") return;
-    void startLoginFlow(settings);
+    if (settings.pendingLogin?.status !== "requested" || loginInProgress) return;
+    loginInProgress = true;
+    void startLoginFlow(settings).catch((error) => {
+      streamDeck.logger.error("[HoyolabLogin] Failed to save login state:", error);
+    });
   });
 }
 
@@ -56,9 +63,9 @@ async function startLoginFlow(settings: GlobalSettings): Promise<void> {
     ensureRuntime();
 
     // Update status to 'polling'
-    await updateGlobalSettings(settings, {
+    await readAndUpdate(() => ({
       pendingLogin: { status: "polling", game: loginGame },
-    });
+    }));
 
     const win = new NativeWindow({
       title: `Login — ${gameConfig.name}`,
@@ -103,30 +110,33 @@ async function startLoginFlow(settings: GlobalSettings): Promise<void> {
 
     // All cleanup and global settings writes happen here
     win.onClose(() => {
-      if (pollTimer) clearInterval(pollTimer);
-      if (detectedAuth) {
-        streamDeck.logger.info("[HoyolabLogin] Auth cookies detected");
-        void readAndUpdate(() => ({
-          pendingLogin: { status: "success" as const, auth: detectedAuth!, game: loginGame },
-        }));
-      } else {
-        void readAndUpdate((current) => {
-          if (current.pendingLogin?.status === "polling") {
-            return { pendingLogin: { status: "cancelled" as const, game: loginGame } };
-          }
-          return {};
+      clearInterval(pollTimer);
+      void readAndUpdate((current) => {
+        if (detectedAuth) {
+          return { pendingLogin: { status: "success", auth: detectedAuth, game: loginGame } };
+        }
+        if (current.pendingLogin?.status === "polling") {
+          return { pendingLogin: { status: "cancelled", game: loginGame } };
+        }
+        return {};
+      })
+        .catch((error) =>
+          streamDeck.logger.error("[HoyolabLogin] Failed to save login state:", error),
+        )
+        .finally(() => {
+          loginInProgress = false;
         });
-      }
     });
 
     win.loadUrl(gameConfig.battleChronicleUrl);
   } catch (error) {
     const message = error instanceof Error ? error.message : "Failed to open login window";
     streamDeck.logger.error("[HoyolabLogin] Failed to start:", error);
-    const current = await readGlobalSettings();
-    await updateGlobalSettings(current, {
-      pendingLogin: { status: "error", message, game: loginGame },
-    });
+    try {
+      await readAndUpdate(() => ({ pendingLogin: { status: "error", message, game: loginGame } }));
+    } finally {
+      loginInProgress = false;
+    }
   }
 }
 
@@ -179,25 +189,14 @@ function injectAutoLoginClick(
 
 // ─── Helpers ──────────────────────────────────────────────────────
 
-async function readGlobalSettings(): Promise<GlobalSettings> {
-  const cached = dataController.getCachedGlobalSettings();
-  if (cached) return cached;
-  return (await streamDeck.settings.getGlobalSettings()) as unknown as GlobalSettings;
-}
-
-async function updateGlobalSettings(
-  current: GlobalSettings,
-  updates: Partial<GlobalSettings>,
-): Promise<void> {
-  await dataController.writeGlobalSettings({ ...current, ...updates });
-}
-
 async function readAndUpdate(
   updater: (current: GlobalSettings) => Partial<GlobalSettings>,
 ): Promise<void> {
-  const current = await readGlobalSettings();
+  const current =
+    dataController.getCachedGlobalSettings() ??
+    ((await streamDeck.settings.getGlobalSettings()) as unknown as GlobalSettings);
   const updates = updater(current);
   if (Object.keys(updates).length > 0) {
-    await updateGlobalSettings(current, updates);
+    await dataController.writeGlobalSettings({ ...current, ...updates });
   }
 }

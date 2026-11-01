@@ -34,14 +34,14 @@ import Inter from "@fontsource/inter/files/inter-latin-400-normal.woff";
 // Startup auth and login handlers depend on settings reads emitting events.
 streamDeck.settings.useLegacySettingsBehavior = true;
 
+// Cache settings before auth and login listeners read them.
+dataController.init();
+
 // Register auth validation listener
 registerAuthValidator();
 
 // Register webview login handler (clears stale state on first global settings receive)
 registerLoginHandler();
-
-// Initialize data controller (diff-based global settings listener)
-dataController.init();
 
 // Create plugin with React renderer
 const plugin = createPlugin({

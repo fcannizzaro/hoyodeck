@@ -166,7 +166,7 @@ class DataControllerImpl {
     // Seed initial preference values
     void streamDeck.settings.getGlobalSettings().then((s) => {
       const settings = s as unknown as GlobalSettings;
-      this.cachedSettings = settings;
+      this.cachedSettings ??= settings;
       this.previousDisableAnimations = settings.disableAnimations ?? false;
       this.previousBannerBadgePosition = settings.bannerBadgePosition ?? "center";
       this.previousBannerBadgeLayout = settings.bannerBadgeLayout ?? "horizontal";
@@ -365,7 +365,7 @@ class DataControllerImpl {
     debug.log("[DataController] invalidateAccount", accountId);
     this.clientCache.delete(accountId);
 
-    for (const key of [...this.store.keys()]) {
+    for (const key of this.store.keys()) {
       if (key.startsWith(`${accountId}:`)) {
         this.store.delete(key);
       }

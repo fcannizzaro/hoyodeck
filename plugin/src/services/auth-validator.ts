@@ -1,4 +1,5 @@
 import streamDeck from "@elgato/streamdeck";
+import { isDeepStrictEqual } from "node:util";
 import type { JsonObject } from "@elgato/utils";
 import { HoyolabClient } from "@/api/hoyolab/client";
 import { isValidAuth } from "@/api/hoyolab/auth";
@@ -13,11 +14,21 @@ import { debug } from "@/utils/debug";
  * Called once at plugin startup to register the listener.
  */
 export function registerAuthValidator(): void {
+  const inFlight = new Map<string, HoyoAuth | undefined>();
+
   streamDeck.settings.onDidReceiveGlobalSettings<JsonObject>((ev) => {
     const settings = ev.settings as unknown as GlobalSettings;
-    if (!settings.pendingValidation) return;
+    const accountId = settings.pendingValidation;
+    if (!accountId) return;
+    const auth = settings.accounts?.[accountId]?.auth;
+    if (inFlight.has(accountId) && isDeepStrictEqual(inFlight.get(accountId), auth)) return;
+    inFlight.set(accountId, auth);
     debug.log("[AuthValidator] pendingValidation detected:", settings.pendingValidation);
-    void validateAccount(settings);
+    void validateAccount(settings)
+      .catch((error) => streamDeck.logger.error("[AuthValidator] Validation failed:", error))
+      .finally(() => {
+        if (inFlight.get(accountId) === auth) inFlight.delete(accountId);
+      });
   });
 }
 
@@ -35,9 +46,8 @@ async function validateAccount(settings: GlobalSettings): Promise<void> {
     return;
   }
 
-  let authStatus: AuthStatus = account.authStatus;
-  let uids = account.uids;
-  let nicknames = account.nicknames;
+  let authStatus: AuthStatus | undefined;
+  let roles: ReturnType<typeof extractGameRoles> | undefined;
 
   if (isValidAuth(account.auth)) {
     try {
@@ -45,10 +55,8 @@ async function validateAccount(settings: GlobalSettings): Promise<void> {
       const client = new HoyolabClient(account.auth as HoyoAuth);
       const response = await client.getGameRecordCard((account.auth as HoyoAuth).ltuid_v2);
       authStatus = "valid";
-      const roles = extractGameRoles(response);
-      uids = roles.uids;
-      nicknames = roles.nicknames;
-      debug.log("[AuthValidator] auth valid | linked games:", Object.keys(uids));
+      roles = extractGameRoles(response);
+      debug.log("[AuthValidator] auth valid | linked games:", Object.keys(roles.uids));
     } catch (error) {
       if (isAuthError(error)) {
         authStatus = "invalid";
@@ -62,11 +70,18 @@ async function validateAccount(settings: GlobalSettings): Promise<void> {
     debug.log("[AuthValidator] auth cookies incomplete for:", accountId);
   }
 
-  // Write result back — update the account's status, UIDs, and clear pending flag
+  const current = dataController.getCachedGlobalSettings() ?? settings;
+  const currentAccount = current.accounts?.[accountId];
+  if (!currentAccount || !isDeepStrictEqual(currentAccount.auth, account.auth)) return;
+  authStatus ??= currentAccount.authStatus;
+  const uids = roles?.uids ?? currentAccount.uids;
+  const nicknames = roles?.nicknames ?? currentAccount.nicknames;
+
+  // Merge into the latest settings so an API response cannot undo intervening edits.
   const updatedAccounts = {
-    ...accounts,
+    ...current.accounts,
     [accountId]: {
-      ...account,
+      ...currentAccount,
       authStatus,
       uids,
       nicknames,
@@ -83,9 +98,10 @@ async function validateAccount(settings: GlobalSettings): Promise<void> {
   );
 
   await dataController.writeGlobalSettings({
-    ...settings,
+    ...current,
     accounts: updatedAccounts,
-    pendingValidation: undefined,
+    pendingValidation:
+      current.pendingValidation === accountId ? undefined : current.pendingValidation,
   });
 
   debug.log("[AuthValidator] globalSettings written successfully");
