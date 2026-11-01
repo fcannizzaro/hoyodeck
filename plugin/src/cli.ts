@@ -9,7 +9,7 @@ import { parseCookies } from "@hoyodeck/shared/cookies";
 // ============================================
 
 const USAGE = `
-Usage: bun run cli <game> <endpoint> [uid] [options]
+Usage: vp run cli <game> <endpoint> [uid] [options]
 
 Games:
   genshin|gi      Genshin Impact
@@ -42,14 +42,14 @@ Endpoints:
 
 Environment:
   HOYOLAB_COOKIE    Raw cookie string containing the auth cookies used by HoYo Deck
-  Loaded from .env automatically by Bun.
+  Loaded from .env by the CLI command.
 
 Examples:
-  bun run cli genshin daily-note 600123456
-  bun run cli genshin abyss 600123456 --schedule=2
-  bun run cli genshin check-in-info
-  bun run cli starrail daily-note 600123456
-  bun run cli zzz daily-note 1012345678
+  vp run cli genshin daily-note 600123456
+  vp run cli genshin abyss 600123456 --schedule=2
+  vp run cli genshin check-in-info
+  vp run cli starrail daily-note 600123456
+  vp run cli zzz daily-note 1012345678
 `.trim();
 
 // ============================================

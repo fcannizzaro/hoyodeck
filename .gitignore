@@ -27,8 +27,8 @@ Thumbs.db
 # uncompressed images
 **/imgs/**/original
 
-# turborepo
-.turbo
+# Vite+ task cache
+.vite
 
 # compiled plugin
 **/bin/

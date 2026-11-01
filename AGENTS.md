@@ -15,14 +15,17 @@ This document defines the TypeScript coding standards for the HoYo Deck Stream D
 
 You can use
 
-- `bun run typecheck` to check types across all workspace packages (`@hoyodeck/shared`, `plugin`, `property-inspector`)
-- `bun run build` to build the plugin and property inspector
+- `vp run typecheck` to check types across all workspace packages (`@hoyodeck/shared`, `plugin`, `property-inspector`, `website`)
+- `vp run build` to build the plugin, property inspector, and website
 
-The monorepo has three workspace packages:
+The monorepo has four workspace packages:
 
 - **`packages/shared/`** (`@hoyodeck/shared`) -- shared types, Zod schemas, cookie utilities, and game constants
-- **`plugin/`** -- Stream Deck plugin backend (Rollup + SWC)
-- **`property-inspector/`** -- Stream Deck UI panel (Vite + React)
+- **`plugin/`** -- Stream Deck plugin backend (Vite+ / Rolldown)
+- **`property-inspector/`** -- Stream Deck UI panel (Vite+ + React)
+- **`website/`** -- Astro website, sharing the root pnpm lockfile
+
+Use `vp install --frozen-lockfile` for reproducible installs. Vite+ delegates package management to pnpm.
 
 ## 1. Simplicity
 

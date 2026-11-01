@@ -6,13 +6,13 @@
   "author": "fcannizzaro",
   "type": "module",
   "scripts": {
-    "dev": "DEBUG=1 vite build --watch",
-    "build": "tsc --noEmit && vite build",
+    "dev": "DEBUG=1 vp build --watch",
+    "build": "tsc --noEmit && vp build",
     "package": "streamdeck pack --force-update-check  -f ./com.fcannizzaro.hoyodeck.sdPlugin",
     "link": "streamdeck link com.fcannizzaro.hoyodeck.sdPlugin",
     "typecheck": "tsc --noEmit",
-    "test": "node --test tests/*.test.mjs",
-    "cli": "bfr --env -- bun run src/cli.ts"
+    "test": "vp test --config ../vite.config.ts --root .. --run",
+    "cli": "vpx --env-file-if-exists=.env src/cli.ts"
   },
   "dependencies": {
     "@elgato/streamdeck": "^3.0.4",
@@ -34,9 +34,10 @@
     "@types/react": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.2",
     "tailwindcss": "^4.3.3",
-    "vite": "^8.3.5"
+    "vite": "catalog:",
+    "vite-plus": "catalog:"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=24.11.0"
   }
 }

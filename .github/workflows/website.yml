@@ -6,6 +6,11 @@ on:
     branches: [main]
     paths:
       - "website/**"
+      - "pnpm-lock.yaml"
+      - "pnpm-workspace.yaml"
+      - "package.json"
+      - "vite.config.ts"
+      - ".github/workflows/website.yml"
 
 permissions:
   pages: write
@@ -20,19 +25,18 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
+      - name: Setup Vite+
+        uses: voidzero-dev/setup-vp@v1.22.0
         with:
-          node-version: "24.x"
+          node-version: "24"
+          cache: true
+          run-install: false
 
       - name: Install dependencies
-        run: cd website && bun install
+        run: vp install --frozen-lockfile
 
       - name: Build website
-        run: cd website && bun run build
+        run: vp run website#build
         env:
           PUBLIC_DISCORD_URL: ${{ secrets.PUBLIC_DISCORD_URL }}
 

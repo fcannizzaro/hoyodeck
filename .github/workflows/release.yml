@@ -15,26 +15,25 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
+      - name: Setup Vite+
+        uses: voidzero-dev/setup-vp@v1.22.0
         with:
-          node-version: "24.x"
+          node-version: "24"
+          cache: true
+          run-install: false
 
       - name: Install dependencies
-        run: bun install
+        run: vp install --frozen-lockfile
 
       - name: Build
         env:
           CODE_SERVER_URL: ${{ secrets.CODE_SERVER_URL }}
           PUBLIC_DISCORD_URL: ${{ secrets.PUBLIC_DISCORD_URL }}
-        run: bun run build
+        run: vp run --filter com.fcannizzaro.hoyodeck --filter hoyodeck-property-inspector build
 
       - name: Pack Stream Deck plugin
         working-directory: plugin
-        run: bun streamdeck pack com.fcannizzaro.hoyodeck.sdPlugin
+        run: vp exec streamdeck pack com.fcannizzaro.hoyodeck.sdPlugin
 
       - name: Verify plugin file
         run: test -f plugin/com.fcannizzaro.hoyodeck.streamDeckPlugin

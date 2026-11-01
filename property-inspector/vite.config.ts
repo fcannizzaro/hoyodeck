@@ -1,4 +1,4 @@
-import { defineConfig } from "vite";
+import { defineConfig, lazyPlugins } from "vite-plus";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import { viteSingleFile } from "vite-plugin-singlefile";
@@ -8,7 +8,7 @@ export default defineConfig({
     tsconfigPaths: true,
   },
   envPrefix: ["VITE_", "PUBLIC_"],
-  plugins: [react(), tailwindcss(), viteSingleFile()],
+  plugins: lazyPlugins(() => [react(), tailwindcss(), viteSingleFile()]),
   build: {
     minify: true,
     outDir: "../plugin/com.fcannizzaro.hoyodeck.sdPlugin/ui",

@@ -1,6 +1,6 @@
 import { builtinModules } from "node:module";
 import { resolve } from "node:path";
-import { defineConfig, esmExternalRequirePlugin } from "vite";
+import { defineConfig, esmExternalRequirePlugin, lazyPlugins } from "vite-plus";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import { streamDeckReact } from "@fcannizzaro/streamdeck-react/vite";
@@ -19,7 +19,7 @@ export default defineConfig({
       process.env.CODE_SERVER_URL ?? "https://hoyodeck.fclab.dev",
     ),
   },
-  plugins: [
+  plugins: lazyPlugins(() => [
     esmExternalRequirePlugin({ external: builtins }),
     react(),
     tailwindcss(),
@@ -62,7 +62,7 @@ export default defineConfig({
         propertyInspectorPath: "ui/index.html",
       },
     }),
-  ],
+  ]),
   build: {
     target: "node20",
     outDir: resolve(PLUGIN_DIR, "bin"),

@@ -50,16 +50,16 @@ git clone https://github.com/fcannizzaro/hoyodeck.git
 cd hoyodeck
 
 # Install dependencies
-bun install
+vp install
 
 # Open the plugin directory
 cd plugin
 
 # Link the plugin for local development
-bun run link
+vp run link
 
 # Start development mode (watch + rebuild)
-bun run dev
+vp run dev
 ```
 
 ## Setup
@@ -139,9 +139,9 @@ The plugin supports **multiple accounts** — each action can be bound to a diff
 | Property Inspector | React 19 + Tailwind CSS 4 (single-file HTML)                                                     |
 | Data Fetching      | TanStack Query 5                                                                                 |
 | Validation         | Zod 4                                                                                            |
-| Bundler            | Vite 8 (Rolldown)                                                                                |
-| Monorepo           | Turborepo + Bun workspaces                                                                       |
-| Package Manager    | Bun                                                                                              |
+| Bundler            | Vite+ (Vite 8 / Rolldown)                                                                        |
+| Monorepo           | Vite+ tasks + pnpm workspaces                                                                    |
+| Package Manager    | pnpm via Vite+                                                                                   |
 
 ## Development
 
@@ -198,20 +198,20 @@ The plugin uses a **React-on-Stream-Deck** architecture via [`@fcannizzaro/strea
 
 ### Scripts
 
-| Script              | Description                         |
-| ------------------- | ----------------------------------- |
-| `bun run dev`       | Start all workspaces in watch mode  |
-| `bun run build`     | Type-check and build all workspaces |
-| `bun run typecheck` | Type-check all workspaces           |
+| Script             | Description                             |
+| ------------------ | --------------------------------------- |
+| `vp run dev`       | Watch the plugin and property inspector |
+| `vp run build`     | Type-check and build all workspaces     |
+| `vp run typecheck` | Type-check all workspaces               |
 
 TypeScript stays on 6.0.3 because `@fcannizzaro/streamdeck-react` requires TypeScript 6
-and the website's `astro check` does not support TypeScript 7 yet. The website has
-its own dependency installation and lockfile under `website/`.
+and the website's `astro check` does not support TypeScript 7 yet. The website shares
+the root pnpm workspace and lockfile. Run `vp run website#build` to build it alone.
 
 The plugin enables the SDK 3 legacy settings-event behavior so startup settings
 reads still trigger pending login cleanup and account validation.
 
-After `bun run build`, run `cd plugin && bun run test` to check production startup
+After `vp run build`, run `vp test --run` to check production startup
 against a local mock Stream Deck connection. These checks use synthetic settings.
 
 ## Contributing
@@ -220,13 +220,14 @@ Contributions are welcome! Whether it's a bug fix, a new game action, or a UI im
 
 ### How It Works
 
-HoYo Deck is a **Turborepo monorepo** with three workspace packages:
+HoYo Deck is a **pnpm monorepo** with four workspace packages:
 
 | Package              | Path                  | Description                                                                                                                                                                   |
 | -------------------- | --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `@hoyodeck/shared`   | `packages/shared/`    | Shared types, Zod schemas, cookie utilities, and game constants. Has **no build step** — consumers import `.ts` source directly.                                              |
 | `plugin`             | `plugin/`             | Stream Deck plugin backend. React components are rendered to key images via [Takumi](https://github.com/nicholasgasior/takumi-rs) (a Rust-based renderer), not a browser DOM. |
 | `property-inspector` | `property-inspector/` | Stream Deck settings UI panel. A React + Tailwind CSS app bundled as a single HTML file via `vite-plugin-singlefile`.                                                         |
+| `website`            | `website/`            | Astro marketing website.                                                                                                                                                      |
 
 Data flows like this: the **plugin** polls the HoYoLAB API on a 5-minute interval via a centralized `DataController`, which pushes updates to subscribed actions. Each action is a React component that renders to a Stream Deck key/dial image. The **Property Inspector** communicates with the plugin over the Stream Deck SDK messaging bridge to configure accounts and action settings.
 
@@ -237,30 +238,30 @@ Data flows like this: the **plugin** polls the HoYoLAB API on a 5-minute interva
 git clone https://github.com/<your-username>/hoyodeck.git
 cd hoyodeck
 
-# 2. Install dependencies (Bun is required)
-bun install
+# 2. Install dependencies (Vite+ is required)
+vp install
 
 # 3. Link the plugin for local Stream Deck development
 cd plugin
-bun run link
+vp run link
 cd ..
 
-# 4. Start development mode (watches all workspaces)
-bun run dev
+# 4. Start development mode (watches the plugin and property inspector)
+vp run dev
 ```
 
-> **Prerequisites:** [Bun](https://bun.sh) (v1.3+), Node.js 24+, and the [Stream Deck](https://developer.elgato.com/documentation/stream-deck/) desktop app.
+> **Prerequisites:** [Vite+](https://viteplus.dev/guide/), Node.js 24.11+, and the [Stream Deck](https://developer.elgato.com/documentation/stream-deck/) desktop app.
 
 ### Available Scripts
 
 Run these from the **repository root**:
 
-| Script              | Description                                    |
-| ------------------- | ---------------------------------------------- |
-| `bun run dev`       | Start all workspaces in watch mode (Turborepo) |
-| `bun run build`     | Type-check and build all workspaces            |
-| `bun run typecheck` | Type-check all workspaces without building     |
-| `bun run format`    | Format code with oxfmt                         |
+| Script             | Description                                     |
+| ------------------ | ----------------------------------------------- |
+| `vp run dev`       | Watch the plugin and property inspector (Vite+) |
+| `vp run build`     | Type-check and build all workspaces             |
+| `vp run typecheck` | Type-check all workspaces without building      |
+| `vp run format`    | Format code with Vite+                          |
 
 ### Submitting Changes
 
@@ -271,8 +272,8 @@ Run these from the **repository root**:
 2. **Make your changes** — keep commits focused and descriptive
 3. **Verify your work** before pushing:
    ```bash
-   bun run typecheck   # must pass with no errors
-   bun run build       # must build successfully
+   vp run typecheck   # must pass with no errors
+   vp run build       # must build successfully
    ```
 4. **Push** your branch and open a **Pull Request** against `main`
 

@@ -1,0 +1,23 @@
+packages:
+  - packages/*
+  - plugin
+  - property-inspector
+  - website
+
+minimumReleaseAgeExclude:
+  - "@fcannizzaro/streamdeck-react@0.4.0"
+  - "@tanstack/query-core@5.105.1"
+  - "@tanstack/react-query@5.105.1"
+
+overrides:
+  react: ^19.3.1
+  react-dom: ^19.3.1
+  vite@*: "catalog:"
+catalog:
+  vite: npm:@voidzero-dev/vite-plus-core@1.4.0
+  vite-plus: 1.4.0
+peerDependencyRules:
+  allowAny:
+    - vite
+  allowedVersions:
+    vite: "*"
