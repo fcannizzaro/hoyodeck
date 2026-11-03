@@ -190,16 +190,36 @@ export class HoyolabClient {
   async getGenshinDailyNote(uid: string): Promise<GenshinDailyNote> {
     const region = this.getRoleRegion(uid, "gi");
 
-    return this.request<GenshinDailyNote>(
-      this.apiUrls.BATTLE_CHRONICLE,
-      this.recordEndpoint(GENSHIN.ENDPOINTS.DAILY_NOTE),
-      {
-        query: {
-          role_id: uid,
-          server: region,
+    const fetchNote = () =>
+      this.request<GenshinDailyNote>(
+        this.apiUrls.BATTLE_CHRONICLE,
+        this.recordEndpoint(GENSHIN.ENDPOINTS.DAILY_NOTE),
+        { query: { role_id: uid, server: region } },
+      );
+
+    try {
+      return await fetchNote();
+    } catch (error) {
+      if (
+        this.region !== "cn" ||
+        !(error instanceof HoyolabApiError) ||
+        error.retcode !== 10102 ||
+        !this.roles?.gi?.some((role) => role.uid === uid)
+      ) {
+        throw error;
+      }
+
+      // MiYouShe requires enabling Real-Time Notes separately from account login.
+      await this.request(
+        this.apiUrls.BATTLE_CHRONICLE,
+        "/game_record/app/card/wapi/changeDataSwitch",
+        {
+          method: "POST",
+          body: { game_id: 2, is_public: true, switch_id: 3 },
         },
-      },
-    );
+      );
+      return fetchNote();
+    }
   }
 
   /**
@@ -305,6 +325,17 @@ export class HoyolabClient {
   async getGenshinActCalendar(uid: string): Promise<GenshinActCalendar> {
     const region = this.getRoleRegion(uid, "gi");
 
+    if (this.region === "cn") {
+      return this.request<GenshinActCalendar>(
+        this.apiUrls.BATTLE_CHRONICLE,
+        "/game_record/app/genshin/api/act_calendar",
+        {
+          method: "POST",
+          body: { role_id: uid, server: region },
+        },
+      );
+    }
+
     return this.request<GenshinActCalendar>(
       this.apiUrls.CALCULATOR,
       GENSHIN.ENDPOINTS.ACT_CALENDAR,
@@ -314,7 +345,7 @@ export class HoyolabClient {
           role_id: uid,
           server: region,
         },
-        useDS: this.region === "cn",
+        useDS: false,
       },
     );
   }
