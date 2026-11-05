@@ -319,3 +319,12 @@ Choose **HoYoLAB (Global)** or **MiYouShe (China)** when adding an account. Log 
 After validation, edit the account to choose a character per game. The selector shows its server, nickname, and UID. Use **Add another region** on an account card to reuse its login in a separate entry, select the other characters, and give the entry a name such as "Main Europe". Assign each entry to the keys or dials that should show it. Existing entries keep their selected UIDs when refreshed.
 
 China accounts use MiYouShe game records and daily check-in. For linked Genshin Impact characters, HoYo Deck enables Real-Time Notes when MiYouShe reports that they are disabled, then retries the stamina request once. Redeem gift codes in-game for China accounts; the browser redemption flow is intended for Global accounts.
+
+### Troubleshooting game data
+
+If an action stays on its background image, press the key to refresh, then check the newest log file in:
+
+- Windows: `%APPDATA%\Elgato\StreamDeck\Plugins\com.fcannizzaro.hoyodeck.sdPlugin\logs`
+- macOS: `~/Library/Application Support/com.elgato.StreamDeck/Plugins/com.fcannizzaro.hoyodeck.sdPlugin/logs`
+
+Search for `[HoyolabClient] Request failed`, `[hsr] Failed to fetch`, or `[EndgameKey] Failed to format`. Request failures include the service region, endpoint, HTTP status when available, and API `retcode` when present. Fetch and formatting failures identify the affected game and mode. These diagnostics are included in normal releases and omit request headers, bodies, account UIDs, and upstream error messages. Share only the relevant lines when reporting a problem, and review them for personal information first.

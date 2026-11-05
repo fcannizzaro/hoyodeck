@@ -1,3 +1,5 @@
+import streamDeck from "@elgato/streamdeck";
+import { HoyolabApiError } from "../src/api/types/common";
 import { afterEach, describe, expect, test, vi } from "vite-plus/test";
 import { HoyolabClient } from "../src/api/hoyolab/client";
 import { GenshinController } from "../src/services/game-controllers/genshin-controller";
@@ -71,4 +73,41 @@ describe.each([
     expect(client.getCheckInInfo).not.toHaveBeenCalled();
     expect(client.getCheckInRewards).not.toHaveBeenCalled();
   });
+});
+
+test("identifies every failed HSR endgame mode without logging upstream private data", async () => {
+  const client = new HoyolabClient({
+    ltoken_v2: "test",
+    ltuid_v2: "test",
+    ltmid_v2: "test",
+    cookie_token_v2: "test",
+    account_mid_v2: "test",
+    account_id_v2: "test",
+  });
+  const error = new HoyolabApiError(1034, "private upstream details");
+  for (const method of [
+    "getStarRailMemoryOfChaos",
+    "getStarRailPureFiction",
+    "getStarRailApocalypticShadow",
+    "getStarRailAnomalyArbitration",
+  ] as const) {
+    vi.spyOn(client, method).mockRejectedValue(error);
+  }
+  vi.mocked(streamDeck.logger.warn).mockClear();
+  const modes = [
+    "hsr:memory-of-chaos",
+    "hsr:pure-fiction",
+    "hsr:apocalyptic-shadow",
+    "hsr:anomaly-arbitration",
+  ] as const;
+  const results = await new HSRController().fetchAll(client, "100123456", [...modes]);
+  for (const mode of modes) {
+    expect(results.get(mode)).toMatchObject({ status: "error", error });
+    expect(streamDeck.logger.warn).toHaveBeenCalledWith(
+      `[hsr] Failed to fetch ${mode} {"errorType":"HoyolabApiError","retcode":1034}`,
+    );
+  }
+  expect(JSON.stringify(vi.mocked(streamDeck.logger.warn).mock.calls)).not.toMatch(
+    /private|100123456/,
+  );
 });

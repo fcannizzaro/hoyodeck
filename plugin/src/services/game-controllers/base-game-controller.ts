@@ -1,4 +1,5 @@
 import streamDeck from "@elgato/streamdeck";
+import { HoyolabApiError } from "@/api/types/common";
 import type { HoyolabClient } from "@/api/hoyolab/client";
 import type { CheckInInfo, CheckInRewards } from "@/api/types/check-in";
 import type { GameId } from "@hoyodeck/shared/types";
@@ -68,7 +69,12 @@ export abstract class BaseGameController {
         });
         debug.log("[GameController]", this.game, "| OK:", result.value.type);
       } else {
-        streamDeck.logger.warn(`[${this.game}] Failed to fetch ${type}:`, result.reason);
+        streamDeck.logger.warn(
+          `[${this.game}] Failed to fetch ${type} ${JSON.stringify({
+            errorType: result.reason instanceof Error ? result.reason.name : typeof result.reason,
+            retcode: result.reason instanceof HoyolabApiError ? result.reason.retcode : undefined,
+          })}`,
+        );
         results.set(type, {
           status: "error",
           error: result.reason instanceof Error ? result.reason : new Error(String(result.reason)),

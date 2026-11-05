@@ -1,6 +1,9 @@
+import streamDeck from "@elgato/streamdeck";
 import { createHash } from "node:crypto";
 import { afterEach, expect, test, vi } from "vite-plus/test";
 import { HoyolabClient } from "../src/api/hoyolab/client";
+vi.mock("@elgato/streamdeck", () => ({ default: { logger: { warn: vi.fn() } } }));
+
 const auth = {
   ltoken_v2: "test",
   ltuid_v2: "test",
@@ -9,7 +12,10 @@ const auth = {
   account_mid_v2: "test",
   account_id_v2: "test",
 };
-afterEach(() => vi.unstubAllGlobals());
+afterEach(() => {
+  vi.unstubAllGlobals();
+  vi.clearAllMocks();
+});
 
 test("discovers every global role through the binding API for all games", async () => {
   const fetcher = vi.fn(async () =>
@@ -164,4 +170,66 @@ test("does not keep retrying when CN notes remain disabled", async () => {
   });
   await expect(client.getGenshinDailyNote("100123456")).rejects.toMatchObject({ retcode: 10102 });
   expect(fetcher).toHaveBeenCalledTimes(3);
+});
+
+test.each([
+  {
+    response: () =>
+      Response.json({ retcode: 1034, message: "private upstream message", data: null }),
+    code: 1034,
+    status: 200,
+    errorType: "HoyolabApiError",
+  },
+  {
+    response: () => new Response("private response", { status: 403 }),
+    code: undefined,
+    status: 403,
+    errorType: "Error",
+  },
+  {
+    response: () => new Response("private invalid JSON"),
+    code: undefined,
+    status: 200,
+    errorType: "SyntaxError",
+  },
+])(
+  "logs safe request context for $errorType with HTTP $status",
+  async ({ response, code, status, errorType }) => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => response()),
+    );
+    const client = new HoyolabClient(auth, "cn");
+    await expect(client.getStarRailMemoryOfChaos("100123456")).rejects.toBeInstanceOf(Error);
+    const warning = vi.mocked(streamDeck.logger.warn).mock.calls[0]![0] as string;
+    const context = JSON.parse(warning.slice(warning.indexOf("{")));
+    expect(context).toEqual({
+      region: "cn",
+      method: "GET",
+      endpoint: "https://api-takumi-record.mihoyo.com/game_record/app/hkrpg/api/challenge",
+      server: "prod_gf_cn",
+      scheduleType: "1",
+      httpStatus: status,
+      retcode: code,
+      errorType,
+    });
+    expect(warning).not.toMatch(/100123456|private|Cookie|ltoken|DS/);
+  },
+);
+
+test("logs a network failure without exposing the URL or exception message", async () => {
+  const error = new TypeError("private URL with role_id=100123456 and ltoken_v2=test");
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async () => {
+      throw error;
+    }),
+  );
+  await expect(new HoyolabClient(auth, "cn").getStarRailPureFiction("100123456")).rejects.toBe(
+    error,
+  );
+  const warning = vi.mocked(streamDeck.logger.warn).mock.calls[0]![0] as string;
+  expect(warning).toContain("challenge_story");
+  expect(warning).toContain('"errorType":"TypeError"');
+  expect(warning).not.toMatch(/100123456|private|ltoken/);
 });

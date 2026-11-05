@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import streamDeck from "@elgato/streamdeck";
 import type { HoyoAuth } from "./auth";
 import { buildCookieString } from "./auth";
 import { generateDS, generateCnCheckInDS } from "./ds";
@@ -117,24 +118,43 @@ export class HoyolabClient {
         )
       : undefined;
 
-    // Make request
-    const response = await fetch(url, {
-      method,
-      headers,
-      body: requestBody,
-    });
+    let httpStatus: number | undefined;
+    try {
+      const response = await fetch(url, {
+        method,
+        headers,
+        body: requestBody,
+      });
+      httpStatus = response.status;
 
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const json = (await response.json()) as ApiResponse<T>;
+
+      if (!isSuccess(json)) {
+        throw new HoyolabApiError(json.retcode, json.message);
+      }
+
+      return json.data;
+    } catch (error) {
+      // Log routing and error codes only. URLs with queries, bodies, headers,
+      // and upstream error messages can contain account data or credentials.
+      streamDeck.logger.warn(
+        `[HoyolabClient] Request failed ${JSON.stringify({
+          region: this.region,
+          method,
+          endpoint: `${baseUrl}${endpoint}`,
+          server: query?.server ?? query?.region ?? body?.server,
+          scheduleType: query?.schedule_type,
+          httpStatus,
+          retcode: error instanceof HoyolabApiError ? error.retcode : undefined,
+          errorType: error instanceof Error ? error.name : typeof error,
+        })}`,
+      );
+      throw error;
     }
-
-    const json = (await response.json()) as ApiResponse<T>;
-
-    if (!isSuccess(json)) {
-      throw new HoyolabApiError(json.retcode, json.message);
-    }
-
-    return json.data;
   }
 
   /** Add MiYouShe's `/app` path segment for GI/HSR record endpoints. */

@@ -16,6 +16,7 @@ import { useLocalImageDataUri } from "@/hooks/use-local-image-data-uri";
 import { PlaceholderKey } from "@/components/placeholder-key";
 import { Badge } from "@/components/badge";
 import { debug } from "@/utils/debug";
+import { formatEndgameData } from "@/utils/format-endgame-data";
 
 // ─── Types ────────────────────────────────────────────────────────
 
@@ -73,6 +74,7 @@ const ENDING_SOONEST = "ending-soonest";
  * Falls back to `fallbackMode` when no active mode has a valid `endMs`.
  */
 function resolveEndingSoonest(
+  game: GameId,
   modes: Record<string, EndgameModeConfig>,
   fallbackMode: string,
   formatData: EndgameKeyProps["formatData"],
@@ -85,7 +87,7 @@ function resolveEndingSoonest(
   for (const [modeId, config] of Object.entries(modes)) {
     const entry = getData(config.dataType);
     if (entry?.status !== "ok" || !entry.data) continue;
-    const display = formatData(modeId, entry.data);
+    const display = formatEndgameData(game, modeId, entry.data, formatData);
     // Only consider challenges that haven't ended yet
     if (display.endMs != null && display.endMs > now && display.endMs < soonestMs) {
       soonestMs = display.endMs;
@@ -125,7 +127,7 @@ export function EndgameKey({ game, modes, defaultMode, formatData }: EndgameKeyP
   // Resolve the actual mode — "ending-soonest" picks dynamically
   const mode =
     selectedMode === ENDING_SOONEST
-      ? resolveEndingSoonest(modes, concreteDefault, formatData, getData)
+      ? resolveEndingSoonest(game, modes, concreteDefault, formatData, getData)
       : selectedMode;
 
   const config = modes[mode] ?? modes[concreteDefault]!;
@@ -184,7 +186,7 @@ export function EndgameKey({ game, modes, defaultMode, formatData }: EndgameKeyP
   // ─── Render ─────────────────────────────────────────────────
 
   debug.log("[EndgameKey]", game, "| rendering with data | mode:", mode);
-  const { progressText, timerText } = formatData(mode, data);
+  const { progressText, timerText } = formatEndgameData(game, mode, data, formatData);
 
   const scrollText = needsScroll
     ? `${modeName}${NAME_SEPARATOR}`.repeat(Math.ceil(144 / cycleWidth) + 2)
