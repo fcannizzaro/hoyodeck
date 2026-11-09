@@ -20,8 +20,8 @@ overrides:
   react-dom: ^19.3.1
   vite@*: "catalog:"
 catalog:
-  vite: npm:@voidzero-dev/vite-plus-core@1.4.0
-  vite-plus: 1.4.0
+  vite: npm:@voidzero-dev/vite-plus-core@1.5.0
+  vite-plus: 1.5.0
 peerDependencyRules:
   allowAny:
     - vite
